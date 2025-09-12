@@ -20,7 +20,7 @@ namespace nfx::string
 	//=====================================================================
 
 	//----------------------------------------------
-	// Validation
+	// String validation
 	//----------------------------------------------
 
 	/**
@@ -40,58 +40,53 @@ namespace nfx::string
 	 */
 	[[nodiscard]] NFX_CORE_INLINE constexpr bool isEmpty( std::string_view str ) noexcept;
 
-	//----------------------------------------------
-	// Parsing
-	//----------------------------------------------
-
 	/**
-	 * @brief Fast boolean parsing with error handling
-	 * @param str String to parse (case-insensitive)
-	 * @param result Output boolean value
-	 * @return True if parsing succeeded, false otherwise
-	 * @details Supports: "true"/"false", "1"/"0", "yes"/"no", "on"/"off", "t"/"f", "y"/"n"
+	 * @brief Fast check if string is null, empty, or contains only whitespace
+	 * @param str String to check
+	 * @return True if string is empty or contains only whitespace characters
+	 * @details Considers space, tab, newline, carriage return, form feed, and vertical tab as whitespace
 	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 	 */
-	[[nodiscard]] inline bool tryParseBool( std::string_view str, bool& result ) noexcept;
-
-	/**
-	 * @brief Fast integer parsing with error handling
-	 * @param str String to parse
-	 * @param result Output integer value
-	 * @return True if parsing succeeded, false otherwise
-	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-	 */
-	[[nodiscard]] NFX_CORE_INLINE bool tryParseInt( std::string_view str, int& result ) noexcept;
-
-	/**
-	 * @brief Fast unsigned integer parsing with error handling
-	 * @param str String to parse
-	 * @param result Output unsigned integer value
-	 * @return True if parsing succeeded, false otherwise
-	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-	 */
-	[[nodiscard]] NFX_CORE_INLINE bool tryParseUInt( std::string_view str, std::uint32_t& result ) noexcept;
-
-	/**
-	 * @brief Fast long integer parsing with error handling
-	 * @param str String to parse
-	 * @param result Output long integer value
-	 * @return True if parsing succeeded, false otherwise
-	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-	 */
-	[[nodiscard]] NFX_CORE_INLINE bool tryParseLong( std::string_view str, std::int64_t& result ) noexcept;
-
-	/**
-	 * @brief Fast double parsing with error handling
-	 * @param str String to parse
-	 * @param result Output double value
-	 * @return True if parsing succeeded, false otherwise
-	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-	 */
-	[[nodiscard]] NFX_CORE_INLINE bool tryParseDouble( std::string_view str, double& result ) noexcept;
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool isNullOrWhiteSpace( std::string_view str ) noexcept;
 
 	//----------------------------------------------
-	// Operations
+	// Character classification
+	//----------------------------------------------
+
+	/**
+	 * @brief Check if character is whitespace
+	 * @param c Character to check
+	 * @return True if character is space, tab, newline, carriage return, form feed, or vertical tab
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool isWhitespace( char c ) noexcept;
+
+	/**
+	 * @brief Check if character is ASCII digit
+	 * @param c Character to check
+	 * @return True if character is 0-9
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool isDigit( char c ) noexcept;
+
+	/**
+	 * @brief Check if character is ASCII alphabetic
+	 * @param c Character to check
+	 * @return True if character is a-z or A-Z
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool isAlpha( char c ) noexcept;
+
+	/**
+	 * @brief Check if character is ASCII alphanumeric
+	 * @param c Character to check
+	 * @return True if character is a-z, A-Z, or 0-9
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool isAlphaNumeric( char c ) noexcept;
+
+	//----------------------------------------------
+	// String operations
 	//----------------------------------------------
 
 	/**
@@ -140,7 +135,62 @@ namespace nfx::string
 	[[nodiscard]] NFX_CORE_INLINE bool iequals( std::string_view lhs, std::string_view rhs ) noexcept;
 
 	//----------------------------------------------
-	// Case Conversion
+	// String trimming
+	//----------------------------------------------
+
+	/**
+	 * @brief Remove leading whitespace from string
+	 * @param str String to trim
+	 * @return String view with leading whitespace removed
+	 * @details Returns a view into the original string, no allocation performed
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr std::string_view trimStart( std::string_view str ) noexcept;
+
+	/**
+	 * @brief Remove trailing whitespace from string
+	 * @param str String to trim
+	 * @return String view with trailing whitespace removed
+	 * @details Returns a view into the original string, no allocation performed
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr std::string_view trimEnd( std::string_view str ) noexcept;
+
+	/**
+	 * @brief Remove leading and trailing whitespace from string
+	 * @param str String to trim
+	 * @return String view with leading and trailing whitespace removed
+	 * @details Returns a view into the original string, no allocation performed
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr std::string_view trim( std::string_view str ) noexcept;
+
+	//----------------------------------------------
+	// String case conversion
+	//----------------------------------------------
+
+	/**
+	 * @brief Convert string to lowercase
+	 * @param str String to convert
+	 * @return New string with all ASCII characters converted to lowercase
+	 * @details Only ASCII characters (A-Z) are converted. Non-ASCII characters are preserved unchanged.
+	 *          This function allocates a new std::string.
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] inline std::string toLower( std::string_view str );
+
+	/**
+	 * @brief Convert string to uppercase
+	 * @param str String to convert
+	 * @return New string with all ASCII characters converted to uppercase
+	 * @details Only ASCII characters (a-z) are converted. Non-ASCII characters are preserved unchanged.
+	 *          This function allocates a new std::string.
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] inline std::string toUpper( std::string_view str );
+
+	//----------------------------------------------
+	// Character case conversion
 	//----------------------------------------------
 
 	/**
@@ -161,25 +211,55 @@ namespace nfx::string
 	 */
 	[[nodiscard]] NFX_CORE_INLINE constexpr char toUpper( char c ) noexcept;
 
-	/**
-	 * @brief Convert string to lowercase (allocating)
-	 * @param str String to convert
-	 * @return New string with all ASCII characters converted to lowercase
-	 * @details Only ASCII characters (A-Z) are converted. Non-ASCII characters are preserved unchanged.
-	 *          This function allocates a new std::string.
-	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-	 */
-	[[nodiscard]] inline std::string toLower( std::string_view str );
+	//----------------------------------------------
+	// String parsing
+	//----------------------------------------------
 
 	/**
-	 * @brief Convert string to uppercase (allocating)
-	 * @param str String to convert
-	 * @return New string with all ASCII characters converted to uppercase
-	 * @details Only ASCII characters (a-z) are converted. Non-ASCII characters are preserved unchanged.
-	 *          This function allocates a new std::string.
+	 * @brief Fast boolean parsing with error handling
+	 * @param str String to parse (case-insensitive)
+	 * @param result Output boolean value
+	 * @return True if parsing succeeded, false otherwise
+	 * @details Supports: "true"/"false", "1"/"0", "yes"/"no", "on"/"off", "t"/"f", "y"/"n"
 	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 	 */
-	[[nodiscard]] inline std::string toUpper( std::string_view str );
+	[[nodiscard]] inline bool tryParseBool( std::string_view str, bool& result ) noexcept;
+
+	/**
+	 * @brief Fast integer parsing with error handling
+	 * @param str String to parse
+	 * @param result Output integer value
+	 * @return True if parsing succeeded, false otherwise
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE bool tryParseInt( std::string_view str, int& result ) noexcept;
+
+	/**
+	 * @brief Fast unsigned integer parsing with error handling
+	 * @param str String to parse
+	 * @param result Output unsigned integer value
+	 * @return True if parsing succeeded, false otherwise
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE bool tryParseUInt( std::string_view str, std::uint32_t& result ) noexcept;
+
+	/**
+	 * @brief Fast long integer parsing with error handling
+	 * @param str String to parse
+	 * @param result Output long integer value
+	 * @return True if parsing succeeded, false otherwise
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE bool tryParseLong( std::string_view str, std::int64_t& result ) noexcept;
+
+	/**
+	 * @brief Fast double parsing with error handling
+	 * @param str String to parse
+	 * @param result Output double value
+	 * @return True if parsing succeeded, false otherwise
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE bool tryParseDouble( std::string_view str, double& result ) noexcept;
 }
 
 #include "Utils.inl"

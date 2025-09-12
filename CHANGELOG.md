@@ -31,6 +31,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.0.2] - 2025-09-12
+
+### Added
+
+#### Enhanced String Processing
+
+- **Character Classification Functions**: High-performance character classification utilities
+
+  - `isWhitespace()`: Constexpr whitespace detection for standard whitespace characters
+  - `isDigit()`: Fast ASCII digit detection using optimized bit manipulation
+  - `isAlpha()`: ASCII alphabetic character detection for a-z and A-Z
+  - `isAlphaNumeric()`: Combined alphanumeric detection for ASCII characters
+  - All functions marked constexpr for compile-time evaluation
+
+- **String Trimming Suite**: Zero-allocation and efficient trimming functions
+
+  - `trimStart()`: Remove leading whitespace, returns std::string_view
+  - `trimEnd()`: Remove trailing whitespace, returns std::string_view
+  - `trim()`: Remove leading and trailing whitespace, returns std::string_view
+  - All trimming functions preserve original string data through string_view
+
+- **Enhanced String Validation**: Additional validation utilities
+  - `isNullOrWhiteSpace()`: Comprehensive check for empty or whitespace-only strings
+  - Support for all standard whitespace characters with optimized detection
+
 ## [0.0.1] - 2025-09-05
 
 ### Added

@@ -15,7 +15,7 @@ namespace nfx::string
 	//=====================================================================
 
 	//----------------------------------------------
-	// Validation
+	// String validation
 	//----------------------------------------------
 
 	NFX_CORE_INLINE constexpr bool hasExactLength( std::string_view str, std::size_t expectedLength ) noexcept
@@ -26,6 +26,160 @@ namespace nfx::string
 	NFX_CORE_INLINE constexpr bool isEmpty( std::string_view str ) noexcept
 	{
 		return str.empty();
+	}
+
+	NFX_CORE_INLINE constexpr bool isNullOrWhiteSpace( std::string_view str ) noexcept
+	{
+		if ( str.empty() )
+		{
+			return true;
+		}
+
+		for ( const char c : str )
+		{
+			// Check for standard whitespace characters: space, tab, newline, carriage return, form feed, vertical tab
+			if ( c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != '\f' && c != '\v' )
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	//----------------------------------------------
+	// Character Classification
+	//----------------------------------------------
+
+	NFX_CORE_INLINE constexpr bool isWhitespace( char c ) noexcept
+	{
+		return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v';
+	}
+
+	NFX_CORE_INLINE constexpr bool isDigit( char c ) noexcept
+	{
+		return static_cast<unsigned char>( c - '0' ) <= 9u;
+	}
+
+	NFX_CORE_INLINE constexpr bool isAlpha( char c ) noexcept
+	{
+		return ( c >= 'a' && c <= 'z' ) || ( c >= 'A' && c <= 'Z' );
+	}
+
+	NFX_CORE_INLINE constexpr bool isAlphaNumeric( char c ) noexcept
+	{
+		return isAlpha( c ) || isDigit( c );
+	}
+
+	//----------------------------------------------
+	// String operations
+	//----------------------------------------------
+
+	NFX_CORE_INLINE constexpr bool endsWith( std::string_view str, std::string_view suffix ) noexcept
+	{
+		return str.size() >= suffix.size() && str.compare( str.size() - suffix.size(), suffix.size(), suffix ) == 0;
+	}
+
+	NFX_CORE_INLINE constexpr bool startsWith( std::string_view str, std::string_view prefix ) noexcept
+	{
+		return str.size() >= prefix.size() && str.compare( 0, prefix.size(), prefix ) == 0;
+	}
+
+	NFX_CORE_INLINE constexpr bool contains( std::string_view str, std::string_view substr ) noexcept
+	{
+		return str.find( substr ) != std::string_view::npos;
+	}
+
+	NFX_CORE_INLINE constexpr bool equals( std::string_view lhs, std::string_view rhs ) noexcept
+	{
+		return lhs == rhs;
+	}
+
+	NFX_CORE_INLINE bool iequals( std::string_view lhs, std::string_view rhs ) noexcept
+	{
+		if ( lhs.size() != rhs.size() )
+		{
+			return false;
+		}
+
+		return std::equal( lhs.begin(), lhs.end(), rhs.begin(),
+			[]( char a, char b ) noexcept { return toLower( a ) == toLower( b ); } );
+	}
+
+	//----------------------------------------------
+	// String Trimming
+	//----------------------------------------------
+
+	//----------------------------
+	// Non-allocating
+	//----------------------------
+
+	NFX_CORE_INLINE constexpr std::string_view trimStart( std::string_view str ) noexcept
+	{
+		std::size_t start = 0;
+		while ( start < str.size() && isWhitespace( str[start] ) )
+		{
+			++start;
+		}
+		return str.substr( start );
+	}
+
+	NFX_CORE_INLINE constexpr std::string_view trimEnd( std::string_view str ) noexcept
+	{
+		std::size_t end = str.size();
+		while ( end > 0 && isWhitespace( str[end - 1] ) )
+		{
+			--end;
+		}
+		return str.substr( 0, end );
+	}
+
+	NFX_CORE_INLINE constexpr std::string_view trim( std::string_view str ) noexcept
+	{
+		return trimEnd( trimStart( str ) );
+	}
+
+	//----------------------------------------------
+	// String case conversion
+	//----------------------------------------------
+
+	inline std::string toLower( std::string_view str )
+	{
+		std::string result;
+		result.reserve( str.size() );
+
+		for ( char c : str )
+		{
+			result.push_back( toLower( c ) );
+		}
+
+		return result;
+	}
+
+	inline std::string toUpper( std::string_view str )
+	{
+		std::string result;
+		result.reserve( str.size() );
+
+		for ( char c : str )
+		{
+			result.push_back( toUpper( c ) );
+		}
+
+		return result;
+	}
+
+	//----------------------------------------------
+	// Character case conversion
+	//----------------------------------------------
+
+	NFX_CORE_INLINE constexpr char toLower( char c ) noexcept
+	{
+		return ( c >= 'A' && c <= 'Z' ) ? static_cast<char>( c + ( 'a' - 'A' ) ) : c;
+	}
+
+	NFX_CORE_INLINE constexpr char toUpper( char c ) noexcept
+	{
+		return ( c >= 'a' && c <= 'z' ) ? static_cast<char>( c - ( 'a' - 'A' ) ) : c;
 	}
 
 	//----------------------------------------------
@@ -160,80 +314,5 @@ namespace nfx::string
 		const char* const end = std::next( str.data(), static_cast<std::ptrdiff_t>( str.size() ) );
 		const auto parseResult{ std::from_chars( str.data(), end, result ) };
 		return parseResult.ec == std::errc{} && parseResult.ptr == end;
-	}
-
-	//----------------------------------------------
-	// Operations
-	//----------------------------------------------
-
-	NFX_CORE_INLINE constexpr bool endsWith( std::string_view str, std::string_view suffix ) noexcept
-	{
-		return str.size() >= suffix.size() && str.compare( str.size() - suffix.size(), suffix.size(), suffix ) == 0;
-	}
-
-	NFX_CORE_INLINE constexpr bool startsWith( std::string_view str, std::string_view prefix ) noexcept
-	{
-		return str.size() >= prefix.size() && str.compare( 0, prefix.size(), prefix ) == 0;
-	}
-
-	NFX_CORE_INLINE constexpr bool contains( std::string_view str, std::string_view substr ) noexcept
-	{
-		return str.find( substr ) != std::string_view::npos;
-	}
-
-	NFX_CORE_INLINE constexpr bool equals( std::string_view lhs, std::string_view rhs ) noexcept
-	{
-		return lhs == rhs;
-	}
-
-	NFX_CORE_INLINE bool iequals( std::string_view lhs, std::string_view rhs ) noexcept
-	{
-		if ( lhs.size() != rhs.size() )
-		{
-			return false;
-		}
-
-		return std::equal( lhs.begin(), lhs.end(), rhs.begin(),
-			[]( char a, char b ) noexcept { return toLower( a ) == toLower( b ); } );
-	}
-
-	//----------------------------------------------
-	// Case Conversion
-	//----------------------------------------------
-
-	NFX_CORE_INLINE constexpr char toLower( char c ) noexcept
-	{
-		return ( c >= 'A' && c <= 'Z' ) ? static_cast<char>( c + ( 'a' - 'A' ) ) : c;
-	}
-
-	NFX_CORE_INLINE constexpr char toUpper( char c ) noexcept
-	{
-		return ( c >= 'a' && c <= 'z' ) ? static_cast<char>( c - ( 'a' - 'A' ) ) : c;
-	}
-
-	inline std::string toLower( std::string_view str )
-	{
-		std::string result;
-		result.reserve( str.size() );
-
-		for ( char c : str )
-		{
-			result.push_back( toLower( c ) );
-		}
-
-		return result;
-	}
-
-	inline std::string toUpper( std::string_view str )
-	{
-		std::string result;
-		result.reserve( str.size() );
-
-		for ( char c : str )
-		{
-			result.push_back( toUpper( c ) );
-		}
-
-		return result;
 	}
 }

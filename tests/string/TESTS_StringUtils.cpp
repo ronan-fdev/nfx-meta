@@ -1,12 +1,17 @@
 /**
  * @file TESTS_StringUtils.cpp
- * @brief Comprehensive tests for StringUtils zero-allocation string utilities
- * @details Tests covering validation, parsing, string operations, edge cases, and performance validation
+ * @brief Comprehensive tests for StringUtils high-performance string library
+ * @details Tests covering validation, parsing, string operations, character classification,
+ *          trimming, case conversion, edge cases, and performance validation for both
+ *          zero-allocation (string_view) and allocating (std::string) functions
  */
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
+#include <string>
 #include <limits>
+#include <string_view>
 
 #include <nfx/string/Utils.h>
 
@@ -17,7 +22,7 @@ namespace nfx::string::test
 	//=====================================================================
 
 	//----------------------------------------------
-	// Validation
+	// String validation
 	//----------------------------------------------
 
 	TEST( StringUtilsValidation, HasExactLength )
@@ -57,9 +62,469 @@ namespace nfx::string::test
 		EXPECT_FALSE( isEmpty( "\n" ) );
 	}
 
+	TEST( StringUtilsValidation, IsNullOrWhiteSpace )
+	{
+		EXPECT_TRUE( isNullOrWhiteSpace( "" ) );
+		EXPECT_TRUE( isNullOrWhiteSpace( std::string_view{} ) );
+
+		// Single whitespace characters
+		EXPECT_TRUE( isNullOrWhiteSpace( " " ) );
+		EXPECT_TRUE( isNullOrWhiteSpace( "\t" ) );
+		EXPECT_TRUE( isNullOrWhiteSpace( "\n" ) );
+		EXPECT_TRUE( isNullOrWhiteSpace( "\r" ) );
+		EXPECT_TRUE( isNullOrWhiteSpace( "\f" ) );
+		EXPECT_TRUE( isNullOrWhiteSpace( "\v" ) );
+
+		// Multiple whitespace characters
+		EXPECT_TRUE( isNullOrWhiteSpace( "   " ) );
+		EXPECT_TRUE( isNullOrWhiteSpace( "\t\t\t" ) );
+		EXPECT_TRUE( isNullOrWhiteSpace( "\n\r\n" ) );
+		EXPECT_TRUE( isNullOrWhiteSpace( " \t\n\r\f\v " ) );
+
+		// Non-whitespace strings
+		EXPECT_FALSE( isNullOrWhiteSpace( "a" ) );
+		EXPECT_FALSE( isNullOrWhiteSpace( "hello" ) );
+		EXPECT_FALSE( isNullOrWhiteSpace( "hello world" ) );
+
+		// Strings with mixed content (containing non-whitespace)
+		EXPECT_FALSE( isNullOrWhiteSpace( " a " ) );
+		EXPECT_FALSE( isNullOrWhiteSpace( "\ta\t" ) );
+		EXPECT_FALSE( isNullOrWhiteSpace( "\n hello \n" ) );
+		EXPECT_FALSE( isNullOrWhiteSpace( "   .   " ) );
+
+		// String view from various sources
+		std::string whitespaceStr = "   \t\n   ";
+		std::string normalStr = "test";
+		EXPECT_TRUE( isNullOrWhiteSpace( whitespaceStr ) );
+		EXPECT_FALSE( isNullOrWhiteSpace( normalStr ) );
+	}
+
 	//----------------------------------------------
-	// Bool parsing
+	// Character classification
 	//----------------------------------------------
+
+	TEST( StringUtilsCharacterClassification, IsWhitespace )
+	{
+		// Whitespace characters
+		EXPECT_TRUE( isWhitespace( ' ' ) );
+		EXPECT_TRUE( isWhitespace( '\t' ) );
+		EXPECT_TRUE( isWhitespace( '\n' ) );
+		EXPECT_TRUE( isWhitespace( '\r' ) );
+		EXPECT_TRUE( isWhitespace( '\f' ) );
+		EXPECT_TRUE( isWhitespace( '\v' ) );
+
+		// Non-whitespace characters
+		EXPECT_FALSE( isWhitespace( 'a' ) );
+		EXPECT_FALSE( isWhitespace( 'Z' ) );
+		EXPECT_FALSE( isWhitespace( '0' ) );
+		EXPECT_FALSE( isWhitespace( '9' ) );
+		EXPECT_FALSE( isWhitespace( '!' ) );
+		EXPECT_FALSE( isWhitespace( '@' ) );
+		EXPECT_FALSE( isWhitespace( '\0' ) );
+	}
+
+	TEST( StringUtilsCharacterClassification, IsDigit )
+	{
+		// Digits
+		EXPECT_TRUE( isDigit( '0' ) );
+		EXPECT_TRUE( isDigit( '1' ) );
+		EXPECT_TRUE( isDigit( '5' ) );
+		EXPECT_TRUE( isDigit( '9' ) );
+
+		// Non-digits
+		EXPECT_FALSE( isDigit( 'a' ) );
+		EXPECT_FALSE( isDigit( 'Z' ) );
+		EXPECT_FALSE( isDigit( ' ' ) );
+		EXPECT_FALSE( isDigit( '!' ) );
+		EXPECT_FALSE( isDigit( '\t' ) );
+		EXPECT_FALSE( isDigit( '\0' ) );
+	}
+
+	TEST( StringUtilsCharacterClassification, IsAlpha )
+	{
+		// Lowercase letters
+		EXPECT_TRUE( isAlpha( 'a' ) );
+		EXPECT_TRUE( isAlpha( 'm' ) );
+		EXPECT_TRUE( isAlpha( 'z' ) );
+
+		// Uppercase letters
+		EXPECT_TRUE( isAlpha( 'A' ) );
+		EXPECT_TRUE( isAlpha( 'M' ) );
+		EXPECT_TRUE( isAlpha( 'Z' ) );
+
+		// Non-alphabetic
+		EXPECT_FALSE( isAlpha( '0' ) );
+		EXPECT_FALSE( isAlpha( '9' ) );
+		EXPECT_FALSE( isAlpha( ' ' ) );
+		EXPECT_FALSE( isAlpha( '!' ) );
+		EXPECT_FALSE( isAlpha( '\t' ) );
+		EXPECT_FALSE( isAlpha( '\0' ) );
+	}
+
+	TEST( StringUtilsCharacterClassification, IsAlphaNumeric )
+	{
+		// Letters
+		EXPECT_TRUE( isAlphaNumeric( 'a' ) );
+		EXPECT_TRUE( isAlphaNumeric( 'Z' ) );
+		EXPECT_TRUE( isAlphaNumeric( 'm' ) );
+
+		// Digits
+		EXPECT_TRUE( isAlphaNumeric( '0' ) );
+		EXPECT_TRUE( isAlphaNumeric( '5' ) );
+		EXPECT_TRUE( isAlphaNumeric( '9' ) );
+
+		// Non-alphanumeric
+		EXPECT_FALSE( isAlphaNumeric( ' ' ) );
+		EXPECT_FALSE( isAlphaNumeric( '!' ) );
+		EXPECT_FALSE( isAlphaNumeric( '@' ) );
+		EXPECT_FALSE( isAlphaNumeric( '\t' ) );
+		EXPECT_FALSE( isAlphaNumeric( '\0' ) );
+	}
+
+	//----------------------------------------------
+	// Operations
+	//----------------------------------------------
+
+	TEST( StringUtilsOperations, EndsWith )
+	{
+		// Basic functionality
+		EXPECT_TRUE( endsWith( "hello world", "world" ) );
+		EXPECT_TRUE( endsWith( "hello world", "d" ) );
+		EXPECT_FALSE( endsWith( "hello world", "hello" ) );
+		EXPECT_FALSE( endsWith( "hello world", "World" ) ); // Case sensitive
+
+		// Edge cases
+		EXPECT_TRUE( endsWith( "test", "" ) );	   // Empty suffix
+		EXPECT_TRUE( endsWith( "test", "test" ) ); // Exact match
+		EXPECT_FALSE( endsWith( "", "test" ) );	   // Empty string, non-empty suffix
+		EXPECT_TRUE( endsWith( "", "" ) );		   // Both empty
+
+		// Suffix longer than string
+		EXPECT_FALSE( endsWith( "hi", "hello" ) );
+
+		// Single characters
+		EXPECT_TRUE( endsWith( "a", "a" ) );
+		EXPECT_FALSE( endsWith( "a", "b" ) );
+	}
+
+	TEST( StringUtilsOperations, StartsWith )
+	{
+		// Basic functionality
+		EXPECT_TRUE( startsWith( "hello world", "hello" ) );
+		EXPECT_TRUE( startsWith( "hello world", "h" ) );
+		EXPECT_FALSE( startsWith( "hello world", "world" ) );
+		EXPECT_FALSE( startsWith( "hello world", "Hello" ) ); // Case sensitive
+
+		// Edge cases
+		EXPECT_TRUE( startsWith( "test", "" ) );	 // Empty prefix
+		EXPECT_TRUE( startsWith( "test", "test" ) ); // Exact match
+		EXPECT_FALSE( startsWith( "", "test" ) );	 // Empty string, non-empty prefix
+		EXPECT_TRUE( startsWith( "", "" ) );		 // Both empty
+
+		// Prefix longer than string
+		EXPECT_FALSE( startsWith( "hi", "hello" ) );
+
+		// Single characters
+		EXPECT_TRUE( startsWith( "a", "a" ) );
+		EXPECT_FALSE( startsWith( "a", "b" ) );
+	}
+
+	TEST( StringUtilsOperations, Contains )
+	{
+		// Basic functionality
+		EXPECT_TRUE( contains( "hello world", "hello" ) );
+		EXPECT_TRUE( contains( "hello world", "world" ) );
+		EXPECT_TRUE( contains( "hello world", "o w" ) );
+		EXPECT_TRUE( contains( "hello world", "l" ) );
+		EXPECT_FALSE( contains( "hello world", "Hello" ) ); // Case sensitive
+		EXPECT_FALSE( contains( "hello world", "xyz" ) );
+
+		// Edge cases
+		EXPECT_TRUE( contains( "test", "" ) );	   // Empty substring
+		EXPECT_TRUE( contains( "test", "test" ) ); // Exact match
+		EXPECT_FALSE( contains( "", "test" ) );	   // Empty string, non-empty substring
+		EXPECT_TRUE( contains( "", "" ) );		   // Both empty
+
+		// Substring longer than string
+		EXPECT_FALSE( contains( "hi", "hello" ) );
+
+		// Multiple occurrences
+		EXPECT_TRUE( contains( "hello hello", "hello" ) );
+		EXPECT_TRUE( contains( "abcabcabc", "abc" ) );
+	}
+
+	TEST( StringUtilsOperations, Equals )
+	{
+		// Basic functionality
+		EXPECT_TRUE( equals( "hello", "hello" ) );
+		EXPECT_FALSE( equals( "hello", "world" ) );
+		EXPECT_FALSE( equals( "hello", "Hello" ) ); // Case sensitive
+
+		// Edge cases
+		EXPECT_TRUE( equals( "", "" ) );	  // Both empty
+		EXPECT_FALSE( equals( "", "test" ) ); // One empty
+		EXPECT_FALSE( equals( "test", "" ) ); // One empty
+
+		// Different lengths
+		EXPECT_FALSE( equals( "hello", "hello world" ) );
+		EXPECT_FALSE( equals( "hello world", "hello" ) );
+
+		// Single characters
+		EXPECT_TRUE( equals( "a", "a" ) );
+		EXPECT_FALSE( equals( "a", "b" ) );
+	}
+
+	TEST( StringUtilsOperations, IEquals )
+	{
+		// Basic functionality
+		EXPECT_TRUE( iequals( "hello", "hello" ) );
+		EXPECT_TRUE( iequals( "hello", "HELLO" ) );
+		EXPECT_TRUE( iequals( "hello", "Hello" ) );
+		EXPECT_TRUE( iequals( "HELLO", "hello" ) );
+		EXPECT_TRUE( iequals( "HeLLo", "hEllO" ) );
+		EXPECT_FALSE( iequals( "hello", "world" ) );
+
+		// Edge cases
+		EXPECT_TRUE( iequals( "", "" ) );	   // Both empty
+		EXPECT_FALSE( iequals( "", "test" ) ); // One empty
+		EXPECT_FALSE( iequals( "test", "" ) ); // One empty
+
+		// Different lengths
+		EXPECT_FALSE( iequals( "hello", "hello world" ) );
+		EXPECT_FALSE( iequals( "hello world", "hello" ) );
+
+		// Mixed case with numbers and special chars
+		EXPECT_TRUE( iequals( "Test123!", "TEST123!" ) );
+		EXPECT_TRUE( iequals( "Test123!", "test123!" ) );
+		EXPECT_FALSE( iequals( "Test123!", "Test124!" ) );
+
+		// ASCII-only case conversion
+		EXPECT_TRUE( iequals( "ASCII", "ascii" ) );
+		EXPECT_TRUE( iequals( "Test", "TEST" ) );
+	}
+
+	//----------------------------------------------
+	// String trimming
+	//----------------------------------------------
+
+	//----------------------------
+	// Non-allocating
+	//----------------------------
+
+	TEST( StringUtilsStringTrimming, TrimStart )
+	{
+		// No leading whitespace
+		EXPECT_EQ( trimStart( "hello" ), "hello" );
+		EXPECT_EQ( trimStart( "hello world" ), "hello world" );
+
+		// Leading whitespace
+		EXPECT_EQ( trimStart( " hello" ), "hello" );
+		EXPECT_EQ( trimStart( "\thello" ), "hello" );
+		EXPECT_EQ( trimStart( "\n\r hello" ), "hello" );
+		EXPECT_EQ( trimStart( "   hello world   " ), "hello world   " );
+
+		// Only whitespace
+		EXPECT_EQ( trimStart( "   " ), "" );
+		EXPECT_EQ( trimStart( "\t\n\r" ), "" );
+
+		// Empty string
+		EXPECT_EQ( trimStart( "" ), "" );
+
+		// Mixed whitespace types
+		EXPECT_EQ( trimStart( " \t\n\r\f\v hello" ), "hello" );
+	}
+
+	TEST( StringUtilsStringTrimming, TrimEnd )
+	{
+		// No trailing whitespace
+		EXPECT_EQ( trimEnd( "hello" ), "hello" );
+		EXPECT_EQ( trimEnd( "hello world" ), "hello world" );
+
+		// Trailing whitespace
+		EXPECT_EQ( trimEnd( "hello " ), "hello" );
+		EXPECT_EQ( trimEnd( "hello\t" ), "hello" );
+		EXPECT_EQ( trimEnd( "hello \n\r" ), "hello" );
+		EXPECT_EQ( trimEnd( "   hello world   " ), "   hello world" );
+
+		// Only whitespace
+		EXPECT_EQ( trimEnd( "   " ), "" );
+		EXPECT_EQ( trimEnd( "\t\n\r" ), "" );
+
+		// Empty string
+		EXPECT_EQ( trimEnd( "" ), "" );
+
+		// Mixed whitespace types
+		EXPECT_EQ( trimEnd( "hello \t\n\r\f\v " ), "hello" );
+	}
+
+	TEST( StringUtilsStringTrimming, Trim )
+	{
+		// No whitespace
+		EXPECT_EQ( trim( "hello" ), "hello" );
+		EXPECT_EQ( trim( "hello world" ), "hello world" );
+
+		// Leading and trailing whitespace
+		EXPECT_EQ( trim( " hello " ), "hello" );
+		EXPECT_EQ( trim( "\thello\t" ), "hello" );
+		EXPECT_EQ( trim( "\n\r hello world \n\r" ), "hello world" );
+		EXPECT_EQ( trim( "   hello world   " ), "hello world" );
+
+		// Only leading whitespace
+		EXPECT_EQ( trim( " hello" ), "hello" );
+
+		// Only trailing whitespace
+		EXPECT_EQ( trim( "hello " ), "hello" );
+
+		// Only whitespace
+		EXPECT_EQ( trim( "   " ), "" );
+		EXPECT_EQ( trim( "\t\n\r\f\v" ), "" );
+
+		// Empty string
+		EXPECT_EQ( trim( "" ), "" );
+
+		// Internal whitespace preserved
+		EXPECT_EQ( trim( "  hello  world  " ), "hello  world" );
+	}
+
+	//----------------------------------------------
+	// String case conversion
+	//----------------------------------------------
+
+	TEST( StringUtilsCaseConversion, ToLowerString )
+	{
+		// Basic ASCII conversion
+		EXPECT_EQ( "hello world", toLower( "HELLO WORLD" ) );
+		EXPECT_EQ( "hello world", toLower( "Hello World" ) );
+		EXPECT_EQ( "hello world", toLower( "HeLLo WoRLd" ) );
+
+		// Already lowercase
+		EXPECT_EQ( "hello world", toLower( "hello world" ) );
+
+		// Mixed case with numbers and symbols
+		EXPECT_EQ( "test123!@#", toLower( "TEST123!@#" ) );
+		EXPECT_EQ( "test123!@#", toLower( "Test123!@#" ) );
+
+		// Empty string
+		EXPECT_EQ( "", toLower( "" ) );
+
+		// Single characters
+		EXPECT_EQ( "a", toLower( "A" ) );
+		EXPECT_EQ( "z", toLower( "Z" ) );
+		EXPECT_EQ( "1", toLower( "1" ) );
+		EXPECT_EQ( "!", toLower( "!" ) );
+
+		// All uppercase alphabet
+		EXPECT_EQ( "abcdefghijklmnopqrstuvwxyz", toLower( "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ) );
+
+		// Unicode characters should remain unchanged (ASCII-only conversion)
+		EXPECT_EQ( "café", toLower( "café" ) ); // Already has lowercase é
+		EXPECT_EQ( "cafÉ", toLower( "CAFÉ" ) ); // Only ASCII 'C', 'A', 'F' converted, É unchanged
+
+		// Large string test
+		const std::string largeUpper( 1000, 'X' );
+		const std::string largeLower( 1000, 'x' );
+		EXPECT_EQ( largeLower, toLower( largeUpper ) );
+	}
+
+	TEST( StringUtilsCaseConversion, ToUpperString )
+	{
+		// Basic ASCII conversion
+		EXPECT_EQ( "HELLO WORLD", toUpper( "hello world" ) );
+		EXPECT_EQ( "HELLO WORLD", toUpper( "Hello World" ) );
+		EXPECT_EQ( "HELLO WORLD", toUpper( "HeLLo WoRLd" ) );
+
+		// Already uppercase
+		EXPECT_EQ( "HELLO WORLD", toUpper( "HELLO WORLD" ) );
+
+		// Mixed case with numbers and symbols
+		EXPECT_EQ( "TEST123!@#", toUpper( "test123!@#" ) );
+		EXPECT_EQ( "TEST123!@#", toUpper( "Test123!@#" ) );
+
+		// Empty string
+		EXPECT_EQ( "", toUpper( "" ) );
+
+		// Single characters
+		EXPECT_EQ( "A", toUpper( "a" ) );
+		EXPECT_EQ( "Z", toUpper( "z" ) );
+		EXPECT_EQ( "1", toUpper( "1" ) );
+		EXPECT_EQ( "!", toUpper( "!" ) );
+
+		// All lowercase alphabet
+		EXPECT_EQ( "ABCDEFGHIJKLMNOPQRSTUVWXYZ", toUpper( "abcdefghijklmnopqrstuvwxyz" ) );
+
+		// Unicode characters should remain unchanged (ASCII-only conversion)
+		EXPECT_EQ( "CAFÉ", toUpper( "CAFÉ" ) ); // Already has uppercase É
+		EXPECT_EQ( "CAFé", toUpper( "café" ) ); // Only ASCII 'c', 'a', 'f' converted, é unchanged
+
+		// Large string test
+		const std::string largeLower( 1000, 'x' );
+		const std::string largeUpper( 1000, 'X' );
+		EXPECT_EQ( largeUpper, toUpper( largeLower ) );
+	}
+
+	//----------------------------------------------
+	// Character case conversion
+	//----------------------------------------------
+
+	TEST( StringUtilsCaseConversion, ToLowerChar )
+	{
+		// ASCII uppercase to lowercase
+		EXPECT_EQ( 'a', toLower( 'A' ) );
+		EXPECT_EQ( 'z', toLower( 'Z' ) );
+		EXPECT_EQ( 'm', toLower( 'M' ) );
+
+		// Already lowercase - no change
+		EXPECT_EQ( 'a', toLower( 'a' ) );
+		EXPECT_EQ( 'z', toLower( 'z' ) );
+		EXPECT_EQ( 'm', toLower( 'm' ) );
+
+		// Non-alphabetic characters - no change
+		EXPECT_EQ( '0', toLower( '0' ) );
+		EXPECT_EQ( '9', toLower( '9' ) );
+		EXPECT_EQ( ' ', toLower( ' ' ) );
+		EXPECT_EQ( '!', toLower( '!' ) );
+		EXPECT_EQ( '@', toLower( '@' ) );
+
+		// Edge ASCII values
+		EXPECT_EQ( '@', toLower( '@' ) ); // ASCII 64 (before 'A')
+		EXPECT_EQ( '[', toLower( '[' ) ); // ASCII 91 (after 'Z')
+		EXPECT_EQ( '`', toLower( '`' ) ); // ASCII 96 (before 'a')
+		EXPECT_EQ( '{', toLower( '{' ) ); // ASCII 123 (after 'z')
+	}
+
+	TEST( StringUtilsCaseConversion, ToUpperChar )
+	{
+		// ASCII lowercase to uppercase
+		EXPECT_EQ( 'A', toUpper( 'a' ) );
+		EXPECT_EQ( 'Z', toUpper( 'z' ) );
+		EXPECT_EQ( 'M', toUpper( 'm' ) );
+
+		// Already uppercase - no change
+		EXPECT_EQ( 'A', toUpper( 'A' ) );
+		EXPECT_EQ( 'Z', toUpper( 'Z' ) );
+		EXPECT_EQ( 'M', toUpper( 'M' ) );
+
+		// Non-alphabetic characters - no change
+		EXPECT_EQ( '0', toUpper( '0' ) );
+		EXPECT_EQ( '9', toUpper( '9' ) );
+		EXPECT_EQ( ' ', toUpper( ' ' ) );
+		EXPECT_EQ( '!', toUpper( '!' ) );
+		EXPECT_EQ( '@', toUpper( '@' ) );
+
+		// Edge ASCII values
+		EXPECT_EQ( '@', toUpper( '@' ) ); // ASCII 64 (before 'A')
+		EXPECT_EQ( '[', toUpper( '[' ) ); // ASCII 91 (after 'Z')
+		EXPECT_EQ( '`', toUpper( '`' ) ); // ASCII 96 (before 'a')
+		EXPECT_EQ( '{', toUpper( '{' ) ); // ASCII 123 (after 'z')
+	}
+
+	//----------------------------------------------
+	// String parsing
+	//----------------------------------------------
+
+	//----------------------------
+	// Bool
+	//----------------------------
 
 	TEST( StringUtilsBoolParsing, TryParseBool_TrueValues )
 	{
@@ -206,7 +671,7 @@ namespace nfx::string::test
 	}
 
 	//----------------------------------------------
-	// Numeric parsing
+	// Numeric
 	//----------------------------------------------
 
 	TEST( StringUtilsNumericParsing, TryParseInt )
@@ -357,128 +822,6 @@ namespace nfx::string::test
 		EXPECT_FALSE( tryParseDouble( " 123.456", result ) );
 		EXPECT_FALSE( tryParseDouble( "123.456 ", result ) );
 		EXPECT_FALSE( tryParseDouble( "+123.456", result ) );
-	}
-
-	//----------------------------------------------
-	// Operations
-	//----------------------------------------------
-
-	TEST( StringUtilsOperations, EndsWith )
-	{
-		// Basic functionality
-		EXPECT_TRUE( endsWith( "hello world", "world" ) );
-		EXPECT_TRUE( endsWith( "hello world", "d" ) );
-		EXPECT_FALSE( endsWith( "hello world", "hello" ) );
-		EXPECT_FALSE( endsWith( "hello world", "World" ) ); // Case sensitive
-
-		// Edge cases
-		EXPECT_TRUE( endsWith( "test", "" ) );	   // Empty suffix
-		EXPECT_TRUE( endsWith( "test", "test" ) ); // Exact match
-		EXPECT_FALSE( endsWith( "", "test" ) );	   // Empty string, non-empty suffix
-		EXPECT_TRUE( endsWith( "", "" ) );		   // Both empty
-
-		// Suffix longer than string
-		EXPECT_FALSE( endsWith( "hi", "hello" ) );
-
-		// Single characters
-		EXPECT_TRUE( endsWith( "a", "a" ) );
-		EXPECT_FALSE( endsWith( "a", "b" ) );
-	}
-
-	TEST( StringUtilsOperations, StartsWith )
-	{
-		// Basic functionality
-		EXPECT_TRUE( startsWith( "hello world", "hello" ) );
-		EXPECT_TRUE( startsWith( "hello world", "h" ) );
-		EXPECT_FALSE( startsWith( "hello world", "world" ) );
-		EXPECT_FALSE( startsWith( "hello world", "Hello" ) ); // Case sensitive
-
-		// Edge cases
-		EXPECT_TRUE( startsWith( "test", "" ) );	 // Empty prefix
-		EXPECT_TRUE( startsWith( "test", "test" ) ); // Exact match
-		EXPECT_FALSE( startsWith( "", "test" ) );	 // Empty string, non-empty prefix
-		EXPECT_TRUE( startsWith( "", "" ) );		 // Both empty
-
-		// Prefix longer than string
-		EXPECT_FALSE( startsWith( "hi", "hello" ) );
-
-		// Single characters
-		EXPECT_TRUE( startsWith( "a", "a" ) );
-		EXPECT_FALSE( startsWith( "a", "b" ) );
-	}
-
-	TEST( StringUtilsOperations, Contains )
-	{
-		// Basic functionality
-		EXPECT_TRUE( contains( "hello world", "hello" ) );
-		EXPECT_TRUE( contains( "hello world", "world" ) );
-		EXPECT_TRUE( contains( "hello world", "o w" ) );
-		EXPECT_TRUE( contains( "hello world", "l" ) );
-		EXPECT_FALSE( contains( "hello world", "Hello" ) ); // Case sensitive
-		EXPECT_FALSE( contains( "hello world", "xyz" ) );
-
-		// Edge cases
-		EXPECT_TRUE( contains( "test", "" ) );	   // Empty substring
-		EXPECT_TRUE( contains( "test", "test" ) ); // Exact match
-		EXPECT_FALSE( contains( "", "test" ) );	   // Empty string, non-empty substring
-		EXPECT_TRUE( contains( "", "" ) );		   // Both empty
-
-		// Substring longer than string
-		EXPECT_FALSE( contains( "hi", "hello" ) );
-
-		// Multiple occurrences
-		EXPECT_TRUE( contains( "hello hello", "hello" ) );
-		EXPECT_TRUE( contains( "abcabcabc", "abc" ) );
-	}
-
-	TEST( StringUtilsOperations, Equals )
-	{
-		// Basic functionality
-		EXPECT_TRUE( equals( "hello", "hello" ) );
-		EXPECT_FALSE( equals( "hello", "world" ) );
-		EXPECT_FALSE( equals( "hello", "Hello" ) ); // Case sensitive
-
-		// Edge cases
-		EXPECT_TRUE( equals( "", "" ) );	  // Both empty
-		EXPECT_FALSE( equals( "", "test" ) ); // One empty
-		EXPECT_FALSE( equals( "test", "" ) ); // One empty
-
-		// Different lengths
-		EXPECT_FALSE( equals( "hello", "hello world" ) );
-		EXPECT_FALSE( equals( "hello world", "hello" ) );
-
-		// Single characters
-		EXPECT_TRUE( equals( "a", "a" ) );
-		EXPECT_FALSE( equals( "a", "b" ) );
-	}
-
-	TEST( StringUtilsOperations, IEquals )
-	{
-		// Basic functionality
-		EXPECT_TRUE( iequals( "hello", "hello" ) );
-		EXPECT_TRUE( iequals( "hello", "HELLO" ) );
-		EXPECT_TRUE( iequals( "hello", "Hello" ) );
-		EXPECT_TRUE( iequals( "HELLO", "hello" ) );
-		EXPECT_TRUE( iequals( "HeLLo", "hEllO" ) );
-		EXPECT_FALSE( iequals( "hello", "world" ) );
-
-		// Edge cases
-		EXPECT_TRUE( iequals( "", "" ) );	   // Both empty
-		EXPECT_FALSE( iequals( "", "test" ) ); // One empty
-		EXPECT_FALSE( iequals( "test", "" ) ); // One empty
-
-		// Different lengths
-		EXPECT_FALSE( iequals( "hello", "hello world" ) );
-		EXPECT_FALSE( iequals( "hello world", "hello" ) );
-
-		// Mixed case with numbers and special chars
-		EXPECT_TRUE( iequals( "Test123!", "TEST123!" ) );
-		EXPECT_TRUE( iequals( "Test123!", "test123!" ) );
-		EXPECT_FALSE( iequals( "Test123!", "Test124!" ) );
-
-		// ASCII-only case conversion
-		EXPECT_TRUE( iequals( "ASCII", "ascii" ) );
-		EXPECT_TRUE( iequals( "Test", "TEST" ) );
 	}
 
 	//----------------------------------------------
@@ -642,132 +985,8 @@ namespace nfx::string::test
 	}
 
 	//----------------------------------------------
-	// Case Conversion
+	// Round-trip conversion tests
 	//----------------------------------------------
-
-	TEST( StringUtilsCaseConversion, ToLowerChar )
-	{
-		// ASCII uppercase to lowercase
-		EXPECT_EQ( 'a', toLower( 'A' ) );
-		EXPECT_EQ( 'z', toLower( 'Z' ) );
-		EXPECT_EQ( 'm', toLower( 'M' ) );
-
-		// Already lowercase - no change
-		EXPECT_EQ( 'a', toLower( 'a' ) );
-		EXPECT_EQ( 'z', toLower( 'z' ) );
-		EXPECT_EQ( 'm', toLower( 'm' ) );
-
-		// Non-alphabetic characters - no change
-		EXPECT_EQ( '0', toLower( '0' ) );
-		EXPECT_EQ( '9', toLower( '9' ) );
-		EXPECT_EQ( ' ', toLower( ' ' ) );
-		EXPECT_EQ( '!', toLower( '!' ) );
-		EXPECT_EQ( '@', toLower( '@' ) );
-
-		// Edge ASCII values
-		EXPECT_EQ( '@', toLower( '@' ) ); // ASCII 64 (before 'A')
-		EXPECT_EQ( '[', toLower( '[' ) ); // ASCII 91 (after 'Z')
-		EXPECT_EQ( '`', toLower( '`' ) ); // ASCII 96 (before 'a')
-		EXPECT_EQ( '{', toLower( '{' ) ); // ASCII 123 (after 'z')
-	}
-
-	TEST( StringUtilsCaseConversion, ToUpperChar )
-	{
-		// ASCII lowercase to uppercase
-		EXPECT_EQ( 'A', toUpper( 'a' ) );
-		EXPECT_EQ( 'Z', toUpper( 'z' ) );
-		EXPECT_EQ( 'M', toUpper( 'm' ) );
-
-		// Already uppercase - no change
-		EXPECT_EQ( 'A', toUpper( 'A' ) );
-		EXPECT_EQ( 'Z', toUpper( 'Z' ) );
-		EXPECT_EQ( 'M', toUpper( 'M' ) );
-
-		// Non-alphabetic characters - no change
-		EXPECT_EQ( '0', toUpper( '0' ) );
-		EXPECT_EQ( '9', toUpper( '9' ) );
-		EXPECT_EQ( ' ', toUpper( ' ' ) );
-		EXPECT_EQ( '!', toUpper( '!' ) );
-		EXPECT_EQ( '@', toUpper( '@' ) );
-
-		// Edge ASCII values
-		EXPECT_EQ( '@', toUpper( '@' ) ); // ASCII 64 (before 'A')
-		EXPECT_EQ( '[', toUpper( '[' ) ); // ASCII 91 (after 'Z')
-		EXPECT_EQ( '`', toUpper( '`' ) ); // ASCII 96 (before 'a')
-		EXPECT_EQ( '{', toUpper( '{' ) ); // ASCII 123 (after 'z')
-	}
-
-	TEST( StringUtilsCaseConversion, ToLowerString )
-	{
-		// Basic ASCII conversion
-		EXPECT_EQ( "hello world", toLower( "HELLO WORLD" ) );
-		EXPECT_EQ( "hello world", toLower( "Hello World" ) );
-		EXPECT_EQ( "hello world", toLower( "HeLLo WoRLd" ) );
-
-		// Already lowercase
-		EXPECT_EQ( "hello world", toLower( "hello world" ) );
-
-		// Mixed case with numbers and symbols
-		EXPECT_EQ( "test123!@#", toLower( "TEST123!@#" ) );
-		EXPECT_EQ( "test123!@#", toLower( "Test123!@#" ) );
-
-		// Empty string
-		EXPECT_EQ( "", toLower( "" ) );
-
-		// Single characters
-		EXPECT_EQ( "a", toLower( "A" ) );
-		EXPECT_EQ( "z", toLower( "Z" ) );
-		EXPECT_EQ( "1", toLower( "1" ) );
-		EXPECT_EQ( "!", toLower( "!" ) );
-
-		// All uppercase alphabet
-		EXPECT_EQ( "abcdefghijklmnopqrstuvwxyz", toLower( "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ) );
-
-		// Unicode characters should remain unchanged (ASCII-only conversion)
-		EXPECT_EQ( "café", toLower( "café" ) ); // Already has lowercase é
-		EXPECT_EQ( "cafÉ", toLower( "CAFÉ" ) ); // Only ASCII 'C', 'A', 'F' converted, É unchanged
-
-		// Large string test
-		const std::string largeUpper( 1000, 'X' );
-		const std::string largeLower( 1000, 'x' );
-		EXPECT_EQ( largeLower, toLower( largeUpper ) );
-	}
-
-	TEST( StringUtilsCaseConversion, ToUpperString )
-	{
-		// Basic ASCII conversion
-		EXPECT_EQ( "HELLO WORLD", toUpper( "hello world" ) );
-		EXPECT_EQ( "HELLO WORLD", toUpper( "Hello World" ) );
-		EXPECT_EQ( "HELLO WORLD", toUpper( "HeLLo WoRLd" ) );
-
-		// Already uppercase
-		EXPECT_EQ( "HELLO WORLD", toUpper( "HELLO WORLD" ) );
-
-		// Mixed case with numbers and symbols
-		EXPECT_EQ( "TEST123!@#", toUpper( "test123!@#" ) );
-		EXPECT_EQ( "TEST123!@#", toUpper( "Test123!@#" ) );
-
-		// Empty string
-		EXPECT_EQ( "", toUpper( "" ) );
-
-		// Single characters
-		EXPECT_EQ( "A", toUpper( "a" ) );
-		EXPECT_EQ( "Z", toUpper( "z" ) );
-		EXPECT_EQ( "1", toUpper( "1" ) );
-		EXPECT_EQ( "!", toUpper( "!" ) );
-
-		// All lowercase alphabet
-		EXPECT_EQ( "ABCDEFGHIJKLMNOPQRSTUVWXYZ", toUpper( "abcdefghijklmnopqrstuvwxyz" ) );
-
-		// Unicode characters should remain unchanged (ASCII-only conversion)
-		EXPECT_EQ( "CAFÉ", toUpper( "CAFÉ" ) ); // Already has uppercase É
-		EXPECT_EQ( "CAFé", toUpper( "café" ) ); // Only ASCII 'c', 'a', 'f' converted, é unchanged
-
-		// Large string test
-		const std::string largeLower( 1000, 'x' );
-		const std::string largeUpper( 1000, 'X' );
-		EXPECT_EQ( largeUpper, toUpper( largeLower ) );
-	}
 
 	TEST( StringUtilsCaseConversion, RoundTripConversion )
 	{
