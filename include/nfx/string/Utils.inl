@@ -5,6 +5,7 @@
  *          with optimized algorithms for maximum runtime performance and minimal overhead.
  */
 
+#include <algorithm>
 #include <cctype>
 #include <charconv>
 
@@ -44,6 +45,15 @@ namespace nfx::string
 			}
 		}
 		return true;
+	}
+
+	NFX_CORE_INLINE constexpr bool isAllDigits( std::string_view str ) noexcept
+	{
+		if ( str.empty() )
+		{
+			return false;
+		}
+		return std::all_of( str.begin(), str.end(), []( char c ) { return isDigit( c ); } );
 	}
 
 	//----------------------------------------------

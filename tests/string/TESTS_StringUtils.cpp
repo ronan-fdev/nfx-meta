@@ -99,6 +99,78 @@ namespace nfx::string::test
 		EXPECT_FALSE( isNullOrWhiteSpace( normalStr ) );
 	}
 
+	TEST( StringUtilsValidation, IsAllDigits )
+	{
+		// Valid digit strings
+		EXPECT_TRUE( isAllDigits( "0" ) );
+		EXPECT_TRUE( isAllDigits( "1" ) );
+		EXPECT_TRUE( isAllDigits( "9" ) );
+		EXPECT_TRUE( isAllDigits( "123" ) );
+		EXPECT_TRUE( isAllDigits( "0123456789" ) );
+		EXPECT_TRUE( isAllDigits( "999999999" ) );
+
+		// Large digit string
+		const std::string largeDigits( 1000, '5' );
+		EXPECT_TRUE( isAllDigits( largeDigits ) );
+
+		// Mixed digit string
+		EXPECT_TRUE( isAllDigits( "1234567890" ) );
+
+		// Invalid cases - empty string
+		EXPECT_FALSE( isAllDigits( "" ) );
+		EXPECT_FALSE( isAllDigits( std::string_view{} ) );
+
+		// Invalid cases - contains non-digits
+		EXPECT_FALSE( isAllDigits( "123a" ) );
+		EXPECT_FALSE( isAllDigits( "a123" ) );
+		EXPECT_FALSE( isAllDigits( "12a34" ) );
+		EXPECT_FALSE( isAllDigits( "123 " ) );
+		EXPECT_FALSE( isAllDigits( " 123" ) );
+		EXPECT_FALSE( isAllDigits( "123.456" ) );
+		EXPECT_FALSE( isAllDigits( "123-456" ) );
+		EXPECT_FALSE( isAllDigits( "+123" ) );
+		EXPECT_FALSE( isAllDigits( "-123" ) );
+
+		// Invalid cases - only non-digits
+		EXPECT_FALSE( isAllDigits( "abc" ) );
+		EXPECT_FALSE( isAllDigits( "hello" ) );
+		EXPECT_FALSE( isAllDigits( "!@#$" ) );
+		EXPECT_FALSE( isAllDigits( "   " ) );
+		EXPECT_FALSE( isAllDigits( "\t\n\r" ) );
+
+		// Invalid cases - single non-digit characters
+		EXPECT_FALSE( isAllDigits( "a" ) );
+		EXPECT_FALSE( isAllDigits( "Z" ) );
+		EXPECT_FALSE( isAllDigits( " " ) );
+		EXPECT_FALSE( isAllDigits( "!" ) );
+		EXPECT_FALSE( isAllDigits( "." ) );
+		EXPECT_FALSE( isAllDigits( "-" ) );
+		EXPECT_FALSE( isAllDigits( "+" ) );
+
+		// Edge cases - ASCII characters around digits
+		EXPECT_FALSE( isAllDigits( "/" ) );  // ASCII 47 (before '0')
+		EXPECT_FALSE( isAllDigits( ":" ) );  // ASCII 58 (after '9')
+
+		// Unicode digits should return false (ASCII-only)
+		EXPECT_FALSE( isAllDigits( "１２３" ) ); // Full-width digits
+		EXPECT_FALSE( isAllDigits( "۱۲۳" ) );   // Arabic-Indic digits
+
+		// String view from various sources
+		std::string digitStr = "98765";
+		std::string mixedStr = "123abc";
+		EXPECT_TRUE( isAllDigits( digitStr ) );
+		EXPECT_FALSE( isAllDigits( mixedStr ) );
+
+		// Performance test with very long digit string
+		const std::string veryLargeDigits( 10000, '7' );
+		EXPECT_TRUE( isAllDigits( veryLargeDigits ) );
+
+		// Performance test with very long mixed string
+		std::string veryLargeMixed( 9999, '8' );
+		veryLargeMixed += "a"; // Add one non-digit at the end
+		EXPECT_FALSE( isAllDigits( veryLargeMixed ) );
+	}
+
 	//----------------------------------------------
 	// Character classification
 	//----------------------------------------------

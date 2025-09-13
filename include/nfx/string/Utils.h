@@ -49,6 +49,15 @@ namespace nfx::string
 	 */
 	[[nodiscard]] NFX_CORE_INLINE constexpr bool isNullOrWhiteSpace( std::string_view str ) noexcept;
 
+	/**
+	 * @brief Check if string contains only ASCII digits
+	 * @param str String to check
+	 * @return True if string is non-empty and contains only digits (0-9)
+	 * @details Returns false for empty strings. Uses the existing isDigit() function for validation.
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool isAllDigits( std::string_view str ) noexcept;
+
 	//----------------------------------------------
 	// Character classification
 	//----------------------------------------------
