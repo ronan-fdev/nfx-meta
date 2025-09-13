@@ -95,6 +95,44 @@ namespace nfx::string
 	[[nodiscard]] NFX_CORE_INLINE constexpr bool isAlphaNumeric( char c ) noexcept;
 
 	//----------------------------------------------
+	// URI character classification
+	//----------------------------------------------
+
+	/**
+	 * @brief Check if character is URI reserved (RFC 3986 Section 2.2)
+	 * @param c Character to check
+	 * @return True if character is a reserved URI character (:/?#[]@!$&'()*+,;=)
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool isURIReserved( char c ) noexcept;
+
+	/**
+	 * @brief Check if string contains only URI reserved characters
+	 * @param str String to check
+	 * @return True if string is non-empty and contains only reserved characters
+	 * @details Returns false for empty strings. Uses RFC 3986 Section 2.2 definition.
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool isURIReserved( std::string_view str ) noexcept;
+
+	/**
+	 * @brief Check if character is URI unreserved (RFC 3986 Section 2.3)
+	 * @param c Character to check
+	 * @return True if character is A-Z, a-z, 0-9, -, ., _, or ~
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool isURIUnreserved( char c ) noexcept;
+
+	/**
+	 * @brief Check if string contains only URI unreserved characters
+	 * @param str String to check
+	 * @return True if string is non-empty and contains only unreserved characters
+	 * @details Returns false for empty strings. Uses RFC 3986 Section 2.3 definition.
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool isURIUnreserved( std::string_view str ) noexcept;
+
+	//----------------------------------------------
 	// String operations
 	//----------------------------------------------
 

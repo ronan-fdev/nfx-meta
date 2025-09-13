@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **isAllDigits()**: New string validation function to check if string contains only ASCII digits
 
+#### URI Character Classification
+
+- **isURIReserved()**: RFC 3986 Section 2.2 compliant reserved character validation
+  - Character variant: `isURIReserved(char)` - validates single characters against 18 reserved characters
+  - String variant: `isURIReserved(std::string_view)` - validates all characters in string are reserved
+  - Supports gen-delims (`: / ? # [ ] @`) and sub-delims (`! $ & ' ( ) * + , ; =`)
+- **isURIUnreserved()**: RFC 3986 Section 2.3 compliant unreserved character validation
+  - Character variant: `isURIUnreserved(char)` - validates ALPHA, DIGIT, and special chars (`- . _ ~`)
+  - String variant: `isURIUnreserved(std::string_view)` - validates all characters in string are unreserved
+  - Leverages existing `isAlphaNumeric()` function for optimal performance
+  - All functions marked `constexpr` for compile-time evaluation
+
 ### Changed
 
 - NIL

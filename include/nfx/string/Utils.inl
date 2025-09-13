@@ -81,6 +81,45 @@ namespace nfx::string
 	}
 
 	//----------------------------------------------
+	// URI character classification
+	//----------------------------------------------
+
+	NFX_CORE_INLINE constexpr bool isURIReserved( char c ) noexcept
+	{
+		// RFC 3986 Section 2.2 - Reserved Characters
+		// gen-delims: : / ? # [ ] @
+		// sub-delims: ! $ & ' ( ) * + , ; =
+		return c == ':' || c == '/' || c == '?' || c == '#' || c == '[' || c == ']' || c == '@' ||
+			   c == '!' || c == '$' || c == '&' || c == '\'' || c == '(' || c == ')' || c == '*' ||
+			   c == '+' || c == ',' || c == ';' || c == '=';
+	}
+
+	NFX_CORE_INLINE constexpr bool isURIReserved( std::string_view str ) noexcept
+	{
+		if ( str.empty() )
+		{
+			return false;
+		}
+		return std::all_of( str.begin(), str.end(), []( char c ) { return isURIReserved( c ); } );
+	}
+
+	NFX_CORE_INLINE constexpr bool isURIUnreserved( char c ) noexcept
+	{
+		// RFC 3986 Section 2.3 - Unreserved Characters
+		// ALPHA / DIGIT / "-" / "." / "_" / "~"
+		return isAlphaNumeric( c ) || c == '-' || c == '.' || c == '_' || c == '~';
+	}
+
+	NFX_CORE_INLINE constexpr bool isURIUnreserved( std::string_view str ) noexcept
+	{
+		if ( str.empty() )
+		{
+			return false;
+		}
+		return std::all_of( str.begin(), str.end(), []( char c ) { return isURIUnreserved( c ); } );
+	}
+
+	//----------------------------------------------
 	// String operations
 	//----------------------------------------------
 

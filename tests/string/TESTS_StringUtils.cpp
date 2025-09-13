@@ -148,12 +148,12 @@ namespace nfx::string::test
 		EXPECT_FALSE( isAllDigits( "+" ) );
 
 		// Edge cases - ASCII characters around digits
-		EXPECT_FALSE( isAllDigits( "/" ) );  // ASCII 47 (before '0')
-		EXPECT_FALSE( isAllDigits( ":" ) );  // ASCII 58 (after '9')
+		EXPECT_FALSE( isAllDigits( "/" ) ); // ASCII 47 (before '0')
+		EXPECT_FALSE( isAllDigits( ":" ) ); // ASCII 58 (after '9')
 
 		// Unicode digits should return false (ASCII-only)
 		EXPECT_FALSE( isAllDigits( "１２３" ) ); // Full-width digits
-		EXPECT_FALSE( isAllDigits( "۱۲۳" ) );   // Arabic-Indic digits
+		EXPECT_FALSE( isAllDigits( "۱۲۳" ) );	 // Arabic-Indic digits
 
 		// String view from various sources
 		std::string digitStr = "98765";
@@ -251,6 +251,265 @@ namespace nfx::string::test
 		EXPECT_FALSE( isAlphaNumeric( '@' ) );
 		EXPECT_FALSE( isAlphaNumeric( '\t' ) );
 		EXPECT_FALSE( isAlphaNumeric( '\0' ) );
+	}
+
+	//----------------------------------------------
+	// URI character classification
+	//----------------------------------------------
+
+	TEST( StringUtilsCharacterClassification, isURIReserved_char )
+	{
+		// RFC 3986 Section 2.2 - Reserved Characters
+		// gen-delims: : / ? # [ ] @
+		EXPECT_TRUE( isURIReserved( ':' ) );
+		EXPECT_TRUE( isURIReserved( '/' ) );
+		EXPECT_TRUE( isURIReserved( '?' ) );
+		EXPECT_TRUE( isURIReserved( '#' ) );
+		EXPECT_TRUE( isURIReserved( '[' ) );
+		EXPECT_TRUE( isURIReserved( ']' ) );
+		EXPECT_TRUE( isURIReserved( '@' ) );
+
+		// sub-delims: ! $ & ' ( ) * + , ; =
+		EXPECT_TRUE( isURIReserved( '!' ) );
+		EXPECT_TRUE( isURIReserved( '$' ) );
+		EXPECT_TRUE( isURIReserved( '&' ) );
+		EXPECT_TRUE( isURIReserved( '\'' ) );
+		EXPECT_TRUE( isURIReserved( '(' ) );
+		EXPECT_TRUE( isURIReserved( ')' ) );
+		EXPECT_TRUE( isURIReserved( '*' ) );
+		EXPECT_TRUE( isURIReserved( '+' ) );
+		EXPECT_TRUE( isURIReserved( ',' ) );
+		EXPECT_TRUE( isURIReserved( ';' ) );
+		EXPECT_TRUE( isURIReserved( '=' ) );
+
+		// Non-reserved characters
+		EXPECT_FALSE( isURIReserved( 'a' ) );
+		EXPECT_FALSE( isURIReserved( 'Z' ) );
+		EXPECT_FALSE( isURIReserved( '0' ) );
+		EXPECT_FALSE( isURIReserved( '9' ) );
+		EXPECT_FALSE( isURIReserved( '-' ) );
+		EXPECT_FALSE( isURIReserved( '.' ) );
+		EXPECT_FALSE( isURIReserved( '_' ) );
+		EXPECT_FALSE( isURIReserved( '~' ) );
+		EXPECT_FALSE( isURIReserved( ' ' ) );
+		EXPECT_FALSE( isURIReserved( '\t' ) );
+		EXPECT_FALSE( isURIReserved( '\n' ) );
+		EXPECT_FALSE( isURIReserved( '\0' ) );
+
+		// Edge ASCII characters
+		EXPECT_FALSE( isURIReserved( '"' ) );  // ASCII 34
+		EXPECT_FALSE( isURIReserved( '%' ) );  // ASCII 37
+		EXPECT_FALSE( isURIReserved( '<' ) );  // ASCII 60
+		EXPECT_FALSE( isURIReserved( '>' ) );  // ASCII 62
+		EXPECT_FALSE( isURIReserved( '\\' ) ); // ASCII 92
+		EXPECT_FALSE( isURIReserved( '^' ) );  // ASCII 94
+		EXPECT_FALSE( isURIReserved( '`' ) );  // ASCII 96
+		EXPECT_FALSE( isURIReserved( '|' ) );  // ASCII 124
+	}
+
+	TEST( StringUtilsCharacterClassification, isURIReserved_string )
+	{
+		// Valid reserved character strings
+		EXPECT_TRUE( isURIReserved( ":" ) );
+		EXPECT_TRUE( isURIReserved( "/" ) );
+		EXPECT_TRUE( isURIReserved( "?" ) );
+		EXPECT_TRUE( isURIReserved( "#" ) );
+		EXPECT_TRUE( isURIReserved( "[]" ) );
+		EXPECT_TRUE( isURIReserved( "@" ) );
+		EXPECT_TRUE( isURIReserved( "!$&'()*+,;=" ) );
+		EXPECT_TRUE( isURIReserved( ":/?#[]@" ) );
+		EXPECT_TRUE( isURIReserved( "!$&'()*+,;=" ) );
+		EXPECT_TRUE( isURIReserved( ":/?#[]@!$&'()*+,;=" ) ); // All reserved characters
+
+		// Mixed strings with reserved and unreserved characters
+		EXPECT_FALSE( isURIReserved( ":a" ) );
+		EXPECT_FALSE( isURIReserved( "a:" ) );
+		EXPECT_FALSE( isURIReserved( ":a:" ) );
+		EXPECT_FALSE( isURIReserved( ":a?" ) );				// Contains unreserved char 'a'
+		EXPECT_FALSE( isURIReserved( "test:" ) );			// Text + reserved
+		EXPECT_FALSE( isURIReserved( ":test" ) );			// Reserved + text
+		EXPECT_FALSE( isURIReserved( "test:123" ) );		// Text + reserved + digits
+		EXPECT_FALSE( isURIReserved( "a/b" ) );				// Unreserved + reserved + unreserved
+		EXPECT_FALSE( isURIReserved( "hello@world.com" ) ); // Mixed realistic scenario
+		EXPECT_FALSE( isURIReserved( "user:pass" ) );		// Common auth format
+		EXPECT_FALSE( isURIReserved( "file.txt" ) );		// Filename with unreserved chars
+		EXPECT_FALSE( isURIReserved( "test" ) );
+		EXPECT_FALSE( isURIReserved( "123" ) );
+		EXPECT_FALSE( isURIReserved( "abc123" ) );
+
+		// Invalid cases - empty string
+		EXPECT_FALSE( isURIReserved( "" ) );
+		EXPECT_FALSE( isURIReserved( std::string_view{} ) );
+
+		// Strings with only unreserved characters
+		EXPECT_FALSE( isURIReserved( "abcdefghijklmnopqrstuvwxyz" ) );
+		EXPECT_FALSE( isURIReserved( "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ) );
+		EXPECT_FALSE( isURIReserved( "0123456789" ) );
+		EXPECT_FALSE( isURIReserved( "-._~" ) );
+		EXPECT_FALSE( isURIReserved( "abc123-._~XYZ" ) );
+
+		// Strings with whitespace and control characters
+		EXPECT_FALSE( isURIReserved( " " ) );
+		EXPECT_FALSE( isURIReserved( "\t\n\r" ) );
+		EXPECT_FALSE( isURIReserved( ": " ) ); // Contains space
+
+		// Large string tests
+		const std::string largeReserved( 1000, ':' );
+		EXPECT_TRUE( isURIReserved( largeReserved ) );
+
+		const std::string largeMixed = std::string( 999, ':' ) + "a";
+		EXPECT_FALSE( isURIReserved( largeMixed ) );
+	}
+
+	TEST( StringUtilsCharacterClassification, isURIUnreserved_char )
+	{
+		// RFC 3986 Section 2.3 - Unreserved Characters
+		// ALPHA (uppercase)
+		EXPECT_TRUE( isURIUnreserved( 'A' ) );
+		EXPECT_TRUE( isURIUnreserved( 'M' ) );
+		EXPECT_TRUE( isURIUnreserved( 'Z' ) );
+
+		// ALPHA (lowercase)
+		EXPECT_TRUE( isURIUnreserved( 'a' ) );
+		EXPECT_TRUE( isURIUnreserved( 'm' ) );
+		EXPECT_TRUE( isURIUnreserved( 'z' ) );
+
+		// DIGIT
+		EXPECT_TRUE( isURIUnreserved( '0' ) );
+		EXPECT_TRUE( isURIUnreserved( '5' ) );
+		EXPECT_TRUE( isURIUnreserved( '9' ) );
+
+		// Special unreserved characters: - . _ ~
+		EXPECT_TRUE( isURIUnreserved( '-' ) );
+		EXPECT_TRUE( isURIUnreserved( '.' ) );
+		EXPECT_TRUE( isURIUnreserved( '_' ) );
+		EXPECT_TRUE( isURIUnreserved( '~' ) );
+
+		// Reserved characters should return false
+		EXPECT_FALSE( isURIUnreserved( ':' ) );
+		EXPECT_FALSE( isURIUnreserved( '/' ) );
+		EXPECT_FALSE( isURIUnreserved( '?' ) );
+		EXPECT_FALSE( isURIUnreserved( '#' ) );
+		EXPECT_FALSE( isURIUnreserved( '[' ) );
+		EXPECT_FALSE( isURIUnreserved( ']' ) );
+		EXPECT_FALSE( isURIUnreserved( '@' ) );
+		EXPECT_FALSE( isURIUnreserved( '!' ) );
+		EXPECT_FALSE( isURIUnreserved( '$' ) );
+		EXPECT_FALSE( isURIUnreserved( '&' ) );
+		EXPECT_FALSE( isURIUnreserved( '\'' ) );
+		EXPECT_FALSE( isURIUnreserved( '(' ) );
+		EXPECT_FALSE( isURIUnreserved( ')' ) );
+		EXPECT_FALSE( isURIUnreserved( '*' ) );
+		EXPECT_FALSE( isURIUnreserved( '+' ) );
+		EXPECT_FALSE( isURIUnreserved( ',' ) );
+		EXPECT_FALSE( isURIUnreserved( ';' ) );
+		EXPECT_FALSE( isURIUnreserved( '=' ) );
+
+		// Other characters should return false
+		EXPECT_FALSE( isURIUnreserved( ' ' ) );
+		EXPECT_FALSE( isURIUnreserved( '\t' ) );
+		EXPECT_FALSE( isURIUnreserved( '\n' ) );
+		EXPECT_FALSE( isURIUnreserved( '\r' ) );
+		EXPECT_FALSE( isURIUnreserved( '\0' ) );
+		EXPECT_FALSE( isURIUnreserved( '"' ) );
+		EXPECT_FALSE( isURIUnreserved( '%' ) );
+		EXPECT_FALSE( isURIUnreserved( '<' ) );
+		EXPECT_FALSE( isURIUnreserved( '>' ) );
+		EXPECT_FALSE( isURIUnreserved( '\\' ) );
+		EXPECT_FALSE( isURIUnreserved( '^' ) );
+		EXPECT_FALSE( isURIUnreserved( '`' ) );
+		EXPECT_FALSE( isURIUnreserved( '|' ) );
+
+		// Edge ASCII boundaries
+		EXPECT_FALSE( isURIUnreserved( '@' ) ); // ASCII 64 (before 'A')
+		EXPECT_FALSE( isURIUnreserved( '[' ) ); // ASCII 91 (after 'Z')
+		EXPECT_FALSE( isURIUnreserved( '`' ) ); // ASCII 96 (before 'a')
+		EXPECT_FALSE( isURIUnreserved( '{' ) ); // ASCII 123 (after 'z')
+		EXPECT_FALSE( isURIUnreserved( '/' ) ); // ASCII 47 (before '0')
+		EXPECT_FALSE( isURIUnreserved( ':' ) ); // ASCII 58 (after '9')
+	}
+
+	TEST( StringUtilsCharacterClassification, isURIUnreserved_string )
+	{
+		// Valid unreserved character strings
+		EXPECT_TRUE( isURIUnreserved( "a" ) );
+		EXPECT_TRUE( isURIUnreserved( "Z" ) );
+		EXPECT_TRUE( isURIUnreserved( "0" ) );
+		EXPECT_TRUE( isURIUnreserved( "9" ) );
+		EXPECT_TRUE( isURIUnreserved( "-" ) );
+		EXPECT_TRUE( isURIUnreserved( "." ) );
+		EXPECT_TRUE( isURIUnreserved( "_" ) );
+		EXPECT_TRUE( isURIUnreserved( "~" ) );
+
+		// Multiple unreserved characters
+		EXPECT_TRUE( isURIUnreserved( "abc" ) );
+		EXPECT_TRUE( isURIUnreserved( "XYZ" ) );
+		EXPECT_TRUE( isURIUnreserved( "123" ) );
+		EXPECT_TRUE( isURIUnreserved( "-._~" ) );
+		EXPECT_TRUE( isURIUnreserved( "abcdefghijklmnopqrstuvwxyz" ) );
+		EXPECT_TRUE( isURIUnreserved( "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ) );
+		EXPECT_TRUE( isURIUnreserved( "0123456789" ) );
+		EXPECT_TRUE( isURIUnreserved( "abc123XYZ-._~" ) ); // All unreserved types
+
+		// Valid URL-like strings with only unreserved characters
+		EXPECT_TRUE( isURIUnreserved( "example" ) );
+		EXPECT_TRUE( isURIUnreserved( "test123" ) );
+		EXPECT_TRUE( isURIUnreserved( "my-file.txt" ) );
+		EXPECT_TRUE( isURIUnreserved( "user_name" ) );
+		EXPECT_TRUE( isURIUnreserved( "version~1" ) );
+
+		// Mixed strings with reserved characters
+		EXPECT_FALSE( isURIUnreserved( "a:" ) );
+		EXPECT_FALSE( isURIUnreserved( ":a" ) );
+		EXPECT_FALSE( isURIUnreserved( "a:b" ) );
+		EXPECT_FALSE( isURIUnreserved( "test/" ) );
+		EXPECT_FALSE( isURIUnreserved( "file?name" ) );
+		EXPECT_FALSE( isURIUnreserved( "user@domain" ) );
+		EXPECT_FALSE( isURIUnreserved( "path[0]" ) );
+		EXPECT_FALSE( isURIUnreserved( "hello:world" ) );  // Text + reserved + text
+		EXPECT_FALSE( isURIUnreserved( "test.txt?" ) );	   // Unreserved + reserved
+		EXPECT_FALSE( isURIUnreserved( "!important" ) );   // Reserved + unreserved
+		EXPECT_FALSE( isURIUnreserved( "data&more" ) );	   // Mixed realistic scenario
+		EXPECT_FALSE( isURIUnreserved( "key=value" ) );	   // Common query format
+		EXPECT_FALSE( isURIUnreserved( "path/to/file" ) ); // Path with slashes
+
+		// Invalid cases - empty string
+		EXPECT_FALSE( isURIUnreserved( "" ) );
+		EXPECT_FALSE( isURIUnreserved( std::string_view{} ) );
+
+		// Strings with whitespace and control characters
+		EXPECT_FALSE( isURIUnreserved( " " ) );
+		EXPECT_FALSE( isURIUnreserved( "\t" ) );
+		EXPECT_FALSE( isURIUnreserved( "\n" ) );
+		EXPECT_FALSE( isURIUnreserved( "a " ) );  // Contains space
+		EXPECT_FALSE( isURIUnreserved( " a" ) );  // Contains space
+		EXPECT_FALSE( isURIUnreserved( "a b" ) ); // Contains space
+
+		// Strings with other non-unreserved characters
+		EXPECT_FALSE( isURIUnreserved( "\"" ) );
+		EXPECT_FALSE( isURIUnreserved( "%" ) );
+		EXPECT_FALSE( isURIUnreserved( "<>" ) );
+		EXPECT_FALSE( isURIUnreserved( "\\" ) );
+		EXPECT_FALSE( isURIUnreserved( "^" ) );
+		EXPECT_FALSE( isURIUnreserved( "`" ) );
+		EXPECT_FALSE( isURIUnreserved( "|" ) );
+
+		// Large string tests
+		const std::string largeUnreserved( 1000, 'a' );
+		EXPECT_TRUE( isURIUnreserved( largeUnreserved ) );
+
+		const std::string largeMixed = std::string( 999, 'a' ) + ":";
+		EXPECT_FALSE( isURIUnreserved( largeMixed ) );
+
+		// Performance test with mixed unreserved types
+		const std::string mixedUnreserved = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
+		EXPECT_TRUE( isURIUnreserved( mixedUnreserved ) );
+
+		// String view from various sources
+		std::string unreservedStr = "test123";
+		std::string mixedStr = "test:123";
+		EXPECT_TRUE( isURIUnreserved( unreservedStr ) );
+		EXPECT_FALSE( isURIUnreserved( mixedStr ) );
 	}
 
 	//----------------------------------------------
