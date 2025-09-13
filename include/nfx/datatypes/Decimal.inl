@@ -101,6 +101,56 @@ namespace nfx::datatypes
 	}
 
 	//----------------------------------------------
-	// Internal helper methods
+	// Utilities
 	//----------------------------------------------
+
+	inline std::uint8_t Decimal::decimalPlacesCount() const noexcept
+	{
+		// If the value is zero, it has 0 decimal places
+		if ( isZero() )
+		{
+			return 0;
+		}
+
+		// Get the current scale
+		std::uint8_t currentScale = scale();
+
+		// If scale is 0, it's an integer - no decimal places
+		if ( currentScale == 0 )
+		{
+			return 0;
+		}
+
+		// Convert mantissa to Int128 for proper arithmetic
+		const auto& mantissaArray = mantissa();
+#if NFX_CORE_HAS_INT128
+		NFX_CORE_INT128 mantissaValue{ static_cast<NFX_CORE_INT128>( mantissaArray[2] ) << 64 |
+									   static_cast<NFX_CORE_INT128>( mantissaArray[1] ) << 32 |
+									   static_cast<NFX_CORE_INT128>( mantissaArray[0] ) };
+		Int128 mantissa128{ mantissaValue };
+#else
+		std::uint64_t low{ static_cast<std::uint64_t>( mantissaArray[1] ) << 32 | mantissaArray[0] };
+		std::uint64_t high{ mantissaArray[2] };
+		Int128 mantissa128{ low, high };
+#endif
+
+		std::uint8_t trailingZeros = 0;
+		Int128 ten{ 10 };
+
+		// Count trailing zeros by testing divisibility by 10 iteratively
+		while ( trailingZeros < currentScale )
+		{
+			// If there's a remainder, we can't divide evenly by 10
+			if ( mantissa128 % ten != Int128{ 0 } )
+			{
+				break;
+			}
+
+			// Continue testing with the next power of 10
+			mantissa128 = mantissa128 / ten;
+			trailingZeros++;
+		}
+
+		return currentScale - trailingZeros;
+	}
 }

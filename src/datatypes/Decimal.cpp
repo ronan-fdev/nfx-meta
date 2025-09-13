@@ -15,7 +15,7 @@
 
 namespace nfx::datatypes
 {
-	namespace
+	namespace internal
 	{
 		//=====================================================================
 		// Internal helper functions
@@ -215,7 +215,7 @@ namespace nfx::datatypes
 		m_layout.mantissa[1] = static_cast<std::uint32_t>( mantissaValue >> 32 );
 		m_layout.mantissa[2] = 0;
 
-		normalize( *this );
+		internal::normalize( *this );
 	}
 
 	Decimal::Decimal( std::int32_t value ) noexcept
@@ -281,9 +281,9 @@ namespace nfx::datatypes
 		}
 
 		Decimal result;
-		auto [left, right]{ alignScale( *this, other ) };
+		auto [left, right]{ internal::alignScale( *this, other ) };
 
-		setMantissa( result, left + right );
+		internal::setMantissa( result, left + right );
 		result.m_layout.flags = ( m_layout.flags & ~constants::decimal::SCALE_MASK ) |
 								( std::max( scale(), other.scale() ) << constants::decimal::SCALE_SHIFT );
 
@@ -300,7 +300,7 @@ namespace nfx::datatypes
 			// Different signs - need subtraction logic
 			if ( left > right )
 			{
-				setMantissa( result, left - right );
+				internal::setMantissa( result, left - right );
 				if ( isNegative() )
 				{
 					result.m_layout.flags |= constants::decimal::SIGN_MASK;
@@ -308,7 +308,7 @@ namespace nfx::datatypes
 			}
 			else
 			{
-				setMantissa( result, right - left );
+				internal::setMantissa( result, right - left );
 				if ( other.isNegative() )
 				{
 					result.m_layout.flags |= constants::decimal::SIGN_MASK;
@@ -316,7 +316,7 @@ namespace nfx::datatypes
 			}
 		}
 
-		normalize( result );
+		internal::normalize( result );
 
 		return result;
 	}
@@ -338,8 +338,8 @@ namespace nfx::datatypes
 		}
 
 		Decimal result;
-		Int128 left{ mantissaAsInt128( *this ) };
-		Int128 right{ mantissaAsInt128( other ) };
+		Int128 left{ internal::mantissaAsInt128( *this ) };
+		Int128 right{ internal::mantissaAsInt128( other ) };
 
 		// Calculate the product mantissa without storing it yet
 		Int128 productMantissa{ left * right };
@@ -369,7 +369,7 @@ namespace nfx::datatypes
 		}
 
 		// Now store the properly scaled mantissa
-		setMantissa( result, productMantissa );
+		internal::setMantissa( result, productMantissa );
 
 		result.m_layout.flags = ( static_cast<std::uint32_t>( newScale ) << constants::decimal::SCALE_SHIFT );
 
@@ -379,7 +379,7 @@ namespace nfx::datatypes
 			result.m_layout.flags |= constants::decimal::SIGN_MASK;
 		}
 
-		normalize( result );
+		internal::normalize( result );
 
 		return result;
 	}
@@ -397,8 +397,8 @@ namespace nfx::datatypes
 		}
 
 		Decimal result;
-		Int128 dividend{ mantissaAsInt128( *this ) };
-		Int128 divisor{ mantissaAsInt128( other ) };
+		Int128 dividend{ internal::mantissaAsInt128( *this ) };
+		Int128 divisor{ internal::mantissaAsInt128( other ) };
 
 		/**
 		 * Scale adjustment for division:
@@ -437,7 +437,7 @@ namespace nfx::datatypes
 			}
 		}
 
-		setMantissa( result, dividend / divisor );
+		internal::setMantissa( result, dividend / divisor );
 		result.m_layout.flags = ( static_cast<std::uint32_t>( targetScale ) << constants::decimal::SCALE_SHIFT );
 
 		// Combine signs
@@ -446,7 +446,7 @@ namespace nfx::datatypes
 			result.m_layout.flags |= constants::decimal::SIGN_MASK;
 		}
 
-		normalize( result );
+		internal::normalize( result );
 
 		return result;
 	}
@@ -499,7 +499,7 @@ namespace nfx::datatypes
 			return false;
 		}
 
-		auto [left, right] = alignScale( *this, other );
+		auto [left, right] = internal::alignScale( *this, other );
 
 		return left == right;
 	}
@@ -516,7 +516,7 @@ namespace nfx::datatypes
 			return isNegative();
 		}
 
-		auto [left, right] = alignScale( *this, other );
+		auto [left, right] = internal::alignScale( *this, other );
 
 		if ( isNegative() )
 		{
@@ -718,7 +718,7 @@ namespace nfx::datatypes
 
 	double Decimal::toDouble() const noexcept
 	{
-		Int128 mantissa{ mantissaAsInt128( *this ) };
+		Int128 mantissa{ internal::mantissaAsInt128( *this ) };
 
 		double result;
 #if NFX_CORE_HAS_INT128
@@ -754,7 +754,7 @@ namespace nfx::datatypes
 		std::string result;
 		result.reserve( 64 ); // Reserve space for efficiency
 
-		Int128 mantissa{ mantissaAsInt128( *this ).abs() };
+		Int128 mantissa{ internal::mantissaAsInt128( *this ).abs() };
 		std::uint8_t currentScale{ scale() };
 
 		// Optimized digit extraction with fast division
@@ -911,7 +911,7 @@ namespace nfx::datatypes
 		// Remove all fractional digits
 		for ( std::uint8_t i = 0; i < currentScale; ++i )
 		{
-			divideByPowerOf10( result, 1U );
+			internal::divideByPowerOf10( result, 1U );
 		}
 
 		// Clear the scale
@@ -979,7 +979,7 @@ namespace nfx::datatypes
 		std::uint8_t digitsToRemove{ static_cast<std::uint8_t>( currentScale - targetScale ) };
 
 		// Get the digit that determines rounding direction
-		Int128 mantissa{ mantissaAsInt128( *this ) };
+		Int128 mantissa{ internal::mantissaAsInt128( *this ) };
 		Int128 divisor{ 1 };
 		if ( digitsToRemove > 1U )
 		{
@@ -995,7 +995,7 @@ namespace nfx::datatypes
 		// Perform truncation to target scale
 		for ( std::uint8_t i = 0; i < digitsToRemove; ++i )
 		{
-			divideByPowerOf10( result, 1U );
+			internal::divideByPowerOf10( result, 1U );
 		}
 
 		result.m_layout.flags =
@@ -1005,7 +1005,7 @@ namespace nfx::datatypes
 		// Round up if digit >= 5 //TODO!!
 		if ( roundingDigit.toLow() >= 5 )
 		{
-			Int128 resultMantissa{ mantissaAsInt128( result ) };
+			Int128 resultMantissa{ internal::mantissaAsInt128( result ) };
 			if ( isNegative() )
 			{
 				resultMantissa = resultMantissa - Int128{ 1 };
@@ -1014,7 +1014,7 @@ namespace nfx::datatypes
 			{
 				resultMantissa = resultMantissa + Int128{ 1 };
 			}
-			setMantissa( result, resultMantissa );
+			internal::setMantissa( result, resultMantissa );
 		}
 
 		return result;

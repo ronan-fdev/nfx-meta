@@ -372,6 +372,22 @@ namespace nfx::datatypes
 		[[nodiscard]] bool isNegative() const noexcept;
 
 		//----------------------------------------------
+		// Utilities
+		//----------------------------------------------
+
+		/**
+		 * @brief Count actual decimal places (excluding trailing zeros)
+		 * @param value Decimal value to analyze
+		 * @return Number of significant decimal places (0-28)
+		 * @details Examples:
+		 *          - Decimal("123.4500") returns 2 (trailing zeros ignored)
+		 *          - Decimal("123.000") returns 0 (integer value)
+		 *          - Decimal("0.001") returns 3
+		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+		 */
+		[[nodiscard]] std::uint8_t decimalPlacesCount() const noexcept;
+
+		//----------------------------------------------
 		// Mathematical operations
 		//----------------------------------------------
 

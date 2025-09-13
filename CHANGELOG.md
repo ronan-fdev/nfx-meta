@@ -25,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Leverages existing `isAlphaNumeric()` function for optimal performance
   - All functions marked `constexpr` for compile-time evaluation
 
+#### Decimal Arithmetic Enhancements
+
+- **decimalPlacesCount()**: New Decimal utility method to count actual decimal places
+  - Returns the number of significant decimal places (excludes trailing zeros)
+  - Uses optimized Int128 arithmetic for accurate 96-bit mantissa processing
+  - Cross-platform compatible with both native \_\_int128 and manual implementation
+
 ### Changed
 
 - NIL

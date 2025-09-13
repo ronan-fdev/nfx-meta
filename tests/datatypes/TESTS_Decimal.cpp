@@ -396,7 +396,7 @@ namespace nfx::datatypes::test
 	}
 
 	//----------------------------------------------
-	// Precision
+	// Performance
 	//----------------------------------------------
 
 	TEST( DecimalPerformance, StressTestLargeOperations )
@@ -413,6 +413,119 @@ namespace nfx::datatypes::test
 		// Should be close to 1.0
 		EXPECT_FALSE( accumulator.isZero() );
 		EXPECT_FALSE( accumulator.isNegative() );
+	}
+
+	//----------------------------------------------
+	// Utilities
+	//----------------------------------------------
+
+	TEST( DecimalUtlities, DecimalPlacesCount )
+	{
+		// Test zero values
+		datatypes::Decimal d1{ "0" };
+		EXPECT_EQ( d1.decimalPlacesCount(), 0 );
+
+		datatypes::Decimal d2{ "0.0" };
+		EXPECT_EQ( d2.decimalPlacesCount(), 0 );
+
+		datatypes::Decimal d3{ "0.000" };
+		EXPECT_EQ( d3.decimalPlacesCount(), 0 );
+
+		// Test integers (no decimal places)
+		datatypes::Decimal d4{ "123" };
+		EXPECT_EQ( d4.decimalPlacesCount(), 0 );
+
+		datatypes::Decimal d5{ "-456" };
+		EXPECT_EQ( d5.decimalPlacesCount(), 0 );
+
+		// Test decimals without trailing zeros
+		datatypes::Decimal d6{ "123.456" };
+		EXPECT_EQ( d6.decimalPlacesCount(), 3 );
+
+		datatypes::Decimal d7{ "-789.123" };
+		EXPECT_EQ( d7.decimalPlacesCount(), 3 );
+
+		datatypes::Decimal d8{ "0.001" };
+		EXPECT_EQ( d8.decimalPlacesCount(), 3 );
+
+		datatypes::Decimal d9{ "0.5" };
+		EXPECT_EQ( d9.decimalPlacesCount(), 1 );
+
+		// Test decimals with trailing zeros (should ignore them)
+		datatypes::Decimal d10{ "123.4500" };
+		EXPECT_EQ( d10.decimalPlacesCount(), 2 ); // 123.45, trailing zeros ignored
+
+		datatypes::Decimal d11{ "123.000" };
+		EXPECT_EQ( d11.decimalPlacesCount(), 0 ); // Integer value
+
+		datatypes::Decimal d12{ "456.7800" };
+		EXPECT_EQ( d12.decimalPlacesCount(), 2 ); // 456.78, trailing zeros ignored
+
+		datatypes::Decimal d13{ "0.1000" };
+		EXPECT_EQ( d13.decimalPlacesCount(), 1 ); // 0.1, trailing zeros ignored
+
+		// Test edge cases with various trailing zero patterns
+		datatypes::Decimal d14{ "123.4560" };
+		EXPECT_EQ( d14.decimalPlacesCount(), 3 ); // 123.456, one trailing zero ignored
+
+		datatypes::Decimal d15{ "123.4000" };
+		EXPECT_EQ( d15.decimalPlacesCount(), 1 ); // 123.4, three trailing zeros ignored
+
+		datatypes::Decimal d16{ "999.9990" };
+		EXPECT_EQ( d16.decimalPlacesCount(), 3 ); // 999.999, one trailing zero ignored
+
+		// Test small decimal values
+		datatypes::Decimal d17{ "0.01" };
+		EXPECT_EQ( d17.decimalPlacesCount(), 2 );
+
+		datatypes::Decimal d18{ "0.001" };
+		EXPECT_EQ( d18.decimalPlacesCount(), 3 );
+
+		datatypes::Decimal d19{ "0.0001" };
+		EXPECT_EQ( d19.decimalPlacesCount(), 4 );
+
+		// Test high precision values
+		datatypes::Decimal d20{ "123.123456789" };
+		EXPECT_EQ( d20.decimalPlacesCount(), 9 );
+
+		datatypes::Decimal d21{ "0.123456789012345678901234567" };
+		EXPECT_EQ( d21.decimalPlacesCount(), 27 );
+
+		// Test maximum precision with trailing zeros
+		datatypes::Decimal d22{ "1.1234567890123456789012345000" };
+		EXPECT_EQ( d22.decimalPlacesCount(), 25 ); // Should remove 3 trailing zeros
+
+		// Test very small values with high precision
+		datatypes::Decimal d23{ "0.0000000000000000000000000001" };
+		EXPECT_EQ( d23.decimalPlacesCount(), 28 ); // Maximum precision
+
+		// Test consistency with scale() method
+		datatypes::Decimal d24{ "123.4500" };
+		EXPECT_EQ( d24.scale(), 4 );			  // Internal scale includes trailing zeros
+		EXPECT_EQ( d24.decimalPlacesCount(), 2 ); // Actual precision excludes trailing zeros
+
+		datatypes::Decimal d25{ "789.12300" };
+		EXPECT_EQ( d25.scale(), 5 );			  // Internal scale includes trailing zeros
+		EXPECT_EQ( d25.decimalPlacesCount(), 3 ); // Actual precision excludes trailing zeros
+
+		// Test with constructed from integer (should have scale 0 and decimalPlacesCount 0)
+		datatypes::Decimal d26{ 42 };
+		EXPECT_EQ( d26.scale(), 0 );
+		EXPECT_EQ( d26.decimalPlacesCount(), 0 );
+
+		// Test with constructed from double
+		datatypes::Decimal d27{ 123.456 };
+		EXPECT_TRUE( d27.decimalPlacesCount() >= 3 ); // At least 3, could be more due to double precision
+
+		// Test negative values (sign shouldn't affect decimal places count)
+		datatypes::Decimal d28{ "-123.456" };
+		EXPECT_EQ( d28.decimalPlacesCount(), 3 );
+
+		datatypes::Decimal d29{ "-0.001" };
+		EXPECT_EQ( d29.decimalPlacesCount(), 3 );
+
+		datatypes::Decimal d30{ "-123.4500" };
+		EXPECT_EQ( d30.decimalPlacesCount(), 2 ); // Trailing zeros ignored
 	}
 
 	//----------------------------------------------
