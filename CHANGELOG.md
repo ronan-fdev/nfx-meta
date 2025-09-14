@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- NIL
+
+### Changed
+
+- NIL
+
+### Deprecated
+
+- NIL
+
+### Removed
+
+- NIL
+
+### Fixed
+
+- NIL
+
+### Security
+
+- NIL
+
+## [0.0.3] - 2025-09-14
+
+### Added
+
 #### Enhanced String Validation
 
 - **isAllDigits()**: New string validation function to check if string contains only ASCII digits
@@ -31,26 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Returns the number of significant decimal places (excludes trailing zeros)
   - Uses optimized Int128 arithmetic for accurate 96-bit mantissa processing
   - Cross-platform compatible with both native \_\_int128 and manual implementation
-
-### Changed
-
-- NIL
-
-### Deprecated
-
-- NIL
-
-### Removed
-
-- NIL
-
-### Fixed
-
-- NIL
-
-### Security
-
-- NIL
+  - Zero values return 0, integers return 0, decimals return actual precision
+  - Example: `Decimal("123.4500").decimalPlacesCount()` returns 2 (ignores trailing zeros)
 
 ## [0.0.2] - 2025-09-12
 
