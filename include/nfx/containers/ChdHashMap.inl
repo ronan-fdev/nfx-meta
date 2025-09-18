@@ -320,14 +320,14 @@ namespace nfx::containers
 	//----------------------------------------------
 
 	template <typename TValue>
-	inline const TValue& ChdHashMap<TValue>::at( std::string_view key ) const
+	inline const TValue& ChdHashMap<TValue>::at( std::string_view key )
 	{
 		if ( isEmpty() )
 		{
 			ThrowHelper::throwKeyNotFoundException( key );
 		}
 
-		const TValue* outValue = nullptr;
+		TValue* outValue = nullptr;
 		if ( tryGetValue( key, outValue ) && outValue != nullptr )
 		{
 			return *outValue;
@@ -361,7 +361,7 @@ namespace nfx::containers
 	//----------------------------------------------
 
 	template <typename TValue>
-	NFX_CORE_INLINE bool ChdHashMap<TValue>::tryGetValue( std::string_view key, const TValue*& outValue ) const noexcept
+	NFX_CORE_INLINE bool ChdHashMap<TValue>::tryGetValue( std::string_view key, TValue*& outValue ) noexcept
 	{
 		if ( isEmpty() )
 		{
@@ -377,7 +377,7 @@ namespace nfx::containers
 		const size_t finalIndex = ( seed < 0 ) ? static_cast<size_t>( -seed - 1 )
 											   : Hashing::seed( static_cast<uint32_t>( seed ), hashValue, tableSize );
 
-		const auto& kvp = m_table[finalIndex];
+		auto& kvp = m_table[finalIndex];
 		const size_t keyLen = key.size();
 		const size_t storedLen = kvp.first.size();
 

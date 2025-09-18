@@ -366,14 +366,14 @@ namespace nfx::containers
 		//----------------------------------------------
 
 		/**
-		 * @brief Accesses the value associated with the specified key (const version with bounds checking).
+		 * @brief Accesses the value associated with the specified key with bounds checking.
 		 * @details Provides read-only access to the value. Performs a lookup using the perfect hash function.
 		 * @param[in] key The key whose associated value is to be retrieved.
 		 * @return A constant reference to the value associated with `key`.
 		 * @throws KeyNotFoundException if the `key` is not found in the dictionary or if the dictionary is empty.
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] inline const TValue& at( std::string_view key ) const;
+		[[nodiscard]] inline const TValue& at( std::string_view key );
 
 		//----------------------------------------------
 		// Accessors
@@ -405,14 +405,14 @@ namespace nfx::containers
 		 * @brief Attempts to retrieve the value associated with the specified key without throwing exceptions.
 		 * @details Performs a lookup using the perfect hash function. If the key is found, the output
 		 *          parameter `outValue` is updated to point to the associated value within the dictionary's
-		 *          internal storage.
+		 *          internal storage, allowing in-place modification of the retrieved value.
 		 * @param[in] key The key whose associated value is to be retrieved.
-		 * @param[out] outValue A reference to a pointer-to-const TValue. On success, this pointer will be
-		 *                      set to the address of the found value. On failure, it will be set to `nullptr`.
+		 * @param[out] outValue A reference to a mutable pointer to TValue. On success, this pointer will be
+		 *                      set to the address of the found value, enabling direct modification. On failure, it will be set to `nullptr`.
 		 * @return `true` if the `key` was found and `outValue` was updated, `false` otherwise.
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE bool tryGetValue( std::string_view key, const TValue*& outValue ) const noexcept;
+		[[nodiscard]] NFX_CORE_INLINE bool tryGetValue( std::string_view key, TValue*& outValue ) noexcept;
 
 		//----------------------------------------------
 		// Iteration

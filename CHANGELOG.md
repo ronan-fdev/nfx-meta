@@ -31,6 +31,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.0.4] - 2025-09-18
+
+### Fixed
+
+#### ChdHashMap Mutable Value Access
+
+- **Restored intended mutable access**: Fixed `ChdHashMap::tryGetValue()` to properly support mutable value modification as designed
+  - Method signature corrected from `bool tryGetValue(std::string_view key, const TValue*& outValue) const noexcept` to `bool tryGetValue(std::string_view key, TValue*& outValue) noexcept`
+  - By design, `TValue*&` parameter is a reference to a pointer that enables in-place value modification
+  - Fixes API to work as originally intended, allowing direct modification of values without removal and re-insertion
+  - Maintains O(1) lookup performance while restoring intended mutable access capability
+  - Updated `at()` method signature from `const TValue& at(std::string_view key) const` to `const TValue& at(std::string_view key)` to support the corrected API
+
 ## [0.0.3] - 2025-09-14
 
 ### Added

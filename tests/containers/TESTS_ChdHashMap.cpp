@@ -81,9 +81,9 @@ namespace nfx::containers::test
 
 		ChdHashMap<int> map{ std::move( items ) };
 
-		const int* value1 = nullptr;
-		const int* value2 = nullptr;
-		const int* valueMissing = nullptr;
+		int* value1 = nullptr;
+		int* value2 = nullptr;
+		int* valueMissing = nullptr;
 
 		EXPECT_TRUE( map.tryGetValue( "try_key1", value1 ) );
 		EXPECT_TRUE( map.tryGetValue( "try_key2", value2 ) );
@@ -154,9 +154,9 @@ namespace nfx::containers::test
 		EXPECT_EQ( map.at( cstrKey ), "hetero_value" );
 
 		// tryGetValue with different types
-		const std::string* value1 = nullptr;
-		const std::string* value2 = nullptr;
-		const std::string* value3 = nullptr;
+		std::string* value1 = nullptr;
+		std::string* value2 = nullptr;
+		std::string* value3 = nullptr;
 
 		EXPECT_TRUE( map.tryGetValue( strKey, value1 ) );
 		EXPECT_TRUE( map.tryGetValue( svKey, value2 ) );
@@ -463,7 +463,7 @@ namespace nfx::containers::test
 
 			// Also test with string_view (zero-copy)
 			std::string_view keyView{ key };
-			const size_t* value = nullptr;
+			size_t* value = nullptr;
 			EXPECT_TRUE( map.tryGetValue( keyView, value ) );
 			ASSERT_NE( value, nullptr );
 			EXPECT_EQ( *value, i );
