@@ -43,7 +43,7 @@ namespace nfx::containers
 
 	template <typename TKey, typename TValue>
 	template <typename KeyType>
-	NFX_CORE_INLINE const TValue* HashMap<TKey, TValue>::tryGetValue( const KeyType& key ) const noexcept
+	NFX_CORE_INLINE bool HashMap<TKey, TValue>::tryGetValue( const KeyType& key, TValue*& outValue ) noexcept
 	{
 		const std::uint32_t hash{ static_cast<std::uint32_t>( m_hasher( key ) ) };
 
@@ -51,18 +51,20 @@ namespace nfx::containers
 
 		for ( std::uint16_t distance = 0;; ++distance, pos = ( pos + 1 ) & m_mask )
 		{
-			const Bucket& bucket{ m_buckets[pos] };
+			Bucket& bucket{ m_buckets[pos] };
 
 			// Check Robin Hood invariant and occupancy in single condition
 			if ( !bucket.occupied || distance > bucket.distance )
 			{
-				return nullptr;
+				outValue = nullptr;
+				return false;
 			}
 
 			// Hot path: hash comparison first, then key equality
 			if ( bucket.hash == hash && keysEqual( bucket.key, key ) )
 			{
-				return &bucket.value;
+				outValue = &bucket.value;
+				return true;
 			}
 		}
 	}

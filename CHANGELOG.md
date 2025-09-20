@@ -31,6 +31,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.0.5] - 2025-09-20
+
+### Fixed
+
+#### HashMap API Consistency
+
+- **Unified tryGetValue API**: Updated `HashMap::tryGetValue()` to match `ChdHashMap` pattern for consistent container APIs
+  - Method signature changed from `const TValue* tryGetValue(const KeyType& key) const noexcept` to `bool tryGetValue(const KeyType& key, TValue*& outValue) noexcept`
+  - Provides consistent API experience across all NFX container types
+  - Enables mutable value access through `TValue*&` reference parameter by design
+  - Maintains zero-copy heterogeneous lookup performance (string_view -> string)
+  - Updated all samples and tests to use new unified API pattern
+  - Eliminates API inconsistencies between similar container implementations
+
 ## [0.0.4] - 2025-09-18
 
 ### Fixed

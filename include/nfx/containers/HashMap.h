@@ -64,10 +64,11 @@ namespace nfx::containers
 		/**
 		 * @brief Fast lookup with heterogeneous key types
 		 * @param key The key to search for
-		 * @return Pointer to the value if found, nullptr otherwise
+		 * @param outValue Reference to pointer that will be set to the found value (or nullptr if not found)
+		 * @return true if the key was found, false otherwise
 		 */
 		template <typename KeyType = TKey>
-		NFX_CORE_INLINE const TValue* tryGetValue( const KeyType& key ) const noexcept;
+		NFX_CORE_INLINE bool tryGetValue( const KeyType& key, TValue*& outValue ) noexcept;
 
 		//----------------------------------------------
 		// Insertion

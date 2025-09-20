@@ -49,10 +49,15 @@ namespace nfx::containers::test
 		EXPECT_FALSE( map.isEmpty() );
 
 		// Test tryGetValue
-		auto* value1 = map.tryGetValue( "key1" );
-		auto* value2 = map.tryGetValue( "key2" );
-		auto* value3 = map.tryGetValue( "key3" );
-		auto* valueMissing = map.tryGetValue( "missing" );
+		int* value1 = nullptr;
+		int* value2 = nullptr;
+		int* value3 = nullptr;
+		int* valueMissing = nullptr;
+		
+		EXPECT_TRUE( map.tryGetValue( "key1", value1 ) );
+		EXPECT_TRUE( map.tryGetValue( "key2", value2 ) );
+		EXPECT_TRUE( map.tryGetValue( "key3", value3 ) );
+		EXPECT_FALSE( map.tryGetValue( "missing", valueMissing ) );
 
 		ASSERT_NE( value1, nullptr );
 		ASSERT_NE( value2, nullptr );
@@ -70,14 +75,16 @@ namespace nfx::containers::test
 
 		// Initial insertion
 		map.insertOrAssign( "update_key", "initial_value" );
-		auto* value1 = map.tryGetValue( "update_key" );
+		std::string* value1 = nullptr;
+		EXPECT_TRUE( map.tryGetValue( "update_key", value1 ) );
 		ASSERT_NE( value1, nullptr );
 		EXPECT_EQ( *value1, "initial_value" );
 		EXPECT_EQ( map.size(), 1 );
 
 		// Update existing key
 		map.insertOrAssign( "update_key", "updated_value" );
-		auto* value2 = map.tryGetValue( "update_key" );
+		std::string* value2 = nullptr;
+		EXPECT_TRUE( map.tryGetValue( "update_key", value2 ) );
 		ASSERT_NE( value2, nullptr );
 		EXPECT_EQ( *value2, "updated_value" );
 		EXPECT_EQ( map.size(), 1 ); // Size should remain the same
@@ -98,9 +105,13 @@ namespace nfx::containers::test
 		const char* cstrKey{ strKey.c_str() };
 
 		// All lookup methods should work with different string types
-		auto* value1 = map.tryGetValue( strKey );
-		auto* value2 = map.tryGetValue( svKey );
-		auto* value3 = map.tryGetValue( cstrKey );
+		int* value1 = nullptr;
+		int* value2 = nullptr;
+		int* value3 = nullptr;
+		
+		EXPECT_TRUE( map.tryGetValue( strKey, value1 ) );
+		EXPECT_TRUE( map.tryGetValue( svKey, value2 ) );
+		EXPECT_TRUE( map.tryGetValue( cstrKey, value3 ) );
 
 		ASSERT_NE( value1, nullptr );
 		ASSERT_NE( value2, nullptr );
@@ -121,8 +132,11 @@ namespace nfx::containers::test
 		std::string_view svKey{ "zero_copy_key" };
 		const char* cstrKey{ "zero_copy_key" };
 
-		auto* result1 = map.tryGetValue( svKey );
-		auto* result2 = map.tryGetValue( cstrKey );
+		std::string* result1 = nullptr;
+		std::string* result2 = nullptr;
+		
+		EXPECT_TRUE( map.tryGetValue( svKey, result1 ) );
+		EXPECT_TRUE( map.tryGetValue( cstrKey, result2 ) );
 
 		ASSERT_NE( result1, nullptr );
 		ASSERT_NE( result2, nullptr );
@@ -150,12 +164,15 @@ namespace nfx::containers::test
 		EXPECT_EQ( map.size(), 2 );
 
 		// Verify key is gone
-		auto* value = map.tryGetValue( "erase2" );
+		int* value = nullptr;
+		EXPECT_FALSE( map.tryGetValue( "erase2", value ) );
 		EXPECT_EQ( value, nullptr );
 
 		// Other keys should still exist
-		auto* value1 = map.tryGetValue( "erase1" );
-		auto* value3 = map.tryGetValue( "erase3" );
+		int* value1 = nullptr;
+		int* value3 = nullptr;
+		EXPECT_TRUE( map.tryGetValue( "erase1", value1 ) );
+		EXPECT_TRUE( map.tryGetValue( "erase3", value3 ) );
 		ASSERT_NE( value1, nullptr );
 		ASSERT_NE( value3, nullptr );
 		EXPECT_EQ( *value1, 1 );
@@ -174,7 +191,8 @@ namespace nfx::containers::test
 		EXPECT_EQ( map.size(), 1 );
 
 		// Existing key should still be there
-		auto* value = map.tryGetValue( "existing" );
+		int* value = nullptr;
+		EXPECT_TRUE( map.tryGetValue( "existing", value ) );
 		ASSERT_NE( value, nullptr );
 		EXPECT_EQ( *value, 100 );
 	}
@@ -236,7 +254,8 @@ namespace nfx::containers::test
 		// Verify all items are still accessible
 		for ( size_t i = 0; i < itemsToInsert; ++i )
 		{
-			auto* value = map.tryGetValue( "key_" + std::to_string( i ) );
+			int* value = nullptr;
+			EXPECT_TRUE( map.tryGetValue( "key_" + std::to_string( i ), value ) );
 			ASSERT_NE( value, nullptr );
 			EXPECT_EQ( *value, static_cast<int>( i ) );
 		}
@@ -260,11 +279,17 @@ namespace nfx::containers::test
 		EXPECT_EQ( map.size(), 5 );
 
 		// All items should be retrievable
-		auto* value1 = map.tryGetValue( "collision1" );
-		auto* value2 = map.tryGetValue( "collision2" );
-		auto* value3 = map.tryGetValue( "collision3" );
-		auto* value4 = map.tryGetValue( "collision4" );
-		auto* value5 = map.tryGetValue( "collision5" );
+		int* value1 = nullptr;
+		int* value2 = nullptr;
+		int* value3 = nullptr;
+		int* value4 = nullptr;
+		int* value5 = nullptr;
+		
+		EXPECT_TRUE( map.tryGetValue( "collision1", value1 ) );
+		EXPECT_TRUE( map.tryGetValue( "collision2", value2 ) );
+		EXPECT_TRUE( map.tryGetValue( "collision3", value3 ) );
+		EXPECT_TRUE( map.tryGetValue( "collision4", value4 ) );
+		EXPECT_TRUE( map.tryGetValue( "collision5", value5 ) );
 
 		ASSERT_NE( value1, nullptr );
 		ASSERT_NE( value2, nullptr );
@@ -290,13 +315,15 @@ namespace nfx::containers::test
 		// Empty string as key
 		map.insertOrAssign( "", "empty_key_value" );
 
-		auto* value = map.tryGetValue( "" );
+		std::string* value = nullptr;
+		EXPECT_TRUE( map.tryGetValue( "", value ) );
 		ASSERT_NE( value, nullptr );
 		EXPECT_EQ( *value, "empty_key_value" );
 
 		// Test with empty string_view
 		std::string_view emptySv{};
-		auto* value2 = map.tryGetValue( emptySv );
+		std::string* value2 = nullptr;
+		EXPECT_TRUE( map.tryGetValue( emptySv, value2 ) );
 		ASSERT_NE( value2, nullptr );
 		EXPECT_EQ( *value2, "empty_key_value" );
 	}
@@ -314,11 +341,17 @@ namespace nfx::containers::test
 
 		EXPECT_EQ( map.size(), 5 );
 
-		auto* value1 = map.tryGetValue( "key with spaces" );
-		auto* value2 = map.tryGetValue( "key\twith\ttabs" );
-		auto* value3 = map.tryGetValue( "key\nwith\nnewlines" );
-		auto* value4 = map.tryGetValue( "key\"with\"quotes" );
-		auto* value5 = map.tryGetValue( "key\\with\\backslashes" );
+		int* value1 = nullptr;
+		int* value2 = nullptr;
+		int* value3 = nullptr;
+		int* value4 = nullptr;
+		int* value5 = nullptr;
+		
+		EXPECT_TRUE( map.tryGetValue( "key with spaces", value1 ) );
+		EXPECT_TRUE( map.tryGetValue( "key\twith\ttabs", value2 ) );
+		EXPECT_TRUE( map.tryGetValue( "key\nwith\nnewlines", value3 ) );
+		EXPECT_TRUE( map.tryGetValue( "key\"with\"quotes", value4 ) );
+		EXPECT_TRUE( map.tryGetValue( "key\\with\\backslashes", value5 ) );
 
 		ASSERT_NE( value1, nullptr );
 		ASSERT_NE( value2, nullptr );
@@ -345,10 +378,15 @@ namespace nfx::containers::test
 
 		EXPECT_EQ( map.size(), 4 );
 
-		auto* value1 = map.tryGetValue( "🔑" );
-		auto* value2 = map.tryGetValue( "clé" );
-		auto* value3 = map.tryGetValue( "键" );
-		auto* value4 = map.tryGetValue( "ключ" );
+		std::string* value1 = nullptr;
+		std::string* value2 = nullptr;
+		std::string* value3 = nullptr;
+		std::string* value4 = nullptr;
+		
+		EXPECT_TRUE( map.tryGetValue( "🔑", value1 ) );
+		EXPECT_TRUE( map.tryGetValue( "clé", value2 ) );
+		EXPECT_TRUE( map.tryGetValue( "键", value3 ) );
+		EXPECT_TRUE( map.tryGetValue( "ключ", value4 ) );
 
 		ASSERT_NE( value1, nullptr );
 		ASSERT_NE( value2, nullptr );
@@ -383,13 +421,15 @@ namespace nfx::containers::test
 		for ( size_t i = 0; i < numItems; ++i )
 		{
 			std::string key{ "perf_key_" + std::to_string( i ) };
-			auto* value = map.tryGetValue( key );
+			size_t* value = nullptr;
+			EXPECT_TRUE( map.tryGetValue( key, value ) );
 			ASSERT_NE( value, nullptr );
 			EXPECT_EQ( *value, i );
 
 			// Also test with string_view (zero-copy)
 			std::string_view svKey{ key };
-			auto* value2 = map.tryGetValue( svKey );
+			size_t* value2 = nullptr;
+			EXPECT_TRUE( map.tryGetValue( svKey, value2 ) );
 			ASSERT_NE( value2, nullptr );
 			EXPECT_EQ( *value2, i );
 		}
@@ -424,14 +464,16 @@ namespace nfx::containers::test
 		// Verify remaining items
 		for ( int i = 1; i < 100; i += 2 ) // Odd numbers from original
 		{
-			auto* value = map.tryGetValue( "pattern_" + std::to_string( i ) );
+			int* value = nullptr;
+			EXPECT_TRUE( map.tryGetValue( "pattern_" + std::to_string( i ), value ) );
 			ASSERT_NE( value, nullptr );
 			EXPECT_EQ( *value, i );
 		}
 
 		for ( int i = 100; i < 150; ++i ) // New items
 		{
-			auto* value = map.tryGetValue( "pattern_" + std::to_string( i ) );
+			int* value = nullptr;
+			EXPECT_TRUE( map.tryGetValue( "pattern_" + std::to_string( i ), value ) );
 			ASSERT_NE( value, nullptr );
 			EXPECT_EQ( *value, i );
 		}
@@ -448,8 +490,10 @@ namespace nfx::containers::test
 		map.insertOrAssign( "vector1", std::vector<int>{ 1, 2, 3 } );
 		map.insertOrAssign( "vector2", std::vector<int>{ 4, 5, 6, 7 } );
 
-		auto* value1 = map.tryGetValue( "vector1" );
-		auto* value2 = map.tryGetValue( "vector2" );
+		std::vector<int>* value1 = nullptr;
+		std::vector<int>* value2 = nullptr;
+		EXPECT_TRUE( map.tryGetValue( "vector1", value1 ) );
+		EXPECT_TRUE( map.tryGetValue( "vector2", value2 ) );
 
 		ASSERT_NE( value1, nullptr );
 		ASSERT_NE( value2, nullptr );
@@ -467,8 +511,10 @@ namespace nfx::containers::test
 		map.insertOrAssign( "unique1", std::make_unique<int>( 42 ) );
 		map.insertOrAssign( "unique2", std::make_unique<int>( 84 ) );
 
-		auto* value1 = map.tryGetValue( "unique1" );
-		auto* value2 = map.tryGetValue( "unique2" );
+		std::unique_ptr<int>* value1 = nullptr;
+		std::unique_ptr<int>* value2 = nullptr;
+		EXPECT_TRUE( map.tryGetValue( "unique1", value1 ) );
+		EXPECT_TRUE( map.tryGetValue( "unique2", value2 ) );
 
 		ASSERT_NE( value1, nullptr );
 		ASSERT_NE( value2, nullptr );

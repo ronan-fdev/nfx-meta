@@ -314,7 +314,8 @@ static void demoHashMap()
 	std::vector<std::string> names{ "Alice", "Bob", "Charlie", "Diana" };
 	for ( const auto& name : names )
 	{
-		if ( auto score = scores.tryGetValue( name ) )
+		int* score = nullptr;
+		if ( scores.tryGetValue( name, score ) && score )
 		{
 			std::cout << "  " << name << ": " << *score << "\n";
 		}
@@ -322,15 +323,17 @@ static void demoHashMap()
 
 	// Heterogeneous lookup with string_view - no temporary string construction
 	std::string_view lookup{ "Alice" };
-	if ( auto score = scores.tryGetValue( lookup ) )
+	int* score = nullptr;
+	if ( scores.tryGetValue( lookup, score ) && score )
 	{
 		std::cout << "\nFound " << lookup << " with score: " << *score << "\n";
 	}
 
 	// tryGetValue - efficient lookup without iterator overhead
-	if ( auto score = scores.tryGetValue( "Charlie" ) )
+	int* charlieScore = nullptr;
+	if ( scores.tryGetValue( "Charlie", charlieScore ) && charlieScore )
 	{
-		std::cout << "Charlie's score: " << *score << "\n";
+		std::cout << "Charlie's score: " << *charlieScore << "\n";
 	}
 
 	// Demonstrate HashMap state information
@@ -342,9 +345,10 @@ static void demoHashMap()
 	std::cout << "\nAfter erasing Bob (" << ( erased ? "success" : "not found" ) << "):\n";
 	for ( const auto& name : names )
 	{
-		if ( auto score = scores.tryGetValue( name ) )
+		int* nameScore = nullptr;
+		if ( scores.tryGetValue( name, nameScore ) && nameScore )
 		{
-			std::cout << "  " << name << ": " << *score << "\n";
+			std::cout << "  " << name << ": " << *nameScore << "\n";
 		}
 		else
 		{
@@ -363,9 +367,9 @@ static void demoHashMap()
 		{ "Grace", 96 },
 		{ "Henry", 83 } };
 
-	for ( const auto& [name, score] : newScores )
+	for ( const auto& [name, scoreValue] : newScores )
 	{
-		scores.insertOrAssign( name, score );
+		scores.insertOrAssign( name, scoreValue );
 	}
 
 	std::cout << "\nFinal scores count: " << scores.size() << "\n";
