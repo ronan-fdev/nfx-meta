@@ -31,6 +31,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.0.7] - 2025-09-20
+
+### Added
+
+#### Google Benchmark Integration
+
+- **Performance Measurement Framework**: Integrated Google Benchmark library
+- **String Splitter Benchmark Suite**: Comprehensive benchmark comparing _manual_ vs `Splitter` vs `splitView()` performance
+- **Real-world Test Scenarios**: CSV parsing, path splitting, and configuration data processing benchmarks
+
 ## [0.0.6] - 2025-09-20
 
 ### Changed

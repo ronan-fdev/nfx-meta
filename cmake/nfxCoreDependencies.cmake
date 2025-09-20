@@ -52,9 +52,41 @@ if(NFX_CORE_BUILD_TESTS)
 	)
 endif()
 
+# --- Google benchmark ---
+if(NFX_CORE_BUILD_BENCHMARKS)
+	set(BENCHMARK_ENABLE_TESTING         OFF  CACHE BOOL  "Build benchmark tests"                          FORCE)
+	set(BENCHMARK_ENABLE_EXCEPTIONS      ON   CACHE BOOL  "Enable exceptions in benchmark library"         FORCE)
+	set(BENCHMARK_ENABLE_LTO             OFF  CACHE BOOL  "Enable link time optimization"                  FORCE)
+	set(BENCHMARK_USE_LIBCXX             OFF  CACHE BOOL  "Use libc++ as the standard library"             FORCE)
+	set(BENCHMARK_ENABLE_WERROR          OFF  CACHE BOOL  "Treat warnings as errors"                       FORCE)
+	set(BENCHMARK_FORCE_WERROR           OFF  CACHE BOOL  "Force warnings as errors regardless of issues"  FORCE)
+	set(BENCHMARK_BUILD_32_BITS          OFF  CACHE BOOL  "Build a 32-bit version of the library"          FORCE)
+	set(BENCHMARK_ENABLE_INSTALL         OFF  CACHE BOOL  "Install benchmark targets"                      FORCE)
+	set(BENCHMARK_ENABLE_DOXYGEN         OFF  CACHE BOOL  "Build documentation with Doxygen"               FORCE)
+	set(BENCHMARK_INSTALL_DOCS           OFF  CACHE BOOL  "Install documentation"                          FORCE)
+	set(BENCHMARK_DOWNLOAD_DEPENDENCIES  OFF  CACHE BOOL  "Download and build unmet dependencies"          FORCE)
+	set(BENCHMARK_ENABLE_GTEST_TESTS     OFF  CACHE BOOL  "Build benchmark GTest-based tests"              FORCE)
+	set(BENCHMARK_USE_BUNDLED_GTEST      OFF  CACHE BOOL  "Use bundled GoogleTest for benchmark"           FORCE)
+	set(BENCHMARK_ENABLE_LIBPFM          OFF  CACHE BOOL  "Enable performance counters via libpfm"         FORCE)
+	set(ENABLE_ASSEMBLY_TESTS_DEFAULT    OFF  CACHE BOOL  "Enable assembly tests by default"               FORCE)
+
+	FetchContent_Declare(
+		googlebenchmark
+		GIT_REPOSITORY https://github.com/google/benchmark.git
+		GIT_TAG        v1.9.4
+		GIT_SHALLOW    TRUE
+	)
+endif()
+
 #----------------------------
 # Dependency fetching
 #----------------------------
+
+if(NFX_CORE_WITH_STRING)
+	FetchContent_MakeAvailable(
+		fmt
+	)
+endif()
 
 if(NFX_CORE_BUILD_TESTS)
 	FetchContent_MakeAvailable(
@@ -62,8 +94,8 @@ if(NFX_CORE_BUILD_TESTS)
 	)
 endif()
 
-if(NFX_CORE_WITH_STRING)
+if(NFX_CORE_BUILD_BENCHMARKS)
 	FetchContent_MakeAvailable(
-		fmt
+		googlebenchmark
 	)
 endif()

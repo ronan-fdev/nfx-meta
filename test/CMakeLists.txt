@@ -157,10 +157,25 @@ foreach(test_source ${TEST_SOURCES})
 		#----------------------------------------------
 
 		if(NFX_CORE_BUILD_STATIC)
-			target_link_libraries(${test_target_name} PRIVATE nfx-core::static GTest::gtest_main)
+			target_link_libraries(${test_target_name} PRIVATE
+				nfx-core::static
+				GTest::gtest_main
+			)
 		else()
-			target_link_libraries(${test_target_name} PRIVATE nfx-core::nfx-core GTest::gtest_main)
+			target_link_libraries(${test_target_name} PRIVATE
+				nfx-core::nfx-core
+				GTest::gtest_main
+			)
 		endif()
+
+		#----------------------------------------------
+		# Include directories
+		#----------------------------------------------
+
+		target_include_directories(${test_target_name} PRIVATE
+			${NFX_CORE_INCLUDE_DIR}
+			${NFX_CORE_SOURCE_DIR}
+		)
 
 		#----------------------------------------------
 		# Test discovery and registration
@@ -185,6 +200,10 @@ foreach(test_source ${TEST_SOURCES})
 			CXX_EXTENSIONS OFF
 			POSITION_INDEPENDENT_CODE ON
 			DEBUG_POSTFIX "-d"
+			RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests"
+			RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests"
+			RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests"
 		)
+		
 	endif()
 endforeach()

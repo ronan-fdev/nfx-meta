@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(nfx-core
-	VERSION 0.0.6
+	VERSION 0.0.7
 	DESCRIPTION "C++ utility library with cross-platform 128-bit arithmetic, temporal calculations, zero-copy containers, and advanced string processing"
 	LANGUAGES CXX
 )
@@ -25,19 +25,20 @@ enable_testing()
 #----------------------------------------------
 
 # --- Library build types ---
-option(NFX_CORE_BUILD_STATIC     "Build static library"                ON  )
-option(NFX_CORE_BUILD_SHARED     "Build shared library"                ON  )
+option(NFX_CORE_BUILD_STATIC      "Build static library"                ON  )
+option(NFX_CORE_BUILD_SHARED      "Build shared library"                ON  )
 
 # --- Components ---
-option(NFX_CORE_WITH_CONTAINERS  "Enable container utilities"          ON  )
-option(NFX_CORE_WITH_DATATYPES   "Enable mathematical datatypes"       ON  )
-option(NFX_CORE_WITH_MEMORY      "Enable memory management utilities"  ON  )
-option(NFX_CORE_WITH_STRING      "Enable string utilities"             ON  )
-option(NFX_CORE_WITH_TIME        "Enable temporal classes"             ON  )
+option(NFX_CORE_WITH_CONTAINERS   "Enable container utilities"          ON  )
+option(NFX_CORE_WITH_DATATYPES    "Enable mathematical datatypes"       ON  )
+option(NFX_CORE_WITH_MEMORY       "Enable memory management utilities"  ON  )
+option(NFX_CORE_WITH_STRING       "Enable string utilities"             ON  )
+option(NFX_CORE_WITH_TIME         "Enable temporal classes"             ON  )
 
 # --- Development ---
-option(NFX_CORE_BUILD_TESTS      "Build tests"                         ON  )
-option(NFX_CORE_BUILD_SAMPLES    "Build samples"                       ON  )
+option(NFX_CORE_BUILD_TESTS       "Build tests"                         ON  )
+option(NFX_CORE_BUILD_SAMPLES     "Build samples"                       ON  )
+option(NFX_CORE_BUILD_BENCHMARKS  "Build benchmarks"                    ON  )
 
 #----------------------------------------------
 # CMake modules configuration
@@ -58,7 +59,15 @@ include(nfxCoreSources)
 #----------------------------------------------
 
 if(NFX_CORE_BUILD_TESTS)
-	add_subdirectory(tests)
+	add_subdirectory(test)
+endif()
+
+#----------------------------------------------
+# Benchmarks target
+#----------------------------------------------
+
+if(NFX_CORE_BUILD_BENCHMARKS)
+	add_subdirectory(benchmark)
 endif()
 
 #----------------------------------------------

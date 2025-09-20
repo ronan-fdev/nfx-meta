@@ -1,46 +1,39 @@
 #==============================================================================
-# NFX_CORE - Samples
+# NFX_CORE - Benchmark suite CMake configuration
 #==============================================================================
 
 #----------------------------------------------
-# Sample condition check
+# Benchmark condition check
 #----------------------------------------------
 
-if(NOT NFX_CORE_BUILD_SAMPLES)
-	message(STATUS "Samples disabled, skipping...")
+if(NOT NFX_CORE_BUILD_BENCHMARKS)
+	message(STATUS "Benchmarks disabled, skipping...")
 	return()
 endif()
 
 #----------------------------------------------
-# Samples source files
+# Benchmarks source files
 #----------------------------------------------
 
-set(SAMPLE_SOURCES
-	Sample_Datatypes.cpp
-	Sample_DateTime.cpp
-	Sample_FinancialWithTimestamps.cpp
-	Sample_MemoryCache.cpp
-	Sample_StringBuilder.cpp
-	Sample_StringContainers.cpp
-	Sample_StringSplitter.cpp
-	Sample_StringUtils.cpp
+set(BENCHMARK_SOURCES
+	string/BM_Splitter.cpp
 )
 
 #----------------------------------------------
-# Configure samples executables
+# Configure benchmark executables
 #----------------------------------------------
 
-foreach(sample_source ${SAMPLE_SOURCES})
-	get_filename_component(sample_target_name ${sample_source} NAME_WE)
+foreach(benchmark_source ${BENCHMARK_SOURCES})
+	get_filename_component(benchmark_target_name ${benchmark_source} NAME_WE)
 
-	if(NOT TARGET ${sample_target_name})
-		add_executable(${sample_target_name} ${sample_source})
+	if(NOT TARGET ${benchmark_target_name})
+		add_executable(${benchmark_target_name} ${benchmark_source})
 
 		#----------------------------------------------
 		# Target-specific compiler optimisation
 		#----------------------------------------------
 
-		target_compile_options(${sample_target_name} PRIVATE
+		target_compile_options(${benchmark_target_name} PRIVATE
 
 			#-----------------------------
 			# MSVC
@@ -73,12 +66,17 @@ foreach(sample_source ${SAMPLE_SOURCES})
 			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:/fp:except->    # Disable floating point exceptions
 
 			# --- Warning suppressions ---
+			$<$<CXX_COMPILER_ID:MSVC>:/wd4266>                                 # no override available for virtual member function from base 'type'; function is hidden
 			$<$<CXX_COMPILER_ID:MSVC>:/wd4514>                                 # unreferenced inline function has been removed
+			$<$<CXX_COMPILER_ID:MSVC>:/wd4625>                                 # copy constructor was implicitly defined as deleted
+			$<$<CXX_COMPILER_ID:MSVC>:/wd4626>                                 # assignment operator was implicitly defined as deleted
 			$<$<CXX_COMPILER_ID:MSVC>:/wd4710>                                 # function not inlined
 			$<$<CXX_COMPILER_ID:MSVC>:/wd4711>                                 # function selected for inline expansion
 			$<$<CXX_COMPILER_ID:MSVC>:/wd4820>                                 # padding
 			$<$<CXX_COMPILER_ID:MSVC>:/wd4866>                                 # compiler may not enforce left-to-right evaluation order for call to operator_name
 			$<$<CXX_COMPILER_ID:MSVC>:/wd4868>                                 # compiler may not enforce left-to-right evaluation order in braced initializer list
+			$<$<CXX_COMPILER_ID:MSVC>:/wd5026>                                 # move constructor was implicitly defined as deleted
+			$<$<CXX_COMPILER_ID:MSVC>:/wd5027>                                 # move assignment operator was implicitly defined as deleted
 			$<$<CXX_COMPILER_ID:MSVC>:/wd5045>                                 # Qspectre
 
 			#-----------------------------
@@ -127,7 +125,7 @@ foreach(sample_source ${SAMPLE_SOURCES})
 		# Target-specific linker settings
 		#----------------------------------------------
 
-		target_link_options(${sample_target_name} PRIVATE
+		target_link_options(${benchmark_target_name} PRIVATE
 
 			#-----------------------------
 			# MSVC
@@ -143,36 +141,39 @@ foreach(sample_source ${SAMPLE_SOURCES})
 		#----------------------------------------------
 
 		if(NFX_CORE_BUILD_STATIC)
-			target_link_libraries(${sample_target_name} PRIVATE nfx-core::static)
+			target_link_libraries(${benchmark_target_name} PRIVATE
+				nfx-core::static
+				benchmark::benchmark
+			)
 		else()
-			target_link_libraries(${sample_target_name} PRIVATE nfx-core::nfx-core)
+			target_link_libraries(${benchmark_target_name} PRIVATE
+				nfx-core::nfx-core
+				benchmark::benchmark
+			)
 		endif()
+
+		#----------------------------------------------
+		# Include directories
+		#----------------------------------------------
+
+		target_include_directories(${benchmark_target_name} PRIVATE
+			${NFX_CORE_INCLUDE_DIR}
+			${NFX_CORE_SOURCE_DIR}
+		)
 
 		#----------------------------------------------
 		# Properties
 		#----------------------------------------------
 
-		set_target_properties(${sample_target_name} PROPERTIES
+		set_target_properties(${benchmark_target_name} PROPERTIES
 			CXX_STANDARD 20
 			CXX_STANDARD_REQUIRED ON
 			CXX_EXTENSIONS OFF
 			POSITION_INDEPENDENT_CODE ON
 			DEBUG_POSTFIX "-d"
-			RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/samples"
-			RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/samples"
-			RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/samples"
+			RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks"
+			RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks"
+			RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks"
 		)
-
-		#----------------------------------------------
-		# Add to sample target
-		#----------------------------------------------
-
-		if(NOT TARGET samples)
-			add_custom_target(samples)
-		endif()
-		add_dependencies(samples ${sample_target_name}
-		)
-
 	endif()
 endforeach()
-
