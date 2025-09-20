@@ -31,6 +31,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.0.6] - 2025-09-20
+
+### Changed
+
+#### String Processing API Improvements
+
+- **StringViewSplitter → Splitter**: Renamed `StringViewSplitter` class to `Splitter` for cleaner API design within `nfx::string` namespace
+  - **Templated API**: Replaced multiple constructor/factory overloads with unified template-based approach
+    - `template<typename StringType> explicit Splitter(StringType&& str, char delimiter)` - single templated constructor
+    - `template<typename StringType> splitView(StringType&& str, char delimiter)` - unified factory function
+    - Perfect forwarding with automatic conversion to `std::string_view` for zero overhead
+    - Supports any string-convertible type: `std::string`, `std::string_view`, `const char*`, etc.
+  - **Performance Improvements**: Updated iterator implementation with optimized start/end position tracking
+  - **Complete Ecosystem Update**: All samples, tests, and documentation updated to reflect new API
+  - Maintains full backward compatibility at the functional level (only class name and template improvements)
+
 ## [0.0.5] - 2025-09-20
 
 ### Fixed

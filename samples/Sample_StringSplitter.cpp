@@ -1,7 +1,7 @@
 /**
- * @file Sample_StringViewSplitter.cpp
- * @brief Demonstrates zero-allocation string splitting with StringViewSplitter
- * @details This sample shows how to use StringViewSplitter for high-performance
+ * @file Sample_Splitter.cpp
+ * @brief Demonstrates zero-allocation string splitting with Splitter
+ * @details This sample shows how to use Splitter for high-performance
  *          string processing in real-world scenarios like CSV parsing, configuration
  *          files, log analysis, and path manipulation
  */
@@ -13,11 +13,11 @@
 #include <string>
 #include <vector>
 
-#include <nfx/string/StringViewSplitter.h>
+#include <nfx/string/Splitter.h>
 
 int main()
 {
-	std::cout << "=== NFX C++ Core - StringViewSplitter Usage ===" << std::endl;
+	std::cout << "=== NFX C++ Core - Splitter Usage ===" << std::endl;
 	std::cout << std::endl;
 
 	//=========================================================================
@@ -342,10 +342,10 @@ int main()
 	std::cout << "Original string: \"" << original_string << "\"" << std::endl;
 	std::cout << "First segment: \"" << first_segment << "\"" << std::endl;
 	std::cout << "Segment points to original memory: " << ( first_segment.data() == original_string.data() ? "Yes" : "No" ) << std::endl;
-	std::cout << "No additional memory allocated: StringViewSplitter uses zero-copy design" << std::endl;
+	std::cout << "No additional memory allocated: Splitter uses zero-copy design" << std::endl;
 
 	std::cout << std::endl;
-	std::cout << "=== StringViewSplitter sample completed successfully ===" << std::endl;
+	std::cout << "=== Splitter sample completed successfully ===" << std::endl;
 	std::cout << "This demonstrates zero-allocation, high-performance string splitting" << std::endl;
 	std::cout << "suitable for performance-critical applications and large-scale data processing." << std::endl;
 

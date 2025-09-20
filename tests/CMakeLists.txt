@@ -31,8 +31,8 @@ set(TEST_SOURCES
 	datatypes/TESTS_Int128.cpp
 	memory/TESTS_MemoryCache.cpp
 	string/TESTS_StringBuilderPool.cpp
+	string/TESTS_StringSplitter.cpp
 	string/TESTS_StringUtils.cpp
-	string/TESTS_StringViewSplitter.cpp
 	time/TESTS_DateTime.cpp
 )
 

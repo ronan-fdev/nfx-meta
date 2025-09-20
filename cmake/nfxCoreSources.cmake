@@ -62,8 +62,8 @@ if(NFX_CORE_WITH_STRING)
 	list(APPEND PUBLIC_HEADERS
 		${NFX_CORE_INCLUDE_DIR}/nfx/string/StringBuilderPool.h
 		${NFX_CORE_INCLUDE_DIR}/nfx/string/StringBuilderPool.inl
-		${NFX_CORE_INCLUDE_DIR}/nfx/string/StringViewSplitter.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/string/StringViewSplitter.inl
+		${NFX_CORE_INCLUDE_DIR}/nfx/string/Splitter.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/string/Splitter.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/string/Utils.h
 		${NFX_CORE_INCLUDE_DIR}/nfx/string/Utils.inl
 	)
@@ -102,7 +102,7 @@ if(NFX_CORE_WITH_MEMORY)
 	message(STATUS "  - Memory (MemoryCache)")
 endif()
 if(NFX_CORE_WITH_STRING)
-	message(STATUS "  - String utilities (StringBuilderPool, StringViewSplitter, Utils)")
+	message(STATUS "  - String utilities (StringBuilderPool, Splitter, Utils)")
 endif()
 if(NFX_CORE_WITH_TIME)
 	message(STATUS "  - Time utilities (DateTime, DateTimeOffset, TimeSpan)")

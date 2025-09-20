@@ -22,8 +22,8 @@ set(SAMPLE_SOURCES
 	Sample_MemoryCache.cpp
 	Sample_StringBuilder.cpp
 	Sample_StringContainers.cpp
+	Sample_StringSplitter.cpp
 	Sample_StringUtils.cpp
-	Sample_StringViewSplitter.cpp
 )
 
 #----------------------------------------------

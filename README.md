@@ -27,7 +27,7 @@ Originally developed as foundational infrastructure for the C++ port of the [DNV
 ### 🔤 String Processing
 
 - **StringBuilderPool**: Thread-safe pooled string building with RAII lease management
-- **StringViewSplitter**: Zero-allocation iterator-based string splitting
+- **Splitter**: Zero-allocation iterator-based string splitting
 - **Utils**: Fast parsing utilities using `std::charconv` (bool, int, double)
 - Heterogeneous container lookups without temporary string allocations
 
@@ -154,7 +154,7 @@ nfx-core/
 │   ├── containers/        # HashMap, ChdHashMap, StringMap, StringFunctors
 │   ├── datatypes/         # Int128, Decimal
 │   ├── memory/            # MemoryCache (LRU with expiration)
-│   └── string/            # StringBuilderPool, StringViewSplitter, Utils
+│   └── string/            # StringBuilderPool, Splitter, Utils
 ├── samples/               # Example usage and demonstrations
 ├── src/                   # Implementation files (.cpp)
 └── tests/                 # Comprehensive unit tests with GoogleTest
