@@ -57,7 +57,9 @@ namespace nfx::string
 		{
 			m_end = m_splitter.m_str.find( m_splitter.m_delimiter, 0 );
 			if ( m_end == std::string_view::npos )
+			{
 				m_end = m_splitter.m_str.length();
+			}
 		}
 	}
 
@@ -67,22 +69,28 @@ namespace nfx::string
 
 	NFX_CORE_INLINE std::string_view Splitter::Iterator::operator*() const noexcept
 	{
-		return m_splitter.m_str.substr( m_start, m_end - m_start );
+		const char* data = m_splitter.m_str.data() + m_start;
+		const size_t length = m_end - m_start;
+		return std::string_view{ data, length };
 	}
 
 	NFX_CORE_INLINE Splitter::Iterator& Splitter::Iterator::operator++() noexcept
 	{
-		if ( m_end == m_splitter.m_str.length() )
+		m_start = m_end + 1;
+
+		const size_t str_len = m_splitter.m_str.length();
+		if ( m_start > str_len )
 		{
 			m_isAtEnd = true;
+			return *this;
 		}
-		else
+
+		m_end = m_splitter.m_str.find( m_splitter.m_delimiter, m_start );
+		if ( m_end == std::string_view::npos ) [[unlikely]]
 		{
-			m_start = m_end + 1;
-			m_end = m_splitter.m_str.find( m_splitter.m_delimiter, m_start );
-			if ( m_end == std::string_view::npos )
-				m_end = m_splitter.m_str.length();
+			m_end = str_len;
 		}
+
 		return *this;
 	}
 

@@ -16,7 +16,14 @@ endif()
 #----------------------------------------------
 
 set(BENCHMARK_SOURCES
+	containers/BM_ChdHashMap.cpp
+	containers/BM_HashMap.cpp
+	containers/BM_StringMap.cpp
+	containers/BM_StringSet.cpp
+	core/BM_Hashing.cpp
 	string/BM_Splitter.cpp
+	string/BM_StringBuilderPool.cpp
+	string/BM_StringUtilities.cpp
 )
 
 #----------------------------------------------

@@ -123,19 +123,21 @@ namespace nfx::string
 	// String operations
 	//----------------------------------------------
 
-	NFX_CORE_INLINE constexpr bool endsWith( std::string_view str, std::string_view suffix ) noexcept
-	{
-		return str.size() >= suffix.size() && str.compare( str.size() - suffix.size(), suffix.size(), suffix ) == 0;
-	}
-
 	NFX_CORE_INLINE constexpr bool startsWith( std::string_view str, std::string_view prefix ) noexcept
 	{
-		return str.size() >= prefix.size() && str.compare( 0, prefix.size(), prefix ) == 0;
+		// Thin wrapper only
+		return str.starts_with( prefix );
 	}
 
 	NFX_CORE_INLINE constexpr bool contains( std::string_view str, std::string_view substr ) noexcept
 	{
 		return str.find( substr ) != std::string_view::npos;
+	}
+
+	NFX_CORE_INLINE constexpr bool endsWith( std::string_view str, std::string_view suffix ) noexcept
+	{
+		// Thin wrapper only
+		return str.ends_with( suffix );
 	}
 
 	NFX_CORE_INLINE constexpr bool equals( std::string_view lhs, std::string_view rhs ) noexcept

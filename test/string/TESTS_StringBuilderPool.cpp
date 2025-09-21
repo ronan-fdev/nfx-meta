@@ -487,7 +487,7 @@ namespace nfx::string::test
 		std::advance( it, 4 );
 		EXPECT_EQ( *it, 'o' );
 
-		it = std::next(it);
+		it = std::next( it );
 		EXPECT_EQ( it, end );
 	}
 
@@ -667,7 +667,7 @@ namespace nfx::string::test
 
 		// STL iterator result
 		std::string stl_result;
-		for ( auto it{ builder.begin() }; it != builder.end(); it = std::next(it) )
+		for ( auto it{ builder.begin() }; it != builder.end(); it = std::next( it ) )
 		{
 			stl_result += *it;
 		}
@@ -1256,7 +1256,7 @@ namespace nfx::string::test
 		const char* constData{ buffer.data() };
 		EXPECT_NE( constData, nullptr );
 		EXPECT_EQ( *constData, 'D' );
-		EXPECT_EQ( *std::next(constData, 4), ' ' );
+		EXPECT_EQ( *std::next( constData, 4 ), ' ' );
 
 		// Test mutable data access
 		char* mutableData{ buffer.data() };

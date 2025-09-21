@@ -63,22 +63,15 @@ namespace nfx::containers
 	namespace
 	{
 		//=====================================================================
-		// Internal helper components
+		// CHD HashMap configuration
 		//=====================================================================
 
-		//----------------------------------------------
-		// CPU feature detection
-		//----------------------------------------------
+		/** @brief Maximum multiplier for seed search iterations in CHD construction. */
+		inline constexpr uint32_t MAX_SEED_SEARCH_MULTIPLIER = 100;
 
-		/**
-		 * @brief Gets the cached SSE4.2 support status.
-		 * @details Checks CPU capabilities for SSE4.2 CRC32 instructions, which provide
-		 *          3-5x faster hashing compared to software fallback. Result is cached
-		 *          via static initialization for zero runtime overhead.
-		 * @return `true` if SSE4.2 is supported, `false` otherwise.
-		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-		 */
-		[[nodiscard]] inline bool hasSSE42Support() noexcept;
+		//=====================================================================
+		// Internal helper components
+		//=====================================================================
 
 		//----------------------------------------------
 		// ThrowHelper class
@@ -136,92 +129,6 @@ namespace nfx::containers
 			 * @throws InvalidOperationException Always.
 			 */
 			[[noreturn]] inline static void throwInvalidOperationException();
-		};
-
-		//----------------------------------------------
-		// Hashing class
-		//----------------------------------------------
-
-		/**
-		 * @class Hashing
-		 * @brief Provides hashing function utilities required for the CHD algorithm.
-		 */
-		class Hashing final
-		{
-		public:
-			//----------------------------
-			// Construction
-			//----------------------------
-
-			/** @brief Default constructor. */
-			Hashing() = delete;
-
-			/** @brief Copy constructor */
-			Hashing( const Hashing& ) = delete;
-
-			/** @brief Move constructor */
-			Hashing( Hashing&& ) noexcept = delete;
-
-			//----------------------------
-			// Destruction
-			//----------------------------
-
-			/** @brief Destructor */
-			~Hashing() = delete;
-
-			//----------------------------
-			// Assignment operators
-			//----------------------------
-
-			/** @brief Copy assignment operator */
-			Hashing& operator=( const Hashing& ) = delete;
-
-			/** @brief Move assignment operator */
-			Hashing& operator=( Hashing&& ) noexcept = delete;
-
-			//----------------------------
-			// Public static methods
-			//----------------------------
-
-			/**
-			 * @brief Larson multiplicative hash function: 37 * hash + ch
-			 * @details Simple hash by Paul Larson, provided for benchmarking.
-			 * @note Not used by CHD algorithm.
-			 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-			 */
-			[[nodiscard]] NFX_CORE_INLINE static constexpr uint32_t Larson( uint32_t hash, uint8_t ch ) noexcept;
-
-			/**
-			 * @brief Computes one step of the FNV-1a hash function.
-			 * @param[in] hash The current hash value.
-			 * @param[in] ch The character (byte) to incorporate into the hash.
-			 * @return The updated hash value.
-			 * @see https://en.wikipedia.org/wiki/Fowler-Noll-Vo_hash_function
-			 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-			 */
-			[[nodiscard]] NFX_CORE_INLINE static constexpr uint32_t fnv1a( uint32_t hash, uint8_t ch ) noexcept;
-
-			/**
-			 * @brief Computes one step of the CRC32 hash function using SSE4.2 instructions.
-			 * @param[in] hash The current hash value.
-			 * @param[in] ch The character (byte) to incorporate into the hash.
-			 * @return The updated hash value.
-			 * @note Requires SSE4.2 support. Use hasSSE42Support() to check availability.
-			 * @see https://en.wikipedia.org/wiki/Cyclic_redundancy_check
-			 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-			 */
-			[[nodiscard]] NFX_CORE_INLINE static uint32_t crc32( uint32_t hash, uint8_t ch ) noexcept;
-
-			/**
-			 * @brief Computes the final table index using the seed mixing function for the CHD algorithm.
-			 * @param[in] seed The seed value associated with the hash bucket.
-			 * @param[in] hash The 32-bit hash value of the key.
-			 * @param[in] size The total size (capacity) of the dictionary's main table. Must be a power of 2.
-			 * @return The final table index for the key (as size_t).
-			 * @see https://en.wikipedia.org/wiki/Perfect_hash_function#CHD_algorithm
-			 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-			 */
-			[[nodiscard]] NFX_CORE_INLINE static constexpr uint32_t seed( uint32_t seed, uint32_t hash, size_t size ) noexcept;
 		};
 	}
 
@@ -445,10 +352,6 @@ namespace nfx::containers
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		[[nodiscard]] inline Enumerator enumerator() const noexcept;
-
-		//----------------------------------------------
-		// Public helper methods
-		//----------------------------------------------
 
 		//---------------------------
 		// Hashing

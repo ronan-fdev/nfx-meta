@@ -137,15 +137,6 @@ namespace nfx::string
 	//----------------------------------------------
 
 	/**
-	 * @brief Fast check if string ends with suffix
-	 * @param str String to check
-	 * @param suffix Suffix to find
-	 * @return True if str ends with suffix
-	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-	 */
-	[[nodiscard]] NFX_CORE_INLINE constexpr bool endsWith( std::string_view str, std::string_view suffix ) noexcept;
-
-	/**
 	 * @brief Fast check if string starts with prefix
 	 * @param str String to check
 	 * @param prefix Prefix to find
@@ -153,6 +144,15 @@ namespace nfx::string
 	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 	 */
 	[[nodiscard]] NFX_CORE_INLINE constexpr bool startsWith( std::string_view str, std::string_view prefix ) noexcept;
+
+	/**
+	 * @brief Fast check if string ends with suffix
+	 * @param str String to check
+	 * @param suffix Suffix to find
+	 * @return True if str ends with suffix
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr bool endsWith( std::string_view str, std::string_view suffix ) noexcept;
 
 	/**
 	 * @brief Fast check if string contains substring

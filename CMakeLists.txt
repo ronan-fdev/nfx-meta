@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(nfx-core
-	VERSION 0.0.7
+	VERSION 0.0.8
 	DESCRIPTION "C++ utility library with cross-platform 128-bit arithmetic, temporal calculations, zero-copy containers, and advanced string processing"
 	LANGUAGES CXX
 )

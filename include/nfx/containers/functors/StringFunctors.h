@@ -39,10 +39,10 @@ namespace nfx::containers
 		using is_transparent = void;
 
 		/**
-		 * @brief Hash string_view directly
+		 * @brief Hash C-string via string_view conversion
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE size_t operator()( std::string_view sv ) const noexcept;
+		[[nodiscard]] NFX_CORE_INLINE size_t operator()( const char* s ) const noexcept;
 
 		/**
 		 * @brief Hash std::string via string_view conversion
@@ -51,10 +51,10 @@ namespace nfx::containers
 		[[nodiscard]] NFX_CORE_INLINE size_t operator()( const std::string& s ) const noexcept;
 
 		/**
-		 * @brief Hash C-string via string_view conversion
+		 * @brief Hash string_view directly
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE size_t operator()( const char* s ) const noexcept;
+		[[nodiscard]] NFX_CORE_INLINE size_t operator()( std::string_view sv ) const noexcept;
 	};
 
 	//----------------------------------------------
@@ -77,22 +77,16 @@ namespace nfx::containers
 		using is_transparent = void;
 
 		/**
+		 * @brief Compare two C-strings
+		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+		 */
+		[[nodiscard]] NFX_CORE_INLINE constexpr bool operator()( const char* lhs, const char* rhs ) const noexcept;
+
+		/**
 		 * @brief Compare two std::string objects
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( const std::string& lhs, const std::string& rhs ) const noexcept;
-
-		/**
-		 * @brief Compare std::string with string_view
-		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-		 */
-		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( const std::string& lhs, std::string_view rhs ) const noexcept;
-
-		/**
-		 * @brief Compare string_view with std::string
-		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-		 */
-		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( std::string_view lhs, const std::string& rhs ) const noexcept;
 
 		/**
 		 * @brief Compare two string_view objects
@@ -107,16 +101,22 @@ namespace nfx::containers
 		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( const char* lhs, const std::string& rhs ) const noexcept;
 
 		/**
+		 * @brief Compare C-string with string_view
+		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+		 */
+		[[nodiscard]] NFX_CORE_INLINE constexpr bool operator()( const char* lhs, std::string_view rhs ) const noexcept;
+
+		/**
 		 * @brief Compare std::string with C-string
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( const std::string& lhs, const char* rhs ) const noexcept;
 
 		/**
-		 * @brief Compare C-string with string_view
+		 * @brief Compare std::string with string_view
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE constexpr bool operator()( const char* lhs, std::string_view rhs ) const noexcept;
+		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( const std::string& lhs, std::string_view rhs ) const noexcept;
 
 		/**
 		 * @brief Compare string_view with C-string
@@ -125,10 +125,10 @@ namespace nfx::containers
 		[[nodiscard]] NFX_CORE_INLINE constexpr bool operator()( std::string_view lhs, const char* rhs ) const noexcept;
 
 		/**
-		 * @brief Compare two C-strings
+		 * @brief Compare string_view with std::string
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE constexpr bool operator()( const char* lhs, const char* rhs ) const noexcept;
+		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( std::string_view lhs, const std::string& rhs ) const noexcept;
 	};
 }
 

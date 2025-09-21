@@ -25,7 +25,7 @@ int main()
 
 	// Construction from various types
 	nfx::datatypes::Int128 small_int{ 12345 };
-	nfx::datatypes::Int128 large_int{ static_cast<std::int64_t>(9223372036854775807LL) }; // max int64
+	nfx::datatypes::Int128 large_int{ static_cast<std::int64_t>( 9223372036854775807LL ) }; // max int64
 
 	// Parse very large numbers from strings
 	nfx::datatypes::Int128 huge_number = nfx::datatypes::Int128::parse( "123456789012345678901234567890" );

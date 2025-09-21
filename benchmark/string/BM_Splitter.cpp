@@ -104,8 +104,27 @@ namespace nfx::string::benchmark
 	}
 
 	//----------------------------------------------
-	// Path splitting
+	// Manual vs Splitter with path data
 	//----------------------------------------------
+
+	//----------------------------
+	// Manual with path data
+	//----------------------------
+
+	static void BM_Manual_Path( ::benchmark::State& state )
+	{
+		std::vector<std::string_view> segments;
+
+		for ( auto _ : state )
+		{
+			ManualSplitter::split( path_data, '/', segments );
+			::benchmark::DoNotOptimize( segments );
+		}
+	}
+
+	//----------------------------
+	// Splitter with path data
+	//----------------------------
 
 	static void BM_Splitter_Path( ::benchmark::State& state )
 	{
@@ -122,9 +141,47 @@ namespace nfx::string::benchmark
 		}
 	}
 
+	//----------------------------
+	// SplitView with path data
+	//----------------------------
+
+	static void BM_SplitView_Path( ::benchmark::State& state )
+	{
+		std::vector<std::string_view> segments;
+
+		for ( auto _ : state )
+		{
+			segments.clear();
+			for ( const auto segment : nfx::string::splitView( path_data, '/' ) )
+			{
+				segments.emplace_back( segment );
+			}
+			::benchmark::DoNotOptimize( segments );
+		}
+	}
+
 	//----------------------------------------------
-	// Config data splitting
+	// Manual vs Splitter with config data
 	//----------------------------------------------
+
+	//----------------------------
+	// Manual with config data
+	//----------------------------
+
+	static void BM_Manual_Config( ::benchmark::State& state )
+	{
+		std::vector<std::string_view> segments;
+
+		for ( auto _ : state )
+		{
+			ManualSplitter::split( config_data, ';', segments );
+			::benchmark::DoNotOptimize( segments );
+		}
+	}
+
+	//----------------------------
+	// Splitter with config data
+	//----------------------------
 
 	static void BM_Splitter_Config( ::benchmark::State& state )
 	{
@@ -141,8 +198,27 @@ namespace nfx::string::benchmark
 		}
 	}
 
+	//----------------------------
+	// SplitView with config data
+	//----------------------------
+
+	static void BM_SplitView_Config( ::benchmark::State& state )
+	{
+		std::vector<std::string_view> segments;
+
+		for ( auto _ : state )
+		{
+			segments.clear();
+			for ( const auto segment : nfx::string::splitView( config_data, ';' ) )
+			{
+				segments.emplace_back( segment );
+			}
+			::benchmark::DoNotOptimize( segments );
+		}
+	}
+
 	//----------------------------------------------
-	// Zero-allocation benchmark
+	// Zero-allocation
 	//----------------------------------------------
 
 	static void BM_Splitter_ZeroAlloc( ::benchmark::State& state )
@@ -159,11 +235,156 @@ namespace nfx::string::benchmark
 	}
 }
 
-BENCHMARK( nfx::string::benchmark::BM_Manual_CSV );
-BENCHMARK( nfx::string::benchmark::BM_Splitter_CSV );
-BENCHMARK( nfx::string::benchmark::BM_SplitView_CSV );
-BENCHMARK( nfx::string::benchmark::BM_Splitter_Path );
-BENCHMARK( nfx::string::benchmark::BM_Splitter_Config );
-BENCHMARK( nfx::string::benchmark::BM_Splitter_ZeroAlloc );
+//=====================================================================
+// Benchmarks registration
+//=====================================================================
+
+//----------------------------------------------
+// Manual vs Splitter with CSV data
+//----------------------------------------------
+
+//----------------------------
+// Manual with CSV data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Manual_CSV )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------
+// Splitter with CSV data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Splitter_CSV )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------
+// SplitView with CSV data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_SplitView_CSV )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------------------------
+// Path benchmarks with improved accuracy
+//----------------------------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Manual_Path )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------
+// Splitter with path data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Splitter_Path )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------
+// SplitView with path data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_SplitView_Path )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------------------------
+// Config benchmarks with improved accuracy
+//----------------------------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Manual_Config )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------
+// Splitter with config data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Splitter_Config )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------
+// SplitView with config data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_SplitView_Config )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------------------------
+// Zero-allocation with enhanced precision
+//----------------------------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Splitter_ZeroAlloc )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------------------------
+// Manual vs Splitter with path data
+//----------------------------------------------
+
+//----------------------------
+// Manual with path data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Manual_Path )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------
+// Splitter with path data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Splitter_Path )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------
+// SplitView with path data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_SplitView_Path )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------------------------
+// Manual vs Splitter with config data
+//----------------------------------------------
+
+//----------------------------
+// Manual with config data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Manual_Config )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------
+// Splitter with config data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Splitter_Config )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------
+// SplitView with config data
+//----------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_SplitView_Config )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+//----------------------------------------------
+// Zero-allocation
+//----------------------------------------------
+
+BENCHMARK( nfx::string::benchmark::BM_Splitter_ZeroAlloc )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
 
 BENCHMARK_MAIN();

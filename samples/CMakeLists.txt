@@ -19,7 +19,7 @@ set(SAMPLE_SOURCES
 	Sample_Datatypes.cpp
 	Sample_DateTime.cpp
 	Sample_FinancialWithTimestamps.cpp
-	Sample_MemoryCache.cpp
+	Sample_LruCache.cpp
 	Sample_StringBuilder.cpp
 	Sample_StringContainers.cpp
 	Sample_StringSplitter.cpp
@@ -143,9 +143,13 @@ foreach(sample_source ${SAMPLE_SOURCES})
 		#----------------------------------------------
 
 		if(NFX_CORE_BUILD_STATIC)
-			target_link_libraries(${sample_target_name} PRIVATE nfx-core::static)
+			target_link_libraries(${sample_target_name} PRIVATE
+				nfx-core::static
+			)
 		else()
-			target_link_libraries(${sample_target_name} PRIVATE nfx-core::nfx-core)
+			target_link_libraries(${sample_target_name} PRIVATE
+				nfx-core::nfx-core
+			)
 		endif()
 
 		#----------------------------------------------

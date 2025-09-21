@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include <nfx/containers/StringFunctors.h>
+#include <nfx/containers/functors/StringFunctors.h>
 
 namespace nfx::containers::test
 {

@@ -51,10 +51,15 @@ namespace nfx::containers::test
 		map[std::string_view{ "string_view_key" }] = "value2";
 		map["c_string_key"] = "value3";
 
-		EXPECT_EQ( map.size(), 3 );
+		// Test mutable char* support
+		char mutable_key[] = "mutable_key";
+		map[mutable_key] = "value4";
+
+		EXPECT_EQ( map.size(), 4 );
 		EXPECT_EQ( map["std_string_key"], "value1" );
 		EXPECT_EQ( map["string_view_key"], "value2" );
 		EXPECT_EQ( map["c_string_key"], "value3" );
+		EXPECT_EQ( map["mutable_key"], "value4" );
 	}
 
 	TEST( StringMapBasic, HeterogeneousLookup )
@@ -65,16 +70,19 @@ namespace nfx::containers::test
 		std::string strKey{ "lookup_test" };
 		std::string_view svKey{ strKey };
 		const char* cstrKey{ strKey.c_str() };
+		char mutableKey[] = "lookup_test";
 
 		// All lookup methods should work
 		EXPECT_EQ( map[strKey], 42 );
 		EXPECT_EQ( map[svKey], 42 );
 		EXPECT_EQ( map[cstrKey], 42 );
+		EXPECT_EQ( map[mutableKey], 42 );
 
 		// find() should work with all types
 		EXPECT_NE( map.find( strKey ), map.end() );
 		EXPECT_NE( map.find( svKey ), map.end() );
 		EXPECT_NE( map.find( cstrKey ), map.end() );
+		EXPECT_NE( map.find( mutableKey ), map.end() );
 	}
 
 	TEST( StringMapBasic, TryEmplaceHeterogeneous )
@@ -86,29 +94,187 @@ namespace nfx::containers::test
 		auto [iter2, inserted2] = map.try_emplace( std::string_view{ "key2" }, "value2" );
 		auto [iter3, inserted3] = map.try_emplace( std::string{ "key3" }, "value3" );
 
+		// Test mutable char* support
+		char mutable_key[] = "key4";
+		auto [iter4, inserted4] = map.try_emplace( mutable_key, "value4" );
+
 		EXPECT_TRUE( inserted1 );
 		EXPECT_TRUE( inserted2 );
 		EXPECT_TRUE( inserted3 );
+		EXPECT_TRUE( inserted4 );
 
 		EXPECT_EQ( iter1->second, "value1" );
 		EXPECT_EQ( iter2->second, "value2" );
 		EXPECT_EQ( iter3->second, "value3" );
+		EXPECT_EQ( iter4->second, "value4" );
 
 		// Try to emplace existing keys
-		auto [iter4, inserted4] = map.try_emplace( "key1", "new_value1" );
-		auto [iter5, inserted5] = map.try_emplace( std::string_view{ "key2" }, "new_value2" );
+		auto [iter5, inserted5] = map.try_emplace( "key1", "new_value1" );
+		auto [iter6, inserted6] = map.try_emplace( std::string_view{ "key2" }, "new_value2" );
 
-		EXPECT_FALSE( inserted4 );
+		char existing_key[] = "key4";
+		auto [iter7, inserted7] = map.try_emplace( existing_key, "new_value4" );
+
 		EXPECT_FALSE( inserted5 );
+		EXPECT_FALSE( inserted6 );
+		EXPECT_FALSE( inserted7 );
 
 		// Values should remain unchanged
-		EXPECT_EQ( iter4->second, "value1" );
-		EXPECT_EQ( iter5->second, "value2" );
+		EXPECT_EQ( iter5->second, "value1" );
+		EXPECT_EQ( iter6->second, "value2" );
+		EXPECT_EQ( iter7->second, "value4" );
+	}
+
+	TEST( StringMapBasic, InsertOrAssignHeterogeneous )
+	{
+		StringMap<std::string> map;
+
+		// insert_or_assign with different key types - new keys
+		auto [iter1, inserted1] = map.insert_or_assign( "key1", "value1" );
+		auto [iter2, inserted2] = map.insert_or_assign( std::string_view{ "key2" }, "value2" );
+		auto [iter3, inserted3] = map.insert_or_assign( std::string{ "key3" }, "value3" );
+
+		// Test mutable char* support - new key
+		char mutable_key[] = "key4";
+		auto [iter4, inserted4] = map.insert_or_assign( mutable_key, "value4" );
+
+		EXPECT_TRUE( inserted1 ); // All should be insertions
+		EXPECT_TRUE( inserted2 );
+		EXPECT_TRUE( inserted3 );
+		EXPECT_TRUE( inserted4 );
+
+		EXPECT_EQ( iter1->second, "value1" );
+		EXPECT_EQ( iter2->second, "value2" );
+		EXPECT_EQ( iter3->second, "value3" );
+		EXPECT_EQ( iter4->second, "value4" );
+
+		// insert_or_assign existing keys - should assign (update)
+		auto [iter5, inserted5] = map.insert_or_assign( "key1", "updated_value1" );
+		auto [iter6, inserted6] = map.insert_or_assign( std::string_view{ "key2" }, "updated_value2" );
+
+		char existing_key[] = "key4";
+		auto [iter7, inserted7] = map.insert_or_assign( existing_key, "updated_value4" );
+
+		EXPECT_FALSE( inserted5 ); // All should be assignments
+		EXPECT_FALSE( inserted6 );
+		EXPECT_FALSE( inserted7 );
+
+		// Values should be updated
+		EXPECT_EQ( iter5->second, "updated_value1" );
+		EXPECT_EQ( iter6->second, "updated_value2" );
+		EXPECT_EQ( iter7->second, "updated_value4" );
+
+		// Verify map size hasn't changed
+		EXPECT_EQ( map.size(), 4 );
+
+		// Verify all keys have updated values
+		EXPECT_EQ( map["key1"], "updated_value1" );
+		EXPECT_EQ( map["key2"], "updated_value2" );
+		EXPECT_EQ( map["key3"], "value3" ); // This one wasn't updated
+		EXPECT_EQ( map["key4"], "updated_value4" );
 	}
 
 	//----------------------------------------------
 	// Advanced operations
 	//----------------------------------------------
+
+	TEST( StringMapAdvanced, TryEmplaceVsInsertOrAssignComparison )
+	{
+		StringMap<std::string> map1, map2;
+
+		// Initial state: both maps have the same key
+		map1["comparison_key"] = "original_value";
+		map2["comparison_key"] = "original_value";
+
+		// try_emplace on existing key - should NOT change value
+		auto [iter1, inserted1] = map1.try_emplace( "comparison_key", "try_emplace_value" );
+		EXPECT_FALSE( inserted1 );					  // Should not insert
+		EXPECT_EQ( iter1->second, "original_value" ); // Value unchanged
+		EXPECT_EQ( map1["comparison_key"], "original_value" );
+
+		// insert_or_assign on existing key - should change value
+		auto [iter2, inserted2] = map2.insert_or_assign( "comparison_key", "insert_or_assign_value" );
+		EXPECT_FALSE( inserted2 );							  // Should not insert (was assignment)
+		EXPECT_EQ( iter2->second, "insert_or_assign_value" ); // Value changed
+		EXPECT_EQ( map2["comparison_key"], "insert_or_assign_value" );
+
+		// Both methods on new keys - should behave identically
+		auto [iter3, inserted3] = map1.try_emplace( "new_key", "new_value" );
+		auto [iter4, inserted4] = map2.insert_or_assign( "new_key", "new_value" );
+
+		EXPECT_TRUE( inserted3 );
+		EXPECT_TRUE( inserted4 );
+		EXPECT_EQ( iter3->second, "new_value" );
+		EXPECT_EQ( iter4->second, "new_value" );
+		EXPECT_EQ( map1["new_key"], "new_value" );
+		EXPECT_EQ( map2["new_key"], "new_value" );
+	}
+
+	TEST( StringMapAdvanced, InsertOrAssignWithDifferentValueTypes )
+	{
+		StringMap<int> map;
+
+		// Test with different value types that are convertible to int
+		auto [iter1, inserted1] = map.insert_or_assign( "int_key", 42 );
+		auto [iter2, inserted2] = map.insert_or_assign( "short_key", short( 100 ) );
+		auto [iter3, inserted3] = map.insert_or_assign( "long_key", 200L );
+
+		EXPECT_TRUE( inserted1 );
+		EXPECT_TRUE( inserted2 );
+		EXPECT_TRUE( inserted3 );
+		EXPECT_EQ( map["int_key"], 42 );
+		EXPECT_EQ( map["short_key"], 100 );
+		EXPECT_EQ( map["long_key"], 200 );
+
+		// Update with different convertible types
+		auto [iter4, inserted4] = map.insert_or_assign( "int_key", 999L );						// long to int
+		auto [iter5, inserted5] = map.insert_or_assign( std::string_view{ "short_key" }, 500 ); // int to int via string_view key
+
+		EXPECT_FALSE( inserted4 );
+		EXPECT_FALSE( inserted5 );
+		EXPECT_EQ( map["int_key"], 999 );
+		EXPECT_EQ( map["short_key"], 500 );
+	}
+
+	TEST( StringMapAdvanced, MutableCharPointerSupport )
+	{
+		StringMap<int> map;
+
+		// Test that mutable char* works correctly
+		char key1[] = "mutable_key_1";
+		char key2[] = "mutable_key_2";
+		char key3[] = "mutable_key_3";
+
+		// Insert using mutable char*
+		map[key1] = 100;
+		map[key2] = 200;
+
+		// try_emplace using mutable char*
+		auto [iter, inserted] = map.try_emplace( key3, 300 );
+		EXPECT_TRUE( inserted );
+		EXPECT_EQ( iter->second, 300 );
+
+		// Verify all insertions worked
+		EXPECT_EQ( map.size(), 3 );
+		EXPECT_EQ( map["mutable_key_1"], 100 );
+		EXPECT_EQ( map["mutable_key_2"], 200 );
+		EXPECT_EQ( map["mutable_key_3"], 300 );
+
+		// Test that modifying the original char array doesn't affect the map
+		// (because the key is copied as std::string)
+		key1[0] = 'X';								  // Modify original array
+		EXPECT_EQ( map["mutable_key_1"], 100 );		  // Map should still work with original key
+		EXPECT_EQ( map.count( "Xutable_key_1" ), 0 ); // Modified key shouldn't exist
+
+		// Test lookup with different mutable char* arrays containing same content
+		char lookup_key1[] = "mutable_key_1";
+		char lookup_key2[] = "mutable_key_2";
+
+		EXPECT_EQ( map[lookup_key1], 100 );
+		EXPECT_EQ( map[lookup_key2], 200 );
+		EXPECT_EQ( map.count( lookup_key1 ), 1 );
+		EXPECT_EQ( map.count( lookup_key2 ), 1 );
+	}
 
 	TEST( StringMapAdvanced, EraseOperations )
 	{
@@ -159,6 +325,78 @@ namespace nfx::containers::test
 		EXPECT_FALSE( map.contains( "missing_key" ) );
 	}
 
+	TEST( StringMapAdvanced, AtMethodBasicFunctionality )
+	{
+		StringMap<int> map{
+			{ "at_test_key", 42 } };
+
+		// Test const at() with different string types
+		const auto& const_map = map;
+		EXPECT_EQ( const_map.at( "at_test_key" ), 42 );
+		EXPECT_EQ( const_map.at( std::string_view{ "at_test_key" } ), 42 );
+
+		char mutable_key[] = "at_test_key";
+		EXPECT_EQ( const_map.at( mutable_key ), 42 );
+
+		// Test non-const at() with different string types
+		EXPECT_EQ( map.at( "at_test_key" ), 42 );
+		EXPECT_EQ( map.at( std::string_view{ "at_test_key" } ), 42 );
+		EXPECT_EQ( map.at( mutable_key ), 42 );
+
+		// Test that non-const at() allows modification
+		map.at( "at_test_key" ) = 100;
+		EXPECT_EQ( map.at( "at_test_key" ), 100 );
+	}
+
+	TEST( StringMapAdvanced, AtMethodExceptionSafety )
+	{
+		StringMap<std::string> map{
+			{ "existing_key", "value" } };
+
+		// Test exception throwing with const char*
+		EXPECT_THROW( map.at( "missing_key" ), std::out_of_range );
+
+		// Test exception throwing with string_view
+		std::string_view missing_sv{ "missing_key_sv" };
+		EXPECT_THROW( map.at( missing_sv ), std::out_of_range );
+
+		// Test exception throwing with char*
+		char missing_key[] = "missing_key_char";
+		EXPECT_THROW( map.at( missing_key ), std::out_of_range );
+
+		// Test const version exception throwing
+		const auto& const_map = map;
+		EXPECT_THROW( const_map.at( "missing_key" ), std::out_of_range );
+
+		// Verify exception message contains useful information
+		try
+		{
+			map.at( "nonexistent" );
+			FAIL() << "Expected std::out_of_range exception";
+		}
+		catch ( const std::out_of_range& e )
+		{
+			std::string message = e.what();
+			EXPECT_TRUE( message.find( "StringMap::at" ) != std::string::npos );
+		}
+	}
+
+	TEST( StringMapAdvanced, AtMethodConstCorrectness )
+	{
+		StringMap<std::string> map{
+			{ "const_test", "original" } };
+
+		// Test const version returns const reference
+		const auto& const_map = map;
+		const std::string& const_ref = const_map.at( "const_test" );
+		EXPECT_EQ( const_ref, "original" );
+
+		// Test non-const version allows modification
+		map.at( "const_test" ) = "modified";
+		EXPECT_EQ( map.at( "const_test" ), "modified" );
+		EXPECT_EQ( const_map.at( "const_test" ), "modified" );
+	}
+
 	//----------------------------------------------
 	// Performance
 	//----------------------------------------------
@@ -169,24 +407,30 @@ namespace nfx::containers::test
 			{ "performance_key", 100 } };
 
 		// These operations should not create temporary std::string objects
-		// when using string_view or const char* keys
+		// when using string_view, const char*, or char* keys
 		std::string_view svKey{ "performance_key" };
 		const char* cstrKey{ "performance_key" };
+		char mutableKey[] = "performance_key";
 
 		// Lookups should be zero-copy
 		auto it1 = map.find( svKey );
 		auto it2 = map.find( cstrKey );
+		auto it3 = map.find( mutableKey );
 
 		EXPECT_NE( it1, map.end() );
 		EXPECT_NE( it2, map.end() );
+		EXPECT_NE( it3, map.end() );
 		EXPECT_EQ( it1->second, 100 );
 		EXPECT_EQ( it2->second, 100 );
+		EXPECT_EQ( it3->second, 100 );
 
 		// count and contains should also be zero-copy
 		EXPECT_EQ( map.count( svKey ), 1 );
 		EXPECT_EQ( map.count( cstrKey ), 1 );
+		EXPECT_EQ( map.count( mutableKey ), 1 );
 		EXPECT_TRUE( map.contains( svKey ) );
 		EXPECT_TRUE( map.contains( cstrKey ) );
+		EXPECT_TRUE( map.contains( mutableKey ) );
 	}
 
 	TEST( StringMapPerformance, LargeDataHandling )
@@ -404,5 +648,47 @@ namespace nfx::containers::test
 		EXPECT_EQ( getHeader( headers, "Content-Type" ), "application/json" );
 		EXPECT_EQ( getHeader( headers, "Authorization" ), "Bearer token123" );
 		EXPECT_EQ( getHeader( headers, "Missing-Header" ), "" );
+	}
+
+	TEST( StringMapRealWorld, ConfigurationManagementWithInsertOrAssign )
+	{
+		StringMap<std::string> config;
+
+		// Simulate loading default configuration
+		config.insert_or_assign( "timeout", "30" );
+		config.insert_or_assign( "retries", "3" );
+		config.insert_or_assign( "host", "localhost" );
+		config.insert_or_assign( "port", "8080" );
+
+		EXPECT_EQ( config.size(), 4 );
+
+		// Simulate loading user overrides using insert_or_assign
+		// This demonstrates the "upsert" pattern
+		auto updateConfig = [&config]( std::string_view key, std::string_view value ) {
+			auto [iter, inserted] = config.insert_or_assign( key, std::string{ value } );
+			return inserted; // true if new setting, false if override
+		};
+
+		// Override existing settings
+		bool timeoutWasNew = updateConfig( "timeout", "60" );		// Override
+		bool hostWasNew = updateConfig( "host", "production.com" ); // Override
+		bool debugWasNew = updateConfig( "debug", "true" );			// New setting
+
+		EXPECT_FALSE( timeoutWasNew ); // Was an override
+		EXPECT_FALSE( hostWasNew );	   // Was an override
+		EXPECT_TRUE( debugWasNew );	   // Was a new setting
+
+		// Verify final configuration
+		EXPECT_EQ( config["timeout"], "60" );
+		EXPECT_EQ( config["retries"], "3" ); // Unchanged
+		EXPECT_EQ( config["host"], "production.com" );
+		EXPECT_EQ( config["port"], "8080" );  // Unchanged
+		EXPECT_EQ( config["debug"], "true" ); // New
+		EXPECT_EQ( config.size(), 5 );
+
+		// Demonstrate heterogeneous key usage in real scenario
+		char dynamic_key[] = "dynamic_setting";
+		config.insert_or_assign( dynamic_key, "dynamic_value" );
+		EXPECT_EQ( config[std::string_view{ "dynamic_setting" }], "dynamic_value" );
 	}
 }

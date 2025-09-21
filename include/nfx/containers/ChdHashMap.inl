@@ -27,11 +27,7 @@
 #include <string>
 #include <unordered_map>
 
-#if defined( __GNUC__ )
-#	include <cpuid.h>
-#endif
-
-#include "nfx/containers/constants/ChdConstants.h"
+#include "nfx/core/hashing/Hash.h"
 
 namespace nfx::containers
 {
@@ -40,31 +36,6 @@ namespace nfx::containers
 		//=====================================================================
 		// Internal helper components
 		//=====================================================================
-
-		//----------------------------------------------
-		// CPU feature detection
-		//----------------------------------------------
-
-		NFX_CORE_INLINE bool hasSSE42Support() noexcept
-		{
-			static thread_local const bool s_hasSSE42 = []() {
-				bool hasSupport = false;
-#if defined( _MSC_VER )
-				std::array<int, 4> cpuInfo{};
-				__cpuid( cpuInfo.data(), 1 );
-				hasSupport = ( cpuInfo[2] & ( 1 << 20 ) ) != 0;
-#elif defined( __GNUC__ )
-				unsigned int eax, ebx, ecx, edx;
-				if ( __get_cpuid( 1, &eax, &ebx, &ecx, &edx ) )
-				{
-					hasSupport = ( ecx & ( 1 << 20 ) ) != 0;
-				}
-#endif
-				return hasSupport;
-			}();
-
-			return s_hasSSE42;
-		}
 
 		//----------------------------------------------
 		// ThrowHelper class
@@ -82,40 +53,6 @@ namespace nfx::containers
 		inline void ThrowHelper::throwInvalidOperationException()
 		{
 			throw InvalidOperationException{};
-		}
-
-		//----------------------------------------------
-		// Hashing class
-		//----------------------------------------------
-
-		//----------------------------
-		// Public static methods
-		//----------------------------
-
-		[[maybe_unused]] NFX_CORE_INLINE constexpr uint32_t Hashing::Larson( uint32_t hash, uint8_t ch ) noexcept
-		{
-			return 37 * hash + ch;
-		}
-
-		NFX_CORE_INLINE constexpr uint32_t Hashing::fnv1a( uint32_t hash, uint8_t ch ) noexcept
-		{
-			return ( ch ^ hash ) * constants::chd::FNV_PRIME;
-		}
-
-		NFX_CORE_INLINE uint32_t Hashing::crc32( uint32_t hash, uint8_t ch ) noexcept
-		{
-			return _mm_crc32_u8( hash, ch );
-		}
-
-		NFX_CORE_INLINE constexpr uint32_t Hashing::seed( uint32_t seed, uint32_t hash, size_t size ) noexcept
-		{
-			// Mixes the primary hash with the seed to find the final table slot
-			uint32_t x{ seed + hash };
-			x ^= x >> 12;
-			x ^= x << 25;
-			x ^= x >> 27;
-
-			return static_cast<uint32_t>( ( x * 0x2545F4914F6CDD1DUL ) & ( size - 1 ) );
 		}
 	}
 
@@ -204,7 +141,7 @@ namespace nfx::containers
 				for ( const auto& k : subKeys )
 				{
 					// Calculate final position using secondary hash with current seed
-					auto finalHash{ Hashing::seed( currentSeedValue, k.second, size ) };
+					auto finalHash{ core::hashing::seedMix( currentSeedValue, k.second, size ) };
 					bool slotOccupied = indices[finalHash] != 0;
 					bool entryClaimedThisTry = entries.count( finalHash ) != 0;
 
@@ -224,7 +161,7 @@ namespace nfx::containers
 					break;
 				}
 
-				if ( currentSeedValue > size * constants::chd::MAX_SEED_SEARCH_MULTIPLIER )
+				if ( currentSeedValue > size * MAX_SEED_SEARCH_MULTIPLIER )
 				{
 					std::ostringstream oss;
 					oss << "Bucket " << currentBucketIdx << ": Seed search exceeded threshold (" << currentSeedValue << "), aborting construction!";
@@ -302,7 +239,7 @@ namespace nfx::containers
 		}
 		else
 		{
-			finalIndex = Hashing::seed( static_cast<uint32_t>( seed ), hashValue, tableSize );
+			finalIndex = core::hashing::seedMix( static_cast<uint32_t>( seed ), hashValue, tableSize );
 		}
 
 		const auto& kvp = m_table[finalIndex];
@@ -375,7 +312,7 @@ namespace nfx::containers
 		const int seed = m_seeds[index];
 
 		const size_t finalIndex = ( seed < 0 ) ? static_cast<size_t>( -seed - 1 )
-											   : Hashing::seed( static_cast<uint32_t>( seed ), hashValue, tableSize );
+											   : core::hashing::seedMix( static_cast<uint32_t>( seed ), hashValue, tableSize );
 
 		auto& kvp = m_table[finalIndex];
 		const size_t keyLen = key.size();
@@ -427,10 +364,6 @@ namespace nfx::containers
 		return Enumerator{ &m_table };
 	}
 
-	//----------------------------------------------
-	// Private helper methods
-	//----------------------------------------------
-
 	//---------------------------
 	// Hashing
 	//---------------------------
@@ -438,34 +371,7 @@ namespace nfx::containers
 	template <typename TValue>
 	NFX_CORE_INLINE uint32_t ChdHashMap<TValue>::hash( std::string_view key ) noexcept
 	{
-		if ( key.empty() )
-		{
-			return constants::chd::FNV_OFFSET_BASIS;
-		}
-
-		uint32_t hashValue = constants::chd::FNV_OFFSET_BASIS;
-		size_t length = key.length();
-
-		static const bool hasSSE42 = hasSSE42Support();
-
-		if ( hasSSE42 )
-		{
-			// Use SSE4.2 CRC32 - process each character's low byte only
-			for ( size_t i = 0; i < length; ++i )
-			{
-				hashValue = Hashing::crc32( hashValue, static_cast<uint8_t>( key[i] ) );
-			}
-		}
-		else
-		{
-			// FNV-1a software fallback - process each character's low byte only
-			for ( size_t i = 0; i < length; ++i )
-			{
-				hashValue = Hashing::fnv1a( hashValue, static_cast<uint8_t>( key[i] ) );
-			}
-		}
-
-		return hashValue;
+		return core::hashing::hashStringView( key );
 	}
 
 	//----------------------------------------------

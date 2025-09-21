@@ -1,6 +1,6 @@
 /**
- * @file MemoryCache.inl
- * @brief Implementation of MemoryCache template methods
+ * @file LruCache.inl
+ * @brief Implementation of LruCache template methods
  * @details Template method implementations for thread-safe memory cache
  *          with LRU eviction and configurable expiration policies
  */
@@ -8,16 +8,20 @@
 namespace nfx::memory
 {
 	//=====================================================================
-	// MemoryCacheOptions
+	// LruCacheOptions
 	//=====================================================================
 
 	//----------------------------------------------
 	// Construction
 	//----------------------------------------------
 
-	NFX_CORE_INLINE MemoryCacheOptions::MemoryCacheOptions( std::size_t sizeLimit, std::chrono::milliseconds defaultSlidingExpiration )
+	NFX_CORE_INLINE LruCacheOptions::LruCacheOptions(
+		std::size_t sizeLimit,
+		std::chrono::milliseconds defaultSlidingExpiration,
+		std::chrono::milliseconds backgroundCleanupInterval )
 		: m_sizeLimit{ sizeLimit },
-		  m_slidingExpiration{ defaultSlidingExpiration }
+		  m_slidingExpiration{ defaultSlidingExpiration },
+		  m_backgroundCleanupInterval{ backgroundCleanupInterval }
 	{
 	}
 
@@ -25,14 +29,19 @@ namespace nfx::memory
 	// Accessors
 	//----------------------------------------------
 
-	NFX_CORE_INLINE std::size_t MemoryCacheOptions::sizeLimit() const
+	NFX_CORE_INLINE std::size_t LruCacheOptions::sizeLimit() const
 	{
 		return m_sizeLimit;
 	}
 
-	NFX_CORE_INLINE std::chrono::milliseconds MemoryCacheOptions::slidingExpiration() const
+	NFX_CORE_INLINE std::chrono::milliseconds LruCacheOptions::slidingExpiration() const
 	{
 		return m_slidingExpiration;
+	}
+
+	NFX_CORE_INLINE std::chrono::milliseconds LruCacheOptions::backgroundCleanupInterval() const
+	{
+		return m_backgroundCleanupInterval;
 	}
 
 	//=====================================================================
@@ -74,7 +83,7 @@ namespace nfx::memory
 	}
 
 	//=====================================================================
-	// MemoryCache
+	// LruCache
 	//=====================================================================
 
 	//----------------------------------------------
@@ -82,10 +91,11 @@ namespace nfx::memory
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE MemoryCache<TKey, TValue>::MemoryCache( const MemoryCacheOptions& options )
+	NFX_CORE_INLINE LruCache<TKey, TValue>::LruCache( const LruCacheOptions& options )
 		: m_options{ options },
 		  m_lruHead{ nullptr },
-		  m_lruTail{ nullptr }
+		  m_lruTail{ nullptr },
+		  m_lastCleanupTime{ std::chrono::steady_clock::now() }
 	{
 		if ( m_options.sizeLimit() > 0 )
 		{
@@ -98,9 +108,12 @@ namespace nfx::memory
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE TValue& MemoryCache<TKey, TValue>::getOrCreate( const TKey& key, FactoryFunction factory, ConfigFunction configure )
+	NFX_CORE_INLINE TValue& LruCache<TKey, TValue>::getOrCreate( const TKey& key, FactoryFunction factory, ConfigFunction configure )
 	{
 		std::lock_guard<std::mutex> lock{ m_mutex };
+
+		// Check for background cleanup opportunity
+		checkAndPerformBackgroundCleanup();
 
 		auto it = m_cache.find( key );
 		if ( it != m_cache.end() )
@@ -145,9 +158,12 @@ namespace nfx::memory
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE std::optional<std::reference_wrapper<TValue>> MemoryCache<TKey, TValue>::tryGet( const TKey& key )
+	NFX_CORE_INLINE std::optional<std::reference_wrapper<TValue>> LruCache<TKey, TValue>::tryGet( const TKey& key )
 	{
 		std::lock_guard<std::mutex> lock{ m_mutex };
+
+		// Check for background cleanup opportunity
+		checkAndPerformBackgroundCleanup();
 
 		auto it{ m_cache.find( key ) };
 		if ( it != m_cache.end() && !it->second.metadata.isExpired() )
@@ -173,7 +189,7 @@ namespace nfx::memory
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE bool MemoryCache<TKey, TValue>::remove( const TKey& key )
+	NFX_CORE_INLINE bool LruCache<TKey, TValue>::remove( const TKey& key )
 	{
 		std::lock_guard<std::mutex> lock{ m_mutex };
 
@@ -189,7 +205,7 @@ namespace nfx::memory
 	}
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE void MemoryCache<TKey, TValue>::clear()
+	NFX_CORE_INLINE void LruCache<TKey, TValue>::clear()
 	{
 		std::lock_guard<std::mutex> lock{ m_mutex };
 		m_cache.clear();
@@ -198,7 +214,7 @@ namespace nfx::memory
 	}
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE std::size_t MemoryCache<TKey, TValue>::size() const
+	NFX_CORE_INLINE std::size_t LruCache<TKey, TValue>::size() const
 	{
 		std::lock_guard<std::mutex> lock{ m_mutex };
 
@@ -210,7 +226,7 @@ namespace nfx::memory
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE bool MemoryCache<TKey, TValue>::isEmpty() const
+	NFX_CORE_INLINE bool LruCache<TKey, TValue>::isEmpty() const
 	{
 		std::lock_guard<std::mutex> lock{ m_mutex };
 
@@ -218,7 +234,7 @@ namespace nfx::memory
 	}
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE void MemoryCache<TKey, TValue>::cleanupExpired()
+	NFX_CORE_INLINE void LruCache<TKey, TValue>::cleanupExpired()
 	{
 		std::lock_guard<std::mutex> lock{ m_mutex };
 
@@ -242,7 +258,7 @@ namespace nfx::memory
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue>
-	MemoryCache<TKey, TValue>::CachedItem::CachedItem( TValue val, CacheEntry meta )
+	LruCache<TKey, TValue>::CachedItem::CachedItem( TValue val, CacheEntry meta )
 		: value{ std::move( val ) },
 		  metadata{ std::move( meta ) }
 	{
@@ -253,7 +269,7 @@ namespace nfx::memory
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE void MemoryCache<TKey, TValue>::addToLruHead( CacheEntry* entry ) noexcept
+	NFX_CORE_INLINE void LruCache<TKey, TValue>::addToLruHead( CacheEntry* entry ) noexcept
 	{
 		entry->lruNext = m_lruHead;
 		entry->lruPrev = nullptr;
@@ -271,7 +287,7 @@ namespace nfx::memory
 	}
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE void MemoryCache<TKey, TValue>::removeFromLru( CacheEntry* entry ) noexcept
+	NFX_CORE_INLINE void LruCache<TKey, TValue>::removeFromLru( CacheEntry* entry ) noexcept
 	{
 		if ( entry->lruPrev != nullptr )
 		{
@@ -296,7 +312,7 @@ namespace nfx::memory
 	}
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE void MemoryCache<TKey, TValue>::moveToLruHead( CacheEntry* entry ) noexcept
+	NFX_CORE_INLINE void LruCache<TKey, TValue>::moveToLruHead( CacheEntry* entry ) noexcept
 	{
 		if ( entry == m_lruHead )
 		{
@@ -308,7 +324,7 @@ namespace nfx::memory
 	}
 
 	template <typename TKey, typename TValue>
-	NFX_CORE_INLINE void MemoryCache<TKey, TValue>::evictLeastRecentlyUsed()
+	NFX_CORE_INLINE void LruCache<TKey, TValue>::evictLeastRecentlyUsed()
 	{
 		if ( m_lruTail == nullptr )
 		{
@@ -320,6 +336,52 @@ namespace nfx::memory
 		{
 			removeFromLru( m_lruTail );
 			m_cache.erase( *keyPtr );
+		}
+	}
+
+	//----------------------------------------------
+	// Background cleanup implementation
+	//----------------------------------------------
+
+	template <typename TKey, typename TValue>
+	NFX_CORE_INLINE void LruCache<TKey, TValue>::checkAndPerformBackgroundCleanup() const
+	{
+		// Skip if background cleanup is disabled
+		if ( m_options.backgroundCleanupInterval().count() <= 0 )
+		{
+			return;
+		}
+
+		auto now = std::chrono::steady_clock::now();
+		auto timeSinceLastCleanup = now - m_lastCleanupTime;
+
+		if ( timeSinceLastCleanup >= m_options.backgroundCleanupInterval() )
+		{
+			m_lastCleanupTime = now;
+
+			/*
+			 * Perform incremental cleanup of expired entries
+			 * Note: We need to cast away const since we're modifying the cache
+			 * This is safe because the method is called from within locked operations
+			 */
+			auto* self = const_cast<LruCache<TKey, TValue>*>( this );
+
+			size_t cleanedCount = 0;
+
+			auto it = self->m_cache.begin();
+			while ( it != self->m_cache.end() && cleanedCount < MAX_CLEANUP_PER_CYCLE )
+			{
+				if ( it->second.metadata.isExpired() )
+				{
+					self->removeFromLru( &it->second.metadata );
+					it = self->m_cache.erase( it );
+					++cleanedCount;
+				}
+				else
+				{
+					++it;
+				}
+			}
 		}
 	}
 }

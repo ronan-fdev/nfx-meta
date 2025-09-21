@@ -1,6 +1,12 @@
 # NFX-Core
 
-A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, and high-precision temporal calculations
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-blue)](#)
+[![Cross Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey)](#)
+
+> A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, and high-precision temporal calculations
+
+> **⚠️ WARNING: API NOT STABLE - LIBRARY UNDER ACTIVE DEVELOPMENT**  
+> This library is in active development and the API may change without notice. Use with caution in production environments.
 
 ## Overview
 
@@ -18,26 +24,27 @@ Originally developed as foundational infrastructure for the C++ port of the [DNV
 
 ### 📦 Advanced Containers
 
-- **ChdHashMap**: Perfect hash implementation using CHD algorithm (derived from Vista SDK)
-- **HashMap**: Robin Hood hashing with bounded probe distances
-- **StringMap/StringSet**: Zero-copy heterogeneous string lookups
-- **StringFunctors**: Transparent hash/equality functors for `std::string`/`std::string_view`
-- Cross-platform hash compatibility and SSE4.2 optimizations
+- **ChdHashMap**: Perfect hash implementation using CHD (Compress, Hash, and Displace) algorithm (derived from Vista SDK)
+- **HashMap**: Robin Hood hashing with bounded probe distances and optimal cache performance
+- **StringMap/StringSet**: Zero-copy heterogeneous string lookups with `std::string_view` support
+- **StringFunctors**: Transparent hash/equality functors for `std::string`/`std::string_view` interoperability
+- Cross-platform hash compatibility and SSE4.2 optimizations where available
 
 ### 🔤 String Processing
 
-- **StringBuilderPool**: Thread-safe pooled string building with RAII lease management
-- **Splitter**: Zero-allocation iterator-based string splitting
-- **Utils**: Fast parsing utilities using `std::charconv` (bool, int, double)
+- **StringBuilderPool**: Thread-safe pooled string building with RAII lease management and automatic buffer reuse
+- **Splitter**: Zero-allocation iterator-based string splitting with real-world performance optimizations
+- **Utils**: Fast parsing utilities using `std::charconv` with comprehensive validation (bool, int, double, URI components)
 - Heterogeneous container lookups without temporary string allocations
+- Character classification and case conversion optimized for ASCII performance
 
-### � Memory Management
+### 💾 Memory Management
 
-- **MemoryCache**: Thread-safe LRU cache with sliding expiration (.NET IMemoryCache-inspired)
+- **LruCache**: Thread-safe LRU cache with sliding expiration (.NET IMemoryCache-inspired)
 - Intrusive LRU lists for cache-friendly performance
 - Configurable size limits and automatic eviction policies
 
-### 🕒 Temporal Processing
+### 🕒 Temporal Processing (ISO 8601 compliant)
 
 - **DateTime**: High-precision date and time handling
 - **DateTimeOffset**: Timezone-aware temporal calculations
@@ -94,7 +101,7 @@ target_link_libraries(your_target nfx-core-static)
 #include <nfx/datatypes/Decimal.h>
 #include <nfx/string/StringBuilderPool.h>
 #include <nfx/containers/StringMap.h>
-#include <nfx/memory/MemoryCache.h>
+#include <nfx/memory/LruCache.h>
 
 // Cross-platform 128-bit arithmetic
 nfx::datatypes::Int128 large_number{1234567890123456789ULL, 0ULL};
@@ -118,8 +125,8 @@ string_map["key"] = 42;
 auto value = string_map.find(std::string_view{"key"});
 
 // Thread-safe LRU cache with expiration
-nfx::memory::MemoryCache<std::string, ExpensiveObject> cache{
-    nfx::memory::MemoryCacheOptions{1000, std::chrono::minutes{30}}
+nfx::memory::LruCache<std::string, ExpensiveObject> cache{
+    nfx::memory::LruCacheOptions{1000, std::chrono::minutes{30}}
 };
 cache.set("cache_key", expensive_object);
 ```
@@ -143,31 +150,41 @@ option(NFX_CORE_WITH_TIME        "Enable temporal classes"             ON )
 # Development
 option(NFX_CORE_BUILD_TESTS      "Build tests"                         ON )
 option(NFX_CORE_BUILD_SAMPLES    "Build samples"                       ON )
+option(NFX_CORE_BUILD_BENCHMARKS "Build performance benchmarks"        OFF)
 ```
 
 ## Project Structure
 
 ```
 nfx-core/
+├── benchmark/             # Performance benchmarks with Google Benchmark
 ├── cmake/                 # CMake modules and configuration
 ├── include/nfx/           # Public headers with .inl implementation files
-│   ├── containers/        # HashMap, ChdHashMap, StringMap, StringFunctors
-│   ├── datatypes/         # Int128, Decimal
-│   ├── memory/            # MemoryCache (LRU with expiration)
-│   └── string/            # StringBuilderPool, Splitter, Utils
+│   ├── containers/        # HashMap, ChdHashMap, StringMap, StringSet
+│   ├── core/              # Core utilities
+│   │   └── hashing/       # Hash algorithms (FNV-1a, CRC32, etc.)
+│   ├── datatypes/         # Int128, Decimal with high-precision arithmetic
+│   ├── memory/            # LruCache with sliding expiration
+│   ├── string/            # StringBuilderPool, Splitter, Utils
+│   └── time/              # DateTime, DateTimeOffset, TimeSpan
+├── licenses/              # Third-party license files
 ├── samples/               # Example usage and demonstrations
 ├── src/                   # Implementation files (.cpp)
-└── tests/                 # Comprehensive unit tests with GoogleTest
+│   ├── datatypes/         # Core mathematical type implementations
+│   ├── string/            # String processing internals
+│   └── time/              # Temporal calculation implementations
+└── test/                  # Comprehensive unit tests with GoogleTest
 ```
 
 ## Dependencies
 
 - **fmt**: Modern formatting library (header-only mode)
 - **GoogleTest**: Testing framework (test builds only)
+- **Google Benchmark**: Performance benchmarking framework (benchmark builds only)
 
 ## Performance
 
-NFX-Core is designed with performance as a primary concern:
+NFX-Core is designed with performance as a primary concern. For detailed performance metrics and benchmarking results, see [benchmark/README.md](benchmark/README.md).
 
 ### Zero-Copy Operations
 
@@ -187,7 +204,7 @@ NFX-Core is designed with performance as a primary concern:
 - SSE4.2 string hashing where available
 - Template metaprogramming for compile-time optimization
 
-### Hash Algorithm Excellence
+### Hash Algorithm Implementation
 
 - CHD perfect hashing for static datasets
 - Cache-friendly data layouts and access patterns
@@ -206,16 +223,6 @@ NFX-Core is designed with performance as a primary concern:
 
 This project adheres to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for commit messages and [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for releases.
 
-### Development Setup
-
-```bash
-# Build with all options enabled
-cmake .. -DNFX_CORE_BUILD_TESTS=ON -DNFX_CORE_BUILD_SAMPLES=ON
-
-# Run all tests
-ctest --verbose
-```
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -224,9 +231,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **ChdHashMap algorithm**: Derived from [DNV Vista SDK](https://github.com/dnv-opensource/vista-sdk) (MIT License)
 - **fmt library**: Used for formatting support (MIT License)
+- **Google Benchmark**: Used for performance measurement (Apache 2.0 License)
+- **Google Test**: Used for unit testing (BSD 3-Clause License)
 
 ## Related Projects
 
 - [DNV Vista SDK C++ Port](https://github.com/ronan-fdev/vista-sdk/tree/cpp)
 
 ---
+
+_Updated on September 21, 2025_

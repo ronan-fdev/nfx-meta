@@ -1,5 +1,5 @@
 /**
- * @file MemoryCache.h
+ * @file LruCache.h
  * @brief Thread-safe LRU cache with sliding expiration (inspired by .NET IMemoryCache)
  */
 
@@ -16,24 +16,28 @@
 namespace nfx::memory
 {
 	//=====================================================================
-	// MemoryCacheOptions struct
+	// LruCacheOptions struct
 	//=====================================================================
 
 	/**
-	 * @brief Configuration options for MemoryCache behavior
+	 * @brief Configuration options for LruCache behavior
 	 */
-	struct MemoryCacheOptions final
+	struct LruCacheOptions final
 	{
 		//----------------------------------------------
 		// Construction
 		//----------------------------------------------
 
 		/**
-		 * @brief Construct MemoryCacheOptions with specified parameters
+		 * @brief Construct LruCacheOptions with specified parameters
 		 * @param sizeLimit Maximum number of entries (0 = unlimited)
 		 * @param slidingExpiration Default expiration time after last access
+		 * @param backgroundCleanupInterval Interval for automatic expired entry cleanup (0 = disabled)
 		 */
-		NFX_CORE_INLINE MemoryCacheOptions( std::size_t sizeLimit = 0, std::chrono::milliseconds slidingExpiration = std::chrono::hours{ 1 } );
+		NFX_CORE_INLINE LruCacheOptions(
+			std::size_t sizeLimit = 0,
+			std::chrono::milliseconds slidingExpiration = std::chrono::hours{ 1 },
+			std::chrono::milliseconds backgroundCleanupInterval = std::chrono::milliseconds{ 0 } );
 
 		//----------------------------------------------
 		// Accessors
@@ -43,6 +47,8 @@ namespace nfx::memory
 
 		NFX_CORE_INLINE std::chrono::milliseconds slidingExpiration() const;
 
+		NFX_CORE_INLINE std::chrono::milliseconds backgroundCleanupInterval() const;
+
 	private:
 		/** Maximum number of entries allowed in cache (0 = unlimited) */
 		std::size_t m_sizeLimit{ 0 };
@@ -51,12 +57,15 @@ namespace nfx::memory
 		std::chrono::milliseconds m_slidingExpiration{ std::chrono::minutes{ 60 } };
 
 		/*
-		 * TODO: Implement automatic background cleanup (std::chrono::milliseconds expirationScanFrequency{ 0 };)
-		 * Currently expired entries only get cleaned up when accessed or when cache hits size limit.
-		 * For applications with unique keys (logging, batch processing), expired entries can accumulate.
-		 * This feature would add periodic cleanup to prevent memory growth in low-reaccess scenarios.
-		 * Workaround: Set sizeLimit > 0 or call cleanupExpired() manually.
+		 * Background cleanup design:
+		 * - When enabled (interval > 0), cache tracks last cleanup time
+		 * - During getOrCreate/tryGet operations, checks if cleanup interval has elapsed
+		 * - If elapsed, performs incremental cleanup of expired entries
+		 * - Amortizes cleanup cost across normal operations without requiring separate thread
+		 * - Ideal for write-heavy scenarios with unique keys (logging, batch processing)
+		 * - For very low-activity caches, still requires occasional manual cleanupExpired() calls
 		 */
+		std::chrono::milliseconds m_backgroundCleanupInterval{ std::chrono::milliseconds{ 0 } };
 	};
 
 	//=====================================================================
@@ -107,7 +116,7 @@ namespace nfx::memory
 	};
 
 	//=====================================================================
-	// MemoryCache class
+	// LruCache class
 	//=====================================================================
 
 	/**
@@ -116,7 +125,7 @@ namespace nfx::memory
 	 * @tparam TValue Value type for cached objects
 	 */
 	template <typename TKey, typename TValue>
-	class MemoryCache final
+	class LruCache final
 	{
 	public:
 		//----------------------------------------------
@@ -134,28 +143,28 @@ namespace nfx::memory
 		 * @brief Construct memory cache with specified options
 		 * @param options Configuration options for cache behavior
 		 */
-		NFX_CORE_INLINE explicit MemoryCache( const MemoryCacheOptions& options = {} );
+		NFX_CORE_INLINE explicit LruCache( const LruCacheOptions& options = {} );
 
 		//----------------------------------------------
 		// Copy and move operations
 		//----------------------------------------------
 
-		MemoryCache( const MemoryCache& ) = delete;
-		MemoryCache( MemoryCache&& ) = delete;
+		LruCache( const LruCache& ) = delete;
+		LruCache( LruCache&& ) = delete;
 
 		//----------------------------------------------
 		// Assignment operations
 		//----------------------------------------------
 
-		MemoryCache& operator=( const MemoryCache& ) = delete;
-		MemoryCache& operator=( MemoryCache&& ) = delete;
+		LruCache& operator=( const LruCache& ) = delete;
+		LruCache& operator=( LruCache&& ) = delete;
 
 		//----------------------------------------------
 		// Destruction
 		//----------------------------------------------
 
 		// Default destructor
-		~MemoryCache() = default;
+		~LruCache() = default;
 
 		//----------------------------------------------
 		// Cache operations
@@ -220,6 +229,22 @@ namespace nfx::memory
 
 	private:
 		//----------------------------------------------
+		// Background cleanup
+		//----------------------------------------------
+
+		/**
+		 * @brief Maximum number of expired entries to clean up per opportunistic cleanup cycle
+		 * @details Limits cleanup work per operation to prevent blocking normal cache access.
+		 *          This ensures cleanup cost remains bounded and amortized across operations.
+		 */
+		static constexpr size_t MAX_CLEANUP_PER_CYCLE = 10;
+
+		/**
+		 * @brief Check if background cleanup should run and perform it if needed
+		 * @details Called during normal operations to amortize cleanup cost
+		 */
+		NFX_CORE_INLINE void checkAndPerformBackgroundCleanup() const;
+		//----------------------------------------------
 		// Internal data structures
 		//----------------------------------------------
 
@@ -238,13 +263,16 @@ namespace nfx::memory
 
 		mutable std::mutex m_mutex;
 		std::unordered_map<TKey, CachedItem> m_cache;
-		MemoryCacheOptions m_options;
+		LruCacheOptions m_options;
 
 		/** @brief Head of the LRU doubly-linked list (most recently used) */
 		CacheEntry* m_lruHead;
 
 		/** @brief Tail of the LRU doubly-linked list (least recently used) */
 		CacheEntry* m_lruTail;
+
+		/** @brief Last time background cleanup was performed */
+		mutable std::chrono::steady_clock::time_point m_lastCleanupTime;
 
 		//----------------------------------------------
 		// LRU list management
@@ -275,4 +303,4 @@ namespace nfx::memory
 	};
 }
 
-#include "MemoryCache.inl"
+#include "LruCache.inl"

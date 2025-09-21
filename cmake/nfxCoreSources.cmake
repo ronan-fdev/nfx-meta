@@ -8,6 +8,8 @@
 
 # --- Always include platform configuration ---
 set(PUBLIC_HEADERS
+	${NFX_CORE_INCLUDE_DIR}/nfx/core/hashing/Hash.h
+	${NFX_CORE_INCLUDE_DIR}/nfx/core/hashing/Hash.inl
 	${NFX_CORE_INCLUDE_DIR}/nfx/config.h
 )
 
@@ -16,16 +18,18 @@ set(PRIVATE_SOURCES)
 # --- Container components ---
 if(NFX_CORE_WITH_CONTAINERS)
 	list(APPEND PUBLIC_HEADERS
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/constants/ChdConstants.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/containers/functors/HashMapHashFunctor.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/containers/functors/HashMapHashFunctor.inl
+		${NFX_CORE_INCLUDE_DIR}/nfx/containers/functors/StringFunctors.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/containers/functors/StringFunctors.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/ChdHashMap.h
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/ChdHashMap.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/HashMap.h
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/HashMap.inl
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringFunctors.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringFunctors.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringMap.h
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringMap.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringSet.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringSet.inl
 	)
 	list(APPEND PRIVATE_SOURCES
 	)
@@ -50,8 +54,8 @@ endif()
 # --- Container components ---
 if(NFX_CORE_WITH_MEMORY)
 	list(APPEND PUBLIC_HEADERS
-		${NFX_CORE_INCLUDE_DIR}/nfx/memory/MemoryCache.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/memory/MemoryCache.inl
+		${NFX_CORE_INCLUDE_DIR}/nfx/memory/LruCache.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/memory/LruCache.inl
 	)
 	list(APPEND PRIVATE_SOURCES
 	)
@@ -99,7 +103,7 @@ if(NFX_CORE_WITH_DATATYPES)
 	message(STATUS "  - Datatypes (Int128, Decimal)")
 endif()
 if(NFX_CORE_WITH_MEMORY)
-	message(STATUS "  - Memory (MemoryCache)")
+	message(STATUS "  - Memory (LruCache)")
 endif()
 if(NFX_CORE_WITH_STRING)
 	message(STATUS "  - String utilities (StringBuilderPool, Splitter, Utils)")

@@ -9,7 +9,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "StringFunctors.h"
+#include "functors/StringFunctors.h"
+#include "functors/HashMapHashFunctor.h"
 #include "StringMap.h"
 
 #include "nfx/config.h"
@@ -190,14 +191,11 @@ namespace nfx::containers
 
 		/**
 		 * @brief Hash function object with zero-space optimization
-		 * @details Uses C++20 [[no_unique_address]] to eliminate storage overhead
-		 *          when hasher is empty class. Conditionally selects StringViewHash
-		 *          for string types to enable heterogeneous operations.
+		 * @details Uses high-performance HashMapHash functor providing string hashing
+		 *          and proper integer mixing for optimal Robin Hood performance.
+		 *          Supports heterogeneous lookup while maintaining excellent hash distribution.
 		 */
-		NFX_CORE_NO_UNIQUE_ADDRESS std::conditional_t<
-			std::is_same_v<TKey, std::string> || std::is_same_v<TKey, std::string_view>,
-			StringViewHash, std::hash<TKey>>
-			m_hasher;
+		NFX_CORE_NO_UNIQUE_ADDRESS HashMapHash m_hasher;
 
 		//----------------------------------------------
 		// Internal implementation

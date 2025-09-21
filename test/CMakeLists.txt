@@ -29,7 +29,7 @@ set(TEST_SOURCES
 	containers/TESTS_StringSet.cpp
 	datatypes/TESTS_Decimal.cpp
 	datatypes/TESTS_Int128.cpp
-	memory/TESTS_MemoryCache.cpp
+	memory/TESTS_LruCache.cpp
 	string/TESTS_StringBuilderPool.cpp
 	string/TESTS_StringSplitter.cpp
 	string/TESTS_StringUtils.cpp
@@ -181,13 +181,15 @@ foreach(test_source ${TEST_SOURCES})
 		# Test discovery and registration
 		#----------------------------------------------
 
-		gtest_discover_tests(${test_target_name}
+		add_test(
+			NAME ${test_target_name}
+			COMMAND ${test_target_name}
 			WORKING_DIRECTORY "$<TARGET_FILE_DIR:${test_target_name}>"
-			DISCOVERY_MODE PRE_TEST
-			DISCOVERY_VERBOSE_OUTPUT TRUE
-			PROPERTIES
-				TIMEOUT 120
-				OUTPUT_ON_FAILURE TRUE
+		)
+		
+		set_tests_properties(${test_target_name} PROPERTIES
+			TIMEOUT 120
+			LABELS "unit"
 		)
 
 		#----------------------------------------------

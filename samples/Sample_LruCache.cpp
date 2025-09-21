@@ -1,7 +1,7 @@
 /**
- * @file Sample_MemoryCache.cpp
- * @brief Demonstrates comprehensive usage of NFX C++ Core MemoryCache
- * @details This sample shows how to use MemoryCache for high-performance caching
+ * @file Sample_LruCache.cpp
+ * @brief Demonstrates comprehensive usage of NFX C++ Core LruCache
+ * @details This sample shows how to use LruCache for high-performance caching
  *          with LRU eviction, configurable expiration policies, factory functions,
  *          and thread-safe operations for real-world applications
  */
@@ -13,7 +13,7 @@
 #include <thread>
 #include <vector>
 
-#include <nfx/memory/MemoryCache.h>
+#include <nfx/memory/LruCache.h>
 
 using namespace nfx::memory;
 
@@ -82,17 +82,17 @@ static std::vector<std::string> simulateExpensiveQuery( const std::string& query
 
 int main()
 {
-	std::cout << "=== NFX C++ Core - MemoryCache Usage ===" << std::endl;
+	std::cout << "=== NFX C++ Core - LruCache Usage ===" << std::endl;
 	std::cout << std::endl;
 
 	//=========================================================================
-	// Basic MemoryCache usage - User profile caching
+	// Basic LruCache usage - User profile caching
 	//=========================================================================
 
 	std::cout << "--- Basic User Profile Caching ---" << std::endl;
 
 	// Create cache with default options
-	MemoryCache<std::string, UserProfile> userCache{};
+	LruCache<std::string, UserProfile> userCache{};
 
 	// Cache user profiles with factory function
 	auto getUser = [&]( const std::string& userId ) -> UserProfile& {
@@ -120,9 +120,9 @@ int main()
 
 	std::cout << "--- Configured Cache with Size Limits ---" << std::endl;
 
-	MemoryCacheOptions options{ 3, std::chrono::seconds( 2 ) }; // Maximum 3 entries, 2-second expiration
+	LruCacheOptions options{ 3, std::chrono::seconds( 2 ) }; // Maximum 3 entries, 2-second expiration
 
-	MemoryCache<std::string, DatabaseResult> queryCache{ options };
+	LruCache<std::string, DatabaseResult> queryCache{ options };
 
 	// Factory function for database queries
 	auto executeQuery = [&]( const std::string& query ) -> DatabaseResult& {
@@ -161,7 +161,7 @@ int main()
 
 	std::cout << "--- Custom Expiration Configuration ---" << std::endl;
 
-	MemoryCache<std::string, std::string> customCache{};
+	LruCache<std::string, std::string> customCache{};
 
 	// Cache with short expiration
 	customCache.getOrCreate( "short_lived", []() { return std::string{ "This expires quickly" }; }, []( CacheEntry& entry ) { entry.slidingExpiration = std::chrono::milliseconds( 500 ); } );
@@ -194,8 +194,8 @@ int main()
 
 	std::cout << "--- Performance Demonstration ---" << std::endl;
 
-	MemoryCacheOptions perfOptions{ 1000, std::chrono::hours{ 1 } };
-	MemoryCache<int, std::vector<int>> perfCache{ perfOptions };
+	LruCacheOptions perfOptions{ 1000, std::chrono::hours{ 1 } };
+	LruCache<int, std::vector<int>> perfCache{ perfOptions };
 
 	const std::size_t iterations{ 10000 };
 	const std::size_t unique_keys{ 100 };
@@ -249,7 +249,7 @@ int main()
 
 	std::cout << "--- Thread Safety Demonstration ---" << std::endl;
 
-	MemoryCache<std::string, std::string> threadSafeCache{};
+	LruCache<std::string, std::string> threadSafeCache{};
 	const std::size_t num_threads{ 4 };
 	const std::size_t ops_per_thread{ 1000 };
 
@@ -314,7 +314,7 @@ int main()
 
 	std::cout << "--- Cache Manipulation Operations ---" << std::endl;
 
-	MemoryCache<std::string, std::string> manipCache{};
+	LruCache<std::string, std::string> manipCache{};
 
 	// Add some entries
 	manipCache.getOrCreate( "key1", []() { return std::string{ "value1" }; } );
@@ -346,9 +346,9 @@ int main()
 
 	std::cout << "--- Real-World Use Case: Web Application Caching ---" << std::endl;
 
-	MemoryCacheOptions webOptions{ 50, std::chrono::minutes( 5 ) }; // 50 entries max, 5-minute default expiration
+	LruCacheOptions webOptions{ 50, std::chrono::minutes( 5 ) }; // 50 entries max, 5-minute default expiration
 
-	MemoryCache<std::string, std::string> webCache{ webOptions };
+	LruCache<std::string, std::string> webCache{ webOptions };
 
 	// Simulate web requests
 	auto processRequest = [&]( const std::string& endpoint ) -> std::string {
@@ -400,7 +400,7 @@ int main()
 	std::cout << "  (Without caching, this would take much longer)" << std::endl;
 
 	std::cout << std::endl;
-	std::cout << "=== MemoryCache demonstration completed ===" << std::endl;
+	std::cout << "=== LruCache demonstration completed ===" << std::endl;
 
 	return 0;
 }

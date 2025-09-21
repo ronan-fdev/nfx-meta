@@ -31,6 +31,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.0.8] - 2025-09-21
+
+### Added
+
+#### Comprehensive Performance Benchmark Suite
+
+- **Container Benchmarks**: Complete benchmark coverage for all container components
+  - `BM_ChdHashMap.cpp` - Perfect hashing performance validation
+  - `BM_HashMap.cpp` - Robin Hood hashing benchmarks with heterogeneous operations
+  - `BM_StringMap.cpp` - String-optimized mapping performance analysis
+  - `BM_StringSet.cpp` - String collection benchmarks with zero-allocation lookups
+- **Core Performance Benchmarks**: Low-level component benchmarking
+  - `BM_Hashing.cpp` - Hash function performance (FNV-1a, CRC32, vs std::hash)
+- **String Processing Benchmarks**: Enhanced string component validation
+  - `BM_StringBuilderPool.cpp` - Pooled string building vs standard alternatives
+  - `BM_StringUtilities.cpp` - Character classification and string operation benchmarks
+  - `BM_Splitter.cpp` - Enhanced string splitting with manual vs Splitter vs splitView() comparisons
+
+#### Core Hashing Framework
+
+- **Centralized Hash Utilities**: New `nfx/core/hashing/Hash.h` module
+  - Unified hash function interface
+  - Hardware-accelerated hashing (SSE4.2 CRC32)
+  - Cross-platform hash compatibility
+
+#### Container Functor Reorganization
+
+- **HashMapHashFunctor**: Dedicated hash functor system for HashMap components
+- **Enhanced StringFunctors**: Improved string-specific functors with better organization
+- **Modular Design**: Better separation of concerns for container hash and equality operations
+
+### Changed
+
+#### API Modernization
+
+- **MemoryCache → LruCache**: Renamed for clarity and better API semantics
+  - `nfx::memory::MemoryCache` → `nfx::memory::LruCache`
+  - `MemoryCacheOptions` → `LruCacheOptions`
+
 ## [0.0.7] - 2025-09-20
 
 ### Added

@@ -53,7 +53,7 @@ namespace nfx::containers::test
 		int* value2 = nullptr;
 		int* value3 = nullptr;
 		int* valueMissing = nullptr;
-		
+
 		EXPECT_TRUE( map.tryGetValue( "key1", value1 ) );
 		EXPECT_TRUE( map.tryGetValue( "key2", value2 ) );
 		EXPECT_TRUE( map.tryGetValue( "key3", value3 ) );
@@ -108,7 +108,7 @@ namespace nfx::containers::test
 		int* value1 = nullptr;
 		int* value2 = nullptr;
 		int* value3 = nullptr;
-		
+
 		EXPECT_TRUE( map.tryGetValue( strKey, value1 ) );
 		EXPECT_TRUE( map.tryGetValue( svKey, value2 ) );
 		EXPECT_TRUE( map.tryGetValue( cstrKey, value3 ) );
@@ -134,7 +134,7 @@ namespace nfx::containers::test
 
 		std::string* result1 = nullptr;
 		std::string* result2 = nullptr;
-		
+
 		EXPECT_TRUE( map.tryGetValue( svKey, result1 ) );
 		EXPECT_TRUE( map.tryGetValue( cstrKey, result2 ) );
 
@@ -284,7 +284,7 @@ namespace nfx::containers::test
 		int* value3 = nullptr;
 		int* value4 = nullptr;
 		int* value5 = nullptr;
-		
+
 		EXPECT_TRUE( map.tryGetValue( "collision1", value1 ) );
 		EXPECT_TRUE( map.tryGetValue( "collision2", value2 ) );
 		EXPECT_TRUE( map.tryGetValue( "collision3", value3 ) );
@@ -346,7 +346,7 @@ namespace nfx::containers::test
 		int* value3 = nullptr;
 		int* value4 = nullptr;
 		int* value5 = nullptr;
-		
+
 		EXPECT_TRUE( map.tryGetValue( "key with spaces", value1 ) );
 		EXPECT_TRUE( map.tryGetValue( "key\twith\ttabs", value2 ) );
 		EXPECT_TRUE( map.tryGetValue( "key\nwith\nnewlines", value3 ) );
@@ -382,7 +382,7 @@ namespace nfx::containers::test
 		std::string* value2 = nullptr;
 		std::string* value3 = nullptr;
 		std::string* value4 = nullptr;
-		
+
 		EXPECT_TRUE( map.tryGetValue( "🔑", value1 ) );
 		EXPECT_TRUE( map.tryGetValue( "clé", value2 ) );
 		EXPECT_TRUE( map.tryGetValue( "键", value3 ) );

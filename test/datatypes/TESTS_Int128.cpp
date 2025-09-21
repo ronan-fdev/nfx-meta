@@ -172,7 +172,7 @@ namespace nfx::datatypes::test
 		EXPECT_EQ( negBits[3], -1 ); // Sign extension
 
 		// Test that toBits() returns 4 elements for any value
-		datatypes::Int128 large{ static_cast<std::uint64_t>(0xFFFFFFFFULL) };
+		datatypes::Int128 large{ static_cast<std::uint64_t>( 0xFFFFFFFFULL ) };
 		auto largeBits{ large.toBits() };
 		EXPECT_EQ( largeBits.size(), 4 );
 		// First element should contain the lower 32 bits
