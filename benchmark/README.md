@@ -20,9 +20,9 @@
 
 ### Software Configuration
 
-| Platform    | Benchmark Framework     | C++ Compiler         | OS Version |
-| ----------- | ----------------------- | -------------------- | ---------- |
-| **Windows** | Google Benchmark v1.9.4 | VC++ 19.44.35214-x64 | Windows 10 |
+| Platform    | Benchmark Framework     | C++ Compiler         | OS Version | NFX Core Version |
+| ----------- | ----------------------- | -------------------- | ---------- | ---------------- |
+| **Windows** | Google Benchmark v1.9.4 | VC++ 19.44.35214-x64 | Windows 10 | v0.0.8           |
 
 ---
 

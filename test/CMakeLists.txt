@@ -178,21 +178,6 @@ foreach(test_source ${TEST_SOURCES})
 		)
 
 		#----------------------------------------------
-		# Test discovery and registration
-		#----------------------------------------------
-
-		add_test(
-			NAME ${test_target_name}
-			COMMAND ${test_target_name}
-			WORKING_DIRECTORY "$<TARGET_FILE_DIR:${test_target_name}>"
-		)
-		
-		set_tests_properties(${test_target_name} PROPERTIES
-			TIMEOUT 120
-			LABELS "unit"
-		)
-
-		#----------------------------------------------
 		# Properties
 		#----------------------------------------------
 
@@ -206,6 +191,16 @@ foreach(test_source ${TEST_SOURCES})
 			RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests"
 			RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests"
 		)
-		
+
+		#----------------------------------------------
+		# Test discovery and registration
+		#----------------------------------------------
+
+		gtest_discover_tests(${test_target_name}
+			WORKING_DIRECTORY "$<TARGET_FILE_DIR:${test_target_name}>"
+			DISCOVERY_MODE POST_BUILD
+			PROPERTIES
+				TIMEOUT 120
+		)
 	endif()
 endforeach()

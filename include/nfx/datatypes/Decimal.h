@@ -377,7 +377,6 @@ namespace nfx::datatypes
 
 		/**
 		 * @brief Count actual decimal places (excluding trailing zeros)
-		 * @param value Decimal value to analyze
 		 * @return Number of significant decimal places (0-28)
 		 * @details Examples:
 		 *          - Decimal("123.4500") returns 2 (trailing zeros ignored)

@@ -31,6 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.0.9] - 2025-09-22
+
+### Added
+
+- **Documentation Build Support**: New `NFX_CORE_BUILD_DOCUMENTATION` CMake option enables Doxygen documentation generation
+- **Continuous Integration**: GitHub Actions CI/CD workflows for automated testing across Windows MSVC, Linux GCC, and Linux Clang platforms
+
 ## [0.0.8] - 2025-09-21
 
 ### Added

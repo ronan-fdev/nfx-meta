@@ -1,7 +1,8 @@
 # NFX-Core
 
-[![C++20](https://img.shields.io/badge/C%2B%2B-20-blue)](#)
-[![Cross Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey)](#)
+[![GitHub](https://img.shields.io/github/license/ronan-fdev/nfx-core?style=flat-square)](https://github.com/ronan-fdev/nfx-core/blob/main/LICENSE) [![Version](https://img.shields.io/badge/Version-0.0.9-brightgreen?style=flat-square)](#)<br/>
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-blue?style=flat-square)](#) [![Cross Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?style=flat-square)](#)<br/>
+[![Windows MSVC 2022](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-windows-msvc.yml?branch=main&label=MSVC%202022&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-windows-msvc.yml)[![Linux GCC 14](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-linux-gcc.yml?branch=main&label=GCC%2014&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-linux-gcc.yml) [![Linux Clang 18](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-linux-clang.yml?branch=main&label=Clang%2018&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-linux-clang.yml)
 
 > A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, and high-precision temporal calculations
 
@@ -61,6 +62,42 @@ Originally developed as foundational infrastructure for the C++ port of the [DNV
 - CMake 3.20 or higher
 - **Multi-compiler builds supported** across x64/x86 architectures
 
+### CMake Integration
+
+The library supports modular compilation through CMake options:
+
+```cmake
+# Library build types
+option(NFX_CORE_BUILD_STATIC         "Build static library"               ON   )
+option(NFX_CORE_BUILD_SHARED         "Build shared library"               OFF  )
+
+# Components
+option(NFX_CORE_WITH_CONTAINERS      "Enable container utilities"         ON   )
+option(NFX_CORE_WITH_DATATYPES       "Enable mathematical datatypes"      ON   )
+option(NFX_CORE_WITH_MEMORY          "Enable memory management utilities" ON   )
+option(NFX_CORE_WITH_STRING          "Enable string utilities"            ON   )
+option(NFX_CORE_WITH_TIME            "Enable temporal classes"            ON   )
+
+# Development
+option(NFX_CORE_BUILD_TESTS          "Build tests"                        ON   )
+option(NFX_CORE_BUILD_SAMPLES        "Build samples"                      ON   )
+option(NFX_CORE_BUILD_BENCHMARKS     "Build benchmarks"                   ON   )
+option(NFX_CORE_BUILD_DOCUMENTATION  "Build Doxygen documentation"        ON   )
+```
+
+### Using in Your Project
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  nfx-core
+  GIT_REPOSITORY https://github.com/ronan-fdev/nfx-core.git
+  GIT_TAG        main
+)
+FetchContent_MakeAvailable(nfx-core)
+target_link_libraries(your_target nfx-core-static)
+```
+
 ### Building
 
 ```bash
@@ -83,74 +120,101 @@ ctest --config Release
 
 ### CMake Integration
 
-```cmake
-include(FetchContent)
-FetchContent_Declare(
-  nfx-core
-  GIT_REPOSITORY https://github.com/ronan-fdev/nfx-core.git
-  GIT_TAG        main
-)
-FetchContent_MakeAvailable(nfx-core)
-target_link_libraries(your_target nfx-core-static)
-```
-
-### Basic Usage
+### Usage Example
 
 ```cpp
+#include <iostream>
+#include <cmath>
+#include <chrono>
+#include <string>
+#include <vector>
+
+#include <nfx/containers/StringMap.h>
 #include <nfx/datatypes/Int128.h>
 #include <nfx/datatypes/Decimal.h>
-#include <nfx/string/StringBuilderPool.h>
-#include <nfx/containers/StringMap.h>
 #include <nfx/memory/LruCache.h>
+#include <nfx/string/StringBuilderPool.h>
 
-// Cross-platform 128-bit arithmetic
-nfx::datatypes::Int128 large_number{1234567890123456789ULL, 0ULL};
-auto result = large_number * nfx::datatypes::Int128{42};
+struct ExpensiveObject
+{
+	std::vector<double> largeDataset;
+	std::string computedResult;
+	std::chrono::steady_clock::time_point creationTime;
 
-// Exact decimal arithmetic (no floating-point errors)
-auto decimal1 = nfx::datatypes::Decimal::parse("123.456789");
-auto decimal2 = nfx::datatypes::Decimal::parse("987.654321");
-auto precise_calc = decimal1 * decimal2;
+	ExpensiveObject()
+		: creationTime{ std::chrono::steady_clock::now() }
+	{
+		// Simulate expensive computation
+		largeDataset.reserve( 10000 );
+		for ( int i = 0; i < 10000; ++i )
+		{
+			largeDataset.push_back( std::sin( i ) * std::cos( i ) );
+		}
 
-// High-performance string building with pooling
-auto builder_lease = nfx::string::StringBuilderPool::lease();
-auto builder = builder_lease.builder();
-builder << "Result: " << precise_calc.toString();
-std::string final_result = builder_lease.toString();
-
-// Zero-copy string container operations
-nfx::containers::StringMap<int> string_map;
-string_map["key"] = 42;
-// No string allocation for lookups:
-auto value = string_map.find(std::string_view{"key"});
-
-// Thread-safe LRU cache with expiration
-nfx::memory::LruCache<std::string, ExpensiveObject> cache{
-    nfx::memory::LruCacheOptions{1000, std::chrono::minutes{30}}
+		// Simulate expensive string processing
+		computedResult = "Computed result after expensive operations: ";
+		computedResult += std::to_string( largeDataset.size() );
+		computedResult += " data points processed";
+	}
 };
-cache.set("cache_key", expensive_object);
+
+int main()
+{
+	// Cross-platform 128-bit arithmetic
+	nfx::datatypes::Int128 largeNumber{ 1234567890123456789ULL, 0ULL };
+	auto result = largeNumber * nfx::datatypes::Int128{ 42 };
+	std::cout << "Int128 arithmetic: " << largeNumber.toString() << " * 42 = " << result.toString() << std::endl;
+
+	// Exact decimal arithmetic (no floating-point errors)
+	auto decimal1 = nfx::datatypes::Decimal::parse( "123.456789" );
+	auto decimal2 = nfx::datatypes::Decimal::parse( "987.654321" );
+	auto preciseCalc = decimal1 * decimal2;
+	std::cout << "Decimal arithmetic: " << decimal1.toString() << " * " << decimal2.toString() << " = " << preciseCalc.toString() << std::endl;
+
+	// High-performance string building with pooling
+	auto builderLease = nfx::string::StringBuilderPool::lease();
+	auto builder = builderLease.builder();
+	builder << "Result: " << preciseCalc.toString();
+	std::string finalResult = builderLease.toString();
+	std::cout << "String building: " << finalResult << std::endl;
+
+	// Zero-copy string container operations
+	nfx::containers::StringMap<int> stringMap;
+	stringMap["key"] = 42;
+	// No string allocation for lookups:
+	auto value = stringMap.find( std::string_view{ "key" } );
+	if ( value != stringMap.end() )
+	{
+		std::cout << "StringMap lookup: key = " << value->second << std::endl;
+	}
+
+	// Thread-safe LRU cache with expiration
+	auto expensiveObject = ExpensiveObject{};
+	nfx::memory::LruCache<std::string, ::ExpensiveObject> cache{
+		nfx::memory::LruCacheOptions{ 1000, std::chrono::minutes{ 30 } } };
+	cache.getOrCreate( "cache_key", [&expensiveObject]() { return expensiveObject; } );
+	std::cout << "LruCache: Added entry, cache size = " << cache.size() << std::endl;
+}
+
 ```
 
-## Configuration Options
+### Sample Applications
 
-The library supports modular compilation through CMake options:
+The `samples/` directory contains comprehensive examples demonstrating all NFX-Core features:
 
-```cmake
-# Library build types
-option(NFX_CORE_BUILD_STATIC     "Build static library"                ON )
-option(NFX_CORE_BUILD_SHARED     "Build shared library"                ON )
+- **`Sample_Datatypes.cpp`** - Int128 and Decimal arithmetic demonstrations
+- **`Sample_DateTime.cpp`** - DateTime, DateTimeOffset, and TimeSpan operations
+- **`Sample_FinancialWithTimestamps.cpp`** - Financial calculations with precise timestamps
+- **`Sample_LruCache.cpp`** - Thread-safe LRU cache with expiration policies
+- **`Sample_StringBuilder.cpp`** - Pooled string building and performance comparisons
+- **`Sample_StringContainers.cpp`** - StringMap, StringSet, and zero-copy operations
+- **`Sample_StringSplitter.cpp`** - Zero-allocation string splitting examples
+- **`Sample_StringUtils.cpp`** - Character classification and string utilities
 
-# Components
-option(NFX_CORE_WITH_CONTAINERS  "Enable container utilities"          ON )
-option(NFX_CORE_WITH_DATATYPES   "Enable mathematical datatypes"       ON )
-option(NFX_CORE_WITH_MEMORY      "Enable memory management utilities"  ON )
-option(NFX_CORE_WITH_STRING      "Enable string utilities"             ON )
-option(NFX_CORE_WITH_TIME        "Enable temporal classes"             ON )
+To build and run samples:
 
-# Development
-option(NFX_CORE_BUILD_TESTS      "Build tests"                         ON )
-option(NFX_CORE_BUILD_SAMPLES    "Build samples"                       ON )
-option(NFX_CORE_BUILD_BENCHMARKS "Build performance benchmarks"        OFF)
+```bash
+cmake --build . --config Release --target samples
 ```
 
 ## Project Structure
@@ -176,11 +240,9 @@ nfx-core/
 └── test/                  # Comprehensive unit tests with GoogleTest
 ```
 
-## Dependencies
+## Version History
 
-- **fmt**: Modern formatting library (header-only mode)
-- **GoogleTest**: Testing framework (test builds only)
-- **Google Benchmark**: Performance benchmarking framework (benchmark builds only)
+For detailed version history, feature additions, and breaking changes, see [CHANGELOG.md](CHANGELOG.md).
 
 ## Performance
 
@@ -219,20 +281,16 @@ NFX-Core is designed with performance as a primary concern. For detailed perform
 - **Architectures**: x64, x86 (multi-architecture build matrix)
 - **Standards**: C++20 required
 
-## Contributing
-
-This project adheres to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for commit messages and [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for releases.
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Third-Party Attributions
+## Dependencies & Third-Party Attributions
 
 - **ChdHashMap algorithm**: Derived from [DNV Vista SDK](https://github.com/dnv-opensource/vista-sdk) (MIT License)
-- **fmt library**: Used for formatting support (MIT License)
-- **Google Benchmark**: Used for performance measurement (Apache 2.0 License)
-- **Google Test**: Used for unit testing (BSD 3-Clause License)
+- **[{fmt}](https://github.com/fmtlib/fmt)**: Modern formatting library (MIT License)
+- **[GoogleTest](https://github.com/google/googletest)**: Testing framework (BSD 3-Clause License)
+- **[Google Benchmark](https://github.com/google/benchmark)**: Performance benchmarking framework (Apache 2.0 License)
 
 ## Related Projects
 
@@ -240,4 +298,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-_Updated on September 21, 2025_
+_Updated on September 22, 2025_
