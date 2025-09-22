@@ -43,11 +43,26 @@ namespace nfx::memory
 		// Accessors
 		//----------------------------------------------
 
-		NFX_CORE_INLINE std::size_t sizeLimit() const;
+		/**
+		 * @brief Get the maximum number of cache entries allowed
+		 * @return Size limit (0 = unlimited)
+		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+		 */
+		[[nodiscard]] NFX_CORE_INLINE std::size_t sizeLimit() const;
 
-		NFX_CORE_INLINE std::chrono::milliseconds slidingExpiration() const;
+		/**
+		 * @brief Get the default sliding expiration time
+		 * @return Sliding expiration duration after last access
+		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+		 */
+		[[nodiscard]] NFX_CORE_INLINE std::chrono::milliseconds slidingExpiration() const;
 
-		NFX_CORE_INLINE std::chrono::milliseconds backgroundCleanupInterval() const;
+		/**
+		 * @brief Get the background cleanup interval
+		 * @return Cleanup interval (0 = disabled)
+		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+		 */
+		[[nodiscard]] NFX_CORE_INLINE std::chrono::milliseconds backgroundCleanupInterval() const;
 
 	private:
 		/** Maximum number of entries allowed in cache (0 = unlimited) */
@@ -75,12 +90,22 @@ namespace nfx::memory
 	/** @brief Cache entry metadata with intrusive LRU list support */
 	struct CacheEntry final
 	{
+		/** @brief Timestamp of the last access to this cache entry */
 		std::chrono::steady_clock::time_point lastAccessed;
+
+		/** @brief Sliding expiration time for this specific entry */
 		std::chrono::milliseconds slidingExpiration;
+
+		/** @brief Size of this cache entry for memory accounting */
 		std::size_t size{ 1 };
 
+		/** @brief Previous entry in the LRU doubly-linked list */
 		CacheEntry* lruPrev{ nullptr };
+
+		/** @brief Next entry in the LRU doubly-linked list */
 		CacheEntry* lruNext{ nullptr };
+
+		/** @brief Pointer to the key for this cache entry */
 		const void* keyPtr{ nullptr };
 
 		//----------------------------------------------
@@ -132,7 +157,10 @@ namespace nfx::memory
 		// Type aliases
 		//----------------------------------------------
 
+		/** @brief Function type for creating cache values when not found */
 		using FactoryFunction = std::function<TValue()>;
+
+		/** @brief Function type for configuring cache entry metadata */
 		using ConfigFunction = std::function<void( CacheEntry& )>;
 
 		//----------------------------------------------

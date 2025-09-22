@@ -497,8 +497,6 @@ namespace nfx::containers::test
 	TEST( ChdHashMapCompatibility, ASCIIHashValues )
 	{
 		// Test that hash function produces consistent values
-		// This ensures C# compatibility is maintained
-
 		uint32_t hash1 = ChdHashMap<int>::hash( "test" );
 		uint32_t hash2 = ChdHashMap<int>::hash( "test" );
 		uint32_t hash3 = ChdHashMap<int>::hash( "different" );

@@ -160,11 +160,12 @@ namespace nfx::time
 
 	/**
 	 * @brief Check if a DateTime value can safely round-trip through std::chrono::system_clock
+	 * @param ticks The DateTime tick value to check for chrono compatibility
 	 * @details This is platform-dependent; on 64-bit systems with nanosecond precision,
 	 *          the safe range is approximately years 1677-2262.
 	 * @return true if this DateTime is within the safe chrono range
 	 */
-	inline constexpr bool isChronoSafeTicks( std::int64_t ticks ) noexcept
+	constexpr bool isChronoSafeTicks( std::int64_t ticks ) noexcept
 	{
 		return ticks >= constants::datetime::MIN_CHRONO_SAFE_TICKS && ticks <= constants::datetime::MAX_CHRONO_SAFE_TICKS;
 	}

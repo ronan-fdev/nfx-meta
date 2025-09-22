@@ -3,6 +3,119 @@
  * @brief Cross-platform 128-bit integer arithmetic type
  * @details Provides portable 128-bit signed integer operations with
  *          native __int128 on GCC/Clang and manual implementation on MSVC
+ *
+ *          Performance characteristics:
+ *          - GCC/Clang: Direct hardware 128-bit operations where available
+ *            * Native __int128 provides single-instruction arithmetic on modern CPUs
+ *            * Compiler generates optimal assembly for 128-bit operations
+ *            * Hardware carry/borrow propagation for addition/subtraction
+ *          - MSVC: Optimized multi-precision arithmetic using 64-bit operations
+ *            * Efficient carry propagation using compiler intrinsics
+ *            * Optimized multiplication using _umul128 and _mul128 where available
+ *            * Hand-tuned algorithms for division and modulo operations
+ *
+ *          Integration with Decimal:
+ *          - Designed specifically for high-performance decimal arithmetic
+ *          - Optimized for mantissa storage and manipulation in Decimal class
+ *          - Efficient conversion between 96-bit decimal mantissa and 128-bit integer
+ *
+ *          Memory Layout and Internal Representation:
+ *          =========================================
+ *
+ *          The Int128 class uses platform-specific storage to maximize performance:
+ *
+ *          1. GCC/Clang with native __int128 support (NFX_CORE_HAS_INT128=1):
+ *          @code
+ *          ┌─────────────────────────────────────────────────────────────────┐
+ *          │                     Native __int128                             │
+ *          │                        (16 bytes)                               │
+ *          └─────────────────────────────────────────────────────────────────┘
+ *          Bit 127                                                       Bit 0
+ *          @endcode
+ *
+ *          2. MSVC and other compilers (NFX_CORE_HAS_INT128=0):
+ *          @code
+ *          ┌─────────────────────────────────┬─────────────────────────────────┐
+ *          │          upper64bits            │          lower64bits            │
+ *          │       (most significant)        │       (least significant)       │
+ *          │           8 bytes               │           8 bytes               │
+ *          └─────────────────────────────────┴─────────────────────────────────┘
+ *          Bit 127                     Bit 64 Bit 63                       Bit 0
+ *          @endcode
+ *
+ *          Bit Layout and Sign Representation:
+ *          ===================================
+ *
+ *          The 128-bit signed integer uses two's complement representation:
+ *          @code
+ *          ┌─┬───────────────────────────────────────────────────────────────────┐
+ *          │S│                    Value Bits (127 bits)                          │
+ *          └─┴───────────────────────────────────────────────────────────────────┘
+ *          Bit 127                                                           Bit 0
+ *          @endcode
+ *
+ *          Where:
+ *          - S (bit 127): Sign bit (0 = positive, 1 = negative)
+ *          - Bits 126-0: Magnitude in two's complement form
+ *
+ *          Value Range:
+ *          - Minimum: -2^127 = -170,141,183,460,469,231,731,687,303,715,884,105,728
+ *          - Maximum:  2^127-1 = 170,141,183,460,469,231,731,687,303,715,884,105,727
+ *
+ *          Examples with Memory Layout:
+ *          ============================
+ *
+ *          Example 1: Small positive number (42)
+ *          - Decimal: 42
+ *          - Hex: 0x0000000000000000000000000000002A
+ *          - Memory layout (little-endian on x86-64):
+ *            * upper64bits: 0x0000000000000000
+ *            * lower64bits: 0x000000000000002A
+ *          - Bit pattern: 0000...00101010 (127 zeros followed by 101010)
+ *
+ *          Example 2: Large positive number (12,345,678,901,234,567,890)
+ *          - Decimal: 12,345,678,901,234,567,890
+ *          - Hex: 0x00000000000000000AB54A98CEB1F0D2
+ *          - Memory layout:
+ *            * upper64bits: 0x0000000000000000
+ *            * lower64bits: 0x0AB54A98CEB1F0D2
+ *          - Bit breakdown:
+ *            * Bits 127-64: All zeros (positive number, high bits unused)
+ *            * Bits 63-0: 0x0AB54A98CEB1F0D2 = 12,345,678,901,234,567,890
+ *
+ *          Example 3: Very large number requiring full 128 bits
+ *          - Decimal: 123,456,789,012,345,678,901,234,567,890,123,456,789
+ *          - Hex: 0x0173DC35270122E8EBC2CE4F3C95D6F5
+ *          - Memory layout:
+ *            * upper64bits: 0x0173DC35270122E8
+ *            * lower64bits: 0xEBC2CE4F3C95D6F5
+ *          - Bit breakdown:
+ *            * Bits 127-64: 0x0173DC35270122E8 = 1,662,554,368,463,341,288
+ *            * Bits 63-0:   0xEBC2CE4F3C95D6F5 = 17,034,473,836,310,554,357
+ *            * Full value: (1,662,554,368,463,341,288 << 64) + 17,034,473,836,310,554,357
+ *
+ *          Example 4: Negative number (-42)
+ *          - Decimal: -42
+ *          - Two's complement hex: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD6
+ *          - Memory layout:
+ *            * upper64bits: 0xFFFFFFFFFFFFFFFF
+ *            * lower64bits: 0xFFFFFFFFFFFFFFD6
+ *          - Bit pattern: 1111...11010110 (sign extension with two's complement)
+ *
+ *          Platform-Specific Performance Characteristics:
+ *          =============================================
+ *
+ *          Native __int128 (GCC/Clang):
+ *          - Single memory load/store for entire 128-bit value
+ *          - Hardware-accelerated arithmetic on modern x86-64 and AArch64
+ *          - Compiler generates optimal assembly using native instructions
+ *          - Zero overhead for most arithmetic operations
+ *
+ *          Manual implementation (MSVC):
+ *          - Two 64-bit operations per 128-bit operation
+ *          - Optimized carry propagation using compiler intrinsics
+ *          - Efficient multiplication using _umul128/_mul128 where available
+ *          - Hand-tuned algorithms for division and complex operations
  */
 
 #pragma once
@@ -27,10 +140,7 @@ namespace nfx::datatypes
 	 *          - Manual implementation on MSVC using two 64-bit words
 	 *          - Full arithmetic and comparison operator support
 	 *          - Optimized for decimal arithmetic operations
-	 *
-	 *          Performance characteristics:
-	 *          - GCC/Clang: Direct hardware 128-bit operations where available
-	 *          - MSVC: Optimized multi-precision arithmetic using 64-bit operations
+	 *          - Cross-platform value consistency and API compatibility
 	 */
 	class Int128 final
 	{
@@ -92,11 +202,13 @@ namespace nfx::datatypes
 
 		/**
 		 * @brief Copy constructor
+		 * @param other The Int128 object to copy from
 		 */
 		constexpr Int128( const Int128& other ) noexcept = default;
 
 		/**
 		 * @brief Move constructor
+		 * @param other The Int128 object to move from
 		 */
 		constexpr Int128( Int128&& other ) noexcept = default;
 
@@ -113,11 +225,15 @@ namespace nfx::datatypes
 
 		/**
 		 * @brief Copy assignment operator
+		 * @param other The Int128 object to copy from
+		 * @return Reference to this Int128 object after assignment
 		 */
 		constexpr Int128& operator=( const Int128& other ) noexcept = default;
 
 		/**
 		 * @brief Move assignment operator
+		 * @param other The Int128 object to move from
+		 * @return Reference to this Int128 object after assignment
 		 */
 		constexpr Int128& operator=( Int128&& other ) noexcept = default;
 
@@ -308,6 +424,13 @@ namespace nfx::datatypes
 		 * @details This method provides access to the underlying native 128-bit integer
 		 *          when compiled with GCC or Clang. Useful for interfacing with APIs
 		 *          that expect native __int128 types or for maximum performance operations.
+		 *
+		 *          Performance benefits:
+		 *          - Zero-cost conversion to native type
+		 *          - Direct hardware instruction utilization
+		 *          - Seamless integration with compiler intrinsics
+		 *          - Optimal performance for bulk arithmetic operations
+		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		constexpr NFX_CORE_INT128 toNative() const noexcept;
 #endif

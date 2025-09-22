@@ -17,12 +17,14 @@ namespace nfx::datatypes::constants::int128
 	// Int128 arithmetic constants
 	//=====================================================================
 
-	/** @brief Maximum positive value for 128-bit signed integer (2^127 - 1). */
+	/** @brief High 64 bits of maximum positive 128-bit signed integer (2^127 - 1) */
 	inline constexpr std::uint64_t MAX_POSITIVE_HIGH{ 0x7FFFFFFFFFFFFFFFULL };
+	/** @brief Low 64 bits of maximum positive 128-bit signed integer (2^127 - 1) */
 	inline constexpr std::uint64_t MAX_POSITIVE_LOW{ 0xFFFFFFFFFFFFFFFFULL };
 
-	/** @brief Minimum negative value for 128-bit signed integer (-2^127). */
+	/** @brief High 64 bits of minimum negative 128-bit signed integer (-2^127) */
 	inline constexpr std::uint64_t MIN_NEGATIVE_HIGH{ 0x8000000000000000ULL };
+	/** @brief Low 64 bits of minimum negative 128-bit signed integer (-2^127) */
 	inline constexpr std::uint64_t MIN_NEGATIVE_LOW{ 0x0000000000000000ULL };
 
 	//=====================================================================

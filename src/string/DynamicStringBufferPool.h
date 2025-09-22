@@ -107,15 +107,25 @@ namespace nfx::string
 			PoolStatistics& operator=( const PoolStatistics& ) = delete;
 			PoolStatistics& operator=( PoolStatistics&& ) noexcept = delete;
 
-			/** @brief Calculates the pool hit rate as a percentage (0.0 to 1.0) */
+			/**
+			 * @brief Calculates the pool hit rate as a percentage (0.0 to 1.0)
+			 * @return Hit rate as a decimal value between 0.0 and 1.0
+			 */
 			double hitRate() const noexcept;
 
 			/** @brief Resets all statistics counters to zero */
 			void reset() noexcept;
 
+			/** @brief Number of buffers retrieved from thread-local cache */
 			std::atomic<uint64_t> threadLocalHits{ 0 };
+
+			/** @brief Number of buffers retrieved from shared pool */
 			std::atomic<uint64_t> dynamicStringBufferPoolHits{ 0 };
+
+			/** @brief Number of new buffer allocations (cache misses) */
 			std::atomic<uint64_t> newAllocations{ 0 };
+
+			/** @brief Total number of buffer requests made to the pool */
 			std::atomic<uint64_t> totalRequests{ 0 };
 		};
 
@@ -123,7 +133,10 @@ namespace nfx::string
 		// Statistics methods
 		//----------------------------
 
-		/** @brief Gets current pool statistics */
+		/**
+		 * @brief Gets current pool statistics
+		 * @return Const reference to the pool statistics structure
+		 */
 		const PoolStatistics& stats() const noexcept;
 
 		/**

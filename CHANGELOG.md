@@ -31,6 +31,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.0.10] - 2025-09-23
+
+### Added
+
+#### Build System & Infrastructure Enhancements
+
+- **Dependency Management**: Enhanced CMake with system package detection using `find_package()` for fmt, GoogleTest, and Google Benchmark, automatically falling back to FetchContent when system packages are unavailable
+
+#### Documentation Enhancements
+
+- **Enhanced API Documentation**: Comprehensive inline documentation improvements for `Int128` and `Decimal`.
+
+### Changed
+
+#### Build System Architecture
+
+- **Modernized Dependency Management**: Hybrid system detection approach
+
+  - Prioritizes system-installed packages for faster builds
+  - Falls back to FetchContent for missing dependencies
+  - Better integration with package managers and CI environments
+
+- **Artifact Path Standardization**: Simplified CI/CD artifact collection
+  - GitHub Actions workflows updated to use standardized paths
+  - Changed from version-specific paths (`build/nfx-core-*/`) to standard paths (`build/`)
+  - Improved artifact consistency across platforms
+
+### Fixed
+
+#### Build System Reliability
+
+- **Circular Dependency Resolution**: Fixed benchmark target naming conflict
+
+  - Resolved conflict between Google Benchmark's `benchmark` target and convenience target
+  - Renamed convenience target to `benchmarks` (plural) to avoid collision
+  - Eliminates CMake configuration errors and build failures
+
+- **Cross-Platform Linking**: Comprehensive shared library integration
+  - All executables now properly link to and use shared library implementations
+  - Windows DLL deployment ensures runtime dependency satisfaction
+  - Consistent behavior between static and shared library builds
+
 ## [0.0.9] - 2025-09-22
 
 ### Added

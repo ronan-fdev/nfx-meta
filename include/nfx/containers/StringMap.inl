@@ -99,7 +99,6 @@ namespace nfx::containers
 	template <typename... Args>
 	NFX_CORE_INLINE std::pair<typename StringMap<T>::Base::iterator, bool> StringMap<T>::try_emplace( const char* key, Args&&... args ) noexcept(
 		std::is_nothrow_constructible_v<T, Args...> )
-
 	{
 		return Base::try_emplace( std::string{ key }, std::forward<Args>( args )... );
 	}

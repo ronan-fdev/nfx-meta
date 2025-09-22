@@ -168,7 +168,20 @@ foreach(sample_source ${SAMPLE_SOURCES})
 		)
 
 		#----------------------------------------------
-		# Add to sample target
+		# Windows: Copy DLL if building shared libs
+		#----------------------------------------------
+
+		if(WIN32 AND NFX_CORE_BUILD_SHARED)
+			add_custom_command(TARGET ${sample_target_name} POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					$<TARGET_FILE:nfx-core>
+					$<TARGET_FILE_DIR:${sample_target_name}>
+				COMMENT "Copying nfx-core DLL to test directory"
+			)
+		endif()
+
+		#----------------------------------------------
+		# Add to samples target
 		#----------------------------------------------
 
 		if(NOT TARGET samples)
@@ -176,7 +189,6 @@ foreach(sample_source ${SAMPLE_SOURCES})
 		endif()
 		add_dependencies(samples ${sample_target_name}
 		)
-
 	endif()
 endforeach()
 

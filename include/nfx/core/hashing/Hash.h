@@ -49,6 +49,9 @@ namespace nfx::core::hashing
 	/**
 	 * @brief Larson multiplicative hash function: 37 * hash + ch
 	 * @details Simple hash by Paul Larson, provided for benchmarking.
+	 * @param hash Current hash value to update
+	 * @param ch Character (byte) to incorporate into the hash
+	 * @return Updated hash value after incorporating the character
 	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 	 */
 	[[nodiscard]] NFX_CORE_INLINE constexpr uint32_t Larson( uint32_t hash, uint8_t ch ) noexcept;

@@ -22,6 +22,20 @@ namespace nfx::string
 	// DynamicStringBuffer class
 	//=====================================================================
 
+	/**
+	 * @brief High-performance dynamic string buffer with efficient memory management
+	 * @details Provides a growable character buffer optimized for string building operations.
+	 *          Features automatic capacity management, iterator support, and zero-copy
+	 *          string_view access. Designed for internal use by StringBuilderPool.
+	 *
+	 * @note This class uses PIMPL idiom for ABI stability and reduced compilation dependencies.
+	 *       Direct instantiation is restricted - use StringBuilderPool::lease() instead.
+	 *
+	 * @warning Not thread-safe - external synchronization required for concurrent access.
+	 *
+	 * @see StringBuilderPool for the recommended high-level interface
+	 * @see StringBuilder for a more convenient wrapper around this buffer
+	 */
 	class DynamicStringBuffer final
 	{
 		friend class DynamicStringBufferPool;
@@ -42,10 +56,16 @@ namespace nfx::string
 		explicit DynamicStringBuffer( size_t initialCapacity );
 
 	public:
-		/** @brief Copy constructor */
+		/**
+		 * @brief Copy constructor
+		 * @param other The DynamicStringBuffer to copy from
+		 */
 		DynamicStringBuffer( const DynamicStringBuffer& other );
 
-		/** @brief Move constructor */
+		/**
+		 * @brief Move constructor
+		 * @param other The DynamicStringBuffer to move from
+		 */
 		DynamicStringBuffer( DynamicStringBuffer&& other ) noexcept;
 
 		//----------------------------------------------
@@ -59,10 +79,18 @@ namespace nfx::string
 		// Assignment operators
 		//----------------------------------------------
 
-		/** @brief Copy assignment operator */
+		/**
+		 * @brief Copy assignment operator
+		 * @param other The DynamicStringBuffer to copy from
+		 * @return Reference to this DynamicStringBuffer after assignment
+		 */
 		DynamicStringBuffer& operator=( const DynamicStringBuffer& other );
 
-		/** @brief Move assignment operator */
+		/**
+		 * @brief Move assignment operator
+		 * @param other The DynamicStringBuffer to move from
+		 * @return Reference to this DynamicStringBuffer after assignment
+		 */
 		DynamicStringBuffer& operator=( DynamicStringBuffer&& other ) noexcept;
 
 		//----------------------------------------------
@@ -213,8 +241,13 @@ namespace nfx::string
 		// Iterator interface
 		//----------------------------------------------
 
+		/** @brief Character type for iterator compatibility */
 		using value_type = char;
+
+		/** @brief Mutable iterator type for buffer traversal */
 		using iterator = char*;
+
+		/** @brief Immutable iterator type for buffer traversal */
 		using const_iterator = const char*;
 
 		/**
@@ -261,6 +294,22 @@ namespace nfx::string
 	// StringBuilder class
 	//=====================================================================
 
+	/**
+	 * @brief High-performance string builder with fluent interface and efficient memory management
+	 * @details Provides a convenient wrapper around DynamicStringBuffer with stream-like operators
+	 *          for intuitive string construction. Features efficient append operations, iterator
+	 *          support, and automatic memory management through the underlying buffer.
+	 *
+	 * @note This class is a lightweight wrapper that references an underlying DynamicStringBuffer.
+	 *       It does not own the buffer memory - use StringBuilderPool::lease() for proper RAII management.
+	 *
+	 * @warning Not thread-safe - external synchronization required for concurrent access.
+	 *          Multiple StringBuilder instances should not reference the same buffer concurrently.
+	 *
+	 * @see StringBuilderPool for the recommended way to obtain StringBuilder instances
+	 * @see StringBuilderLease for RAII management of pooled buffers
+	 * @see DynamicStringBuffer for the underlying buffer implementation
+	 */
 	class StringBuilder final
 	{
 		friend class StringBuilderLease;
@@ -381,7 +430,10 @@ namespace nfx::string
 		// Size and capacity management
 		//----------------------------------------------
 
-		/** @brief Returns current buffer size in characters */
+		/**
+		 * @brief Returns current buffer size in characters
+		 * @return Number of characters currently stored in the buffer
+		 */
 		NFX_CORE_INLINE size_t length() const noexcept;
 
 		/**
@@ -394,26 +446,58 @@ namespace nfx::string
 		// Iterator interface
 		//----------------------------------------------
 
+		/** @brief Character type for iterator compatibility */
 		using value_type = char;
+
+		/** @brief Mutable iterator type for buffer traversal */
 		using iterator = char*;
+
+		/** @brief Immutable iterator type for buffer traversal */
 		using const_iterator = const char*;
 
-		/** @brief Returns mutable iterator to beginning of character sequence */
+		/**
+		 * @brief Returns mutable iterator to beginning of character sequence
+		 * @return Iterator pointing to the first character in the buffer
+		 */
 		NFX_CORE_INLINE iterator begin();
 
-		/** @brief Returns const iterator to beginning of character sequence */
+		/**
+		 * @brief Returns const iterator to beginning of character sequence
+		 * @return Const iterator pointing to the first character in the buffer
+		 */
 		NFX_CORE_INLINE const_iterator begin() const;
 
-		/** @brief Returns mutable iterator to end of character sequence */
+		/**
+		 * @brief Returns mutable iterator to end of character sequence
+		 * @return Iterator pointing one past the last character in the buffer
+		 */
 		NFX_CORE_INLINE iterator end();
 
-		/** @brief Returns const iterator to end of character sequence */
+		/**
+		 * @brief Returns const iterator to end of character sequence
+		 * @return Const iterator pointing one past the last character in the buffer
+		 */
 		NFX_CORE_INLINE const_iterator end() const;
 
 		//----------------------------------------------
 		// StringBuilder::Enumerator class
 		//----------------------------------------------
 
+		/**
+		 * @brief Forward-only iterator for character-by-character enumeration of StringBuilder content
+		 * @details Provides a simple enumeration interface for iterating through StringBuilder characters
+		 *          one at a time. Features reset capability and bounds-checked iteration with explicit
+		 *          advancement control. Designed for scenarios requiring controlled iteration patterns.
+		 *
+		 * @note This enumerator maintains pointers to the underlying buffer data. The StringBuilder
+		 *       must remain valid and unmodified during the enumeration lifetime.
+		 *
+		 * @warning Not thread-safe - external synchronization required for concurrent access.
+		 *          Enumerator becomes invalid if the underlying StringBuilder is modified.
+		 *
+		 * @see StringBuilder for the parent container
+		 * @see StringBuilder::begin(), StringBuilder::end() for STL-compatible iterators
+		 */
 		class Enumerator
 		{
 		public:
@@ -439,10 +523,16 @@ namespace nfx::string
 			// Enumerator operations
 			//----------------------------
 
-			/** @brief Advances to the next character in the buffer. Returns true if successful. */
+			/**
+			 * @brief Advances to the next character in the buffer
+			 * @return true if advanced to a valid character, false if reached end of buffer
+			 */
 			NFX_CORE_INLINE bool next();
 
-			/** @brief Returns the current character in the buffer. */
+			/**
+			 * @brief Returns the current character in the buffer
+			 * @return The character at the current enumeration position
+			 */
 			NFX_CORE_INLINE char current() const;
 
 			/** @brief Resets the enumerator to the initial position (before the first character). */
@@ -476,6 +566,23 @@ namespace nfx::string
 	// StringBuilderLease class
 	//=====================================================================
 
+	/**
+	 * @brief RAII lease wrapper for pooled StringBuilder buffers with automatic resource management
+	 * @details Provides exclusive access to a pooled DynamicStringBuffer through RAII semantics.
+	 *          Automatically returns the buffer to the pool when the lease is destroyed, ensuring
+	 *          optimal memory reuse and preventing resource leaks. Features move-only semantics
+	 *          for safe transfer of ownership and convenient access methods.
+	 *
+	 * @note This class implements move-only semantics - copying is disabled to prevent
+	 *       multiple ownership of the same buffer. Use std::move() for ownership transfer.
+	 *
+	 * @warning Not thread-safe - external synchronization required for concurrent access.
+	 *          Do not share lease instances between threads without proper synchronization.
+	 *
+	 * @see StringBuilderPool::lease() for obtaining lease instances
+	 * @see StringBuilder for the high-level string building interface
+	 * @see DynamicStringBuffer for the underlying buffer implementation
+	 */
 	class StringBuilderLease final
 	{
 		friend class StringBuilderPool;
@@ -494,7 +601,10 @@ namespace nfx::string
 		/** @brief Copy constructor */
 		StringBuilderLease( const StringBuilderLease& ) = delete;
 
-		/** @brief Move constructor */
+		/**
+		 * @brief Move constructor
+		 * @param other The StringBuilderLease to move from
+		 */
 		NFX_CORE_INLINE StringBuilderLease( StringBuilderLease&& other ) noexcept;
 
 		//----------------------------------------------
@@ -511,7 +621,11 @@ namespace nfx::string
 		/** @brief Copy assignment operator */
 		StringBuilderLease& operator=( const StringBuilderLease& ) = delete;
 
-		/** @brief Move assignment operator */
+		/**
+		 * @brief Move assignment operator
+		 * @param other The StringBuilderLease to move from
+		 * @return Reference to this StringBuilderLease after assignment
+		 */
 		NFX_CORE_INLINE StringBuilderLease& operator=( StringBuilderLease&& other ) noexcept;
 
 		//----------------------------------------------
@@ -520,18 +634,21 @@ namespace nfx::string
 
 		/**
 		 * @brief Creates StringBuilder wrapper for buffer manipulation
+		 * @return StringBuilder instance wrapping the leased buffer
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		[[nodiscard]] NFX_CORE_INLINE StringBuilder builder();
 
 		/**
 		 * @brief Provides direct access to underlying memory buffer
+		 * @return Reference to the underlying DynamicStringBuffer
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		[[nodiscard]] NFX_CORE_INLINE DynamicStringBuffer& buffer();
 
 		/**
 		 * @brief Converts buffer contents to std::string
+		 * @return String copy of the buffer contents
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		[[nodiscard]] NFX_CORE_INLINE std::string toString() const;
@@ -562,6 +679,23 @@ namespace nfx::string
 	// StringBuilderPool class
 	//=====================================================================
 
+	/**
+	 * @brief Thread-safe memory pool for high-performance StringBuilder instances with optimized allocation strategy
+	 * @details Implements a sophisticated three-tier pooling system for DynamicStringBuffer instances
+	 *          to minimize allocation overhead in high-frequency string building scenarios. Features
+	 *          thread-local caching, shared cross-thread pooling, and comprehensive statistics tracking.
+	 *          Designed as a singleton with static factory methods for global access.
+	 *
+	 * @note This class uses a singleton pattern with static methods - no instantiation required.
+	 *       All pool operations are thread-safe and optimized for concurrent access patterns.
+	 *
+	 * @warning Pool buffers have size limits to prevent memory bloat - extremely large buffers
+	 *          may not be returned to the pool and will be deallocated normally.
+	 *
+	 * @see StringBuilderLease for RAII buffer management
+	 * @see StringBuilder for the high-level string building interface
+	 * @see DynamicStringBuffer for the underlying buffer implementation
+	 */
 	class StringBuilderPool final
 	{
 	public:
@@ -572,10 +706,19 @@ namespace nfx::string
 		/** @brief Pool performance statistics for external access */
 		struct PoolStatistics
 		{
+			/** @brief Number of successful buffer retrievals from thread-local cache */
 			uint64_t threadLocalHits;
+
+			/** @brief Number of successful buffer retrievals from shared cross-thread pool */
 			uint64_t dynamicStringBufferPoolHits;
+
+			/** @brief Number of new buffer allocations when pools were empty */
 			uint64_t newAllocations;
+
+			/** @brief Total number of buffer requests made to the pool */
 			uint64_t totalRequests;
+
+			/** @brief Cache hit rate as a percentage (0.0 to 1.0) */
 			double hitRate;
 		};
 
@@ -595,27 +738,18 @@ namespace nfx::string
 		/**
 		 * @brief Creates a new StringBuilder lease with an optimally sourced memory buffer
 		 * @return StringBuilderLease managing a pooled buffer with automatic cleanup
-		 * @details This is the primary factory method for obtaining StringBuilder instances.
-		 *          The buffer is sourced using a three-tier optimization strategy:
-		 *          1. Thread-local cache (fastest, zero synchronization overhead)
-		 *          2. Shared cross-thread pool (fast, mutex-protected access)
-		 *          3. New allocation (fallback, pre-sized for optimal performance)
 		 *
-		 *          The returned lease automatically returns the buffer to the pool when
-		 *          destroyed, ensuring optimal memory reuse and preventing leaks.
+		 * This is the primary factory method for obtaining StringBuilder instances.
+		 * The buffer is sourced using a three-tier optimization strategy:
+		 * 1. Thread-local cache (fastest, zero synchronization overhead)
+		 * 2. Shared cross-thread pool (fast, mutex-protected access)
+		 * 3. New allocation (fallback, pre-sized for optimal performance)
 		 *
-		 * @note This method is thread-safe and optimized for high-frequency usage patterns.
-		 *       Buffers are automatically cleared before reuse and size-limited to prevent bloat.
-		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+		 * The returned lease automatically returns the buffer to the pool when
+		 * destroyed, ensuring optimal memory reuse and preventing leaks.
 		 *
-		 * @example
-		 * @code
-		 * auto lease = StringBuilderPool::lease();
-		 * auto builder = lease.builder();
-		 * builder << "Hello, " << "World!";
-		 * std::string result = lease.toString();
-		 * // Buffer automatically returned to pool when lease destructs
-		 * @endcode
+		 * This method is thread-safe and optimized for high-frequency usage patterns.
+		 * Buffers are automatically cleared before reuse and size-limited to prevent bloat.
 		 */
 		[[nodiscard]] static StringBuilderLease lease();
 
@@ -623,7 +757,10 @@ namespace nfx::string
 		// Statistics methods
 		//----------------------------
 
-		/** @brief Gets current pool statistics */
+		/**
+		 * @brief Gets current pool statistics
+		 * @return Current pool performance statistics structure
+		 */
 		static PoolStatistics stats() noexcept;
 
 		/** @brief Resets pool statistics */
@@ -633,10 +770,16 @@ namespace nfx::string
 		// Lease management
 		//----------------------------
 
-		/** @brief Clears all buffers from the pool and returns the count of cleared buffers */
+		/**
+		 * @brief Clears all buffers from the pool and returns the count of cleared buffers
+		 * @return Number of buffers that were cleared from the pool
+		 */
 		static size_t clear();
 
-		/** @brief Gets current number of buffers stored in the pool */
+		/**
+		 * @brief Gets current number of buffers stored in the pool
+		 * @return Number of buffers currently available in the pool
+		 */
 		static size_t size() noexcept;
 	};
 }

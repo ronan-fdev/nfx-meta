@@ -19,10 +19,6 @@
  * - Template-based generic implementation
  * - Cross-platform SSE4.2 detection
  *
- * **Cross-Platform Hash Compatibility:**
- * Maintains identical hash values with C# version by matching UTF-16
- * byte processing pattern for ASCII strings.
- *
  * **License Compliance:**
  * This C++ adaptation is derivative work based on Vista.SDK's CHD implementation.
  * Original MIT License terms apply to the algorithmic foundation and design patterns.
@@ -189,19 +185,6 @@ namespace nfx::containers
 	 *
 	 * @tparam TValue The type of values stored in the dictionary.
 	 *
-	 * @warning **C# Cross-Platform Compatibility:**
-	 * This C++ implementation is designed to be fully compatible with the C# version,
-	 * producing identical hash values for ASCII strings. The compatibility is achieved by
-	 * matching the C# byte processing pattern:
-	 *
-	 *   - **C# Behavior:** Processes UTF-16 strings by reading only the low byte of each
-	 *     character (using `curr = ref Unsafe.Add(ref curr, 2)` to skip high bytes)
-	 *   - **C++ Behavior:** Processes ASCII strings byte-by-byte, which produces identical
-	 *     results since ASCII characters have zero high bytes in UTF-16 encoding
-	 *
-	 * This ensures **perfect hash compatibility** and allows dictionaries created by either
-	 * implementation to be used interchangeably across platforms.
-	 *
 	 * @see https://en.wikipedia.org/wiki/Perfect_hash_function#CHD_algorithm
 	 */
 	template <typename TValue>
@@ -230,10 +213,16 @@ namespace nfx::containers
 		/** @brief Default constructor */
 		ChdHashMap() = default;
 
-		/** @brief Copy constructor */
+		/**
+		 * @brief Copy constructor
+		 * @param[in] other The other ChdHashMap to copy from
+		 */
 		ChdHashMap( const ChdHashMap& other ) = default;
 
-		/** @brief Move constructor */
+		/**
+		 * @brief Move constructor
+		 * @param[in] other The other ChdHashMap to move from
+		 */
 		ChdHashMap( ChdHashMap&& other ) noexcept = default;
 
 		//----------------------------------------------
@@ -247,10 +236,18 @@ namespace nfx::containers
 		// Assignment operators
 		//----------------------------------------------
 
-		/** @brief Copy assignment operator */
+		/**
+		 * @brief Copy assignment operator
+		 * @param[in] other The other ChdHashMap to copy from
+		 * @return Reference to this ChdHashMap after assignment
+		 */
 		ChdHashMap& operator=( const ChdHashMap& other ) = default;
 
-		/** @brief Move assignment operator */
+		/**
+		 * @brief Move assignment operator
+		 * @param[in] other The other ChdHashMap to move from
+		 * @return Reference to this ChdHashMap after assignment
+		 */
 		ChdHashMap& operator=( ChdHashMap&& other ) noexcept = default;
 
 		//----------------------------------------------
@@ -363,14 +360,8 @@ namespace nfx::containers
 		 *   - **SSE4.2 Path:** Uses hardware CRC32 instruction (_mm_crc32_u8) for maximum speed
 		 *   - **Fallback Path:** Uses FNV-1a algorithm for universal compatibility
 		 *
-		 * **Cross-Platform Compatibility:**
-		 * This implementation produces identical hash values to the C# version by matching
-		 * its byte processing pattern. C# processes UTF-16 strings by reading only the
-		 * low byte of each character (skipping high bytes). For ASCII strings, this is
-		 * equivalent to processing each character directly since high bytes are zero.
-		 *
 		 * @param[in] key ASCII string key to hash
-		 * @return 32-bit hash value compatible with C# implementation
+		 * @return 32-bit hash value
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		[[nodiscard]] static NFX_CORE_INLINE uint32_t hash( std::string_view key ) noexcept;
@@ -425,10 +416,19 @@ namespace nfx::containers
 			// STL iterator traits
 			//----------------------------
 
+			/** @brief STL iterator category - indicates this is a forward iterator */
 			using iterator_category = std::forward_iterator_tag;
+
+			/** @brief STL value type - the type of object pointed to by the iterator */
 			using value_type = std::pair<std::string, TValue>;
+
+			/** @brief STL difference type - the type for representing iterator distances */
 			using difference_type = std::ptrdiff_t;
+
+			/** @brief STL pointer type - the type of pointer to the value */
 			using pointer = const value_type*;
+
+			/** @brief STL reference type - the type of reference to the value */
 			using reference = const value_type&;
 
 			//----------------------------
@@ -463,11 +463,19 @@ namespace nfx::containers
 			// Assignment operators
 			//----------------------------
 
-			/** @brief Copy assignment operator */
-			Iterator& operator=( const Iterator& ) = default;
+			/**
+			 * @brief Copy assignment operator
+			 * @param[in] other The other Iterator to copy from
+			 * @return Reference to this Iterator after assignment
+			 */
+			Iterator& operator=( const Iterator& other ) = default;
 
-			/** @brief Move assignment operator */
-			Iterator& operator=( Iterator&& ) noexcept = default;
+			/**
+			 * @brief Move assignment operator
+			 * @param[in] other The other Iterator to move from
+			 * @return Reference to this Iterator after assignment
+			 */
+			Iterator& operator=( Iterator&& other ) noexcept = default;
 
 			//---------------------------
 			// Operations
@@ -482,6 +490,7 @@ namespace nfx::containers
 
 			/**
 			 * @brief Provides member access to the current key-value pair.
+			 * @return A constant pointer to the `std::pair<std::string, TValue>` at the current position.
 			 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 			 */
 			[[nodiscard]] inline const std::pair<std::string, TValue>* operator->() const;
@@ -598,11 +607,19 @@ namespace nfx::containers
 			// Assignment operators
 			//----------------------------
 
-			/** @brief Copy assignment operator */
-			Enumerator& operator=( const Enumerator& ) = default;
+			/**
+			 * @brief Copy assignment operator
+			 * @param[in] other The other Enumerator to copy from
+			 * @return Reference to this Enumerator after assignment
+			 */
+			Enumerator& operator=( const Enumerator& other ) = default;
 
-			/** @brief Move assignment operator */
-			Enumerator& operator=( Enumerator&& ) noexcept = default;
+			/**
+			 * @brief Move assignment operator
+			 * @param[in] other The other Enumerator to move from
+			 * @return Reference to this Enumerator after assignment
+			 */
+			Enumerator& operator=( Enumerator&& other ) noexcept = default;
 
 			//----------------------------
 			// Enumeration

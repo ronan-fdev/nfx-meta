@@ -30,7 +30,7 @@ namespace nfx::string
 				t_cachedBuffer = nullptr;
 			}
 		}
-	} t_cleanup;
+	} t_cleanup; ///< @brief Thread-local cleanup instance for automatic buffer deallocation on thread exit
 
 	//=====================================================================
 	// DynamicStringBufferPool class

@@ -182,5 +182,28 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 			RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks"
 			RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks"
 		)
+
+		#----------------------------------------------
+		# Windows: Copy DLL if building shared libs
+		#----------------------------------------------
+
+		if(WIN32 AND NFX_CORE_BUILD_SHARED)
+			add_custom_command(TARGET ${benchmark_target_name} POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					$<TARGET_FILE:nfx-core>
+					$<TARGET_FILE_DIR:${benchmark_target_name}>
+				COMMENT "Copying nfx-core DLL to test directory"
+			)
+		endif()
+
+		#----------------------------------------------
+		# Add to benchmarks target
+		#----------------------------------------------
+
+		if(NOT TARGET benchmarks)
+			add_custom_target(benchmarks)
+		endif()
+		add_dependencies(benchmarks ${benchmark_target_name}
+		)
 	endif()
 endforeach()

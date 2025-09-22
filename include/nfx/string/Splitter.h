@@ -50,11 +50,13 @@ namespace nfx::string
 
 		/**
 		 * @brief Returns iterator to first segment
+		 * @return Iterator pointing to the first string segment
 		 */
 		NFX_CORE_INLINE Iterator begin() const noexcept;
 
 		/**
 		 * @brief Returns end iterator for range-based loops
+		 * @return End iterator for range-based iteration
 		 */
 		NFX_CORE_INLINE Iterator end() const noexcept;
 
@@ -74,6 +76,8 @@ namespace nfx::string
 
 			/**
 			 * @brief Constructs iterator at beginning or end position
+			 * @param splitter Reference to the parent Splitter object
+			 * @param at_end Whether to position iterator at end (default: false for begin)
 			 */
 			NFX_CORE_INLINE explicit Iterator( const Splitter& splitter, bool at_end = false ) noexcept;
 
@@ -83,11 +87,13 @@ namespace nfx::string
 
 			/**
 			 * @brief Dereferences iterator to get current string segment
+			 * @return String view of the current segment
 			 */
 			NFX_CORE_INLINE std::string_view operator*() const noexcept;
 
 			/**
 			 * @brief Pre-increment operator to advance to next segment
+			 * @return Reference to this iterator after advancement
 			 */
 			NFX_CORE_INLINE Iterator& operator++() noexcept;
 
@@ -97,6 +103,8 @@ namespace nfx::string
 
 			/**
 			 * @brief Compares iterators for equality
+			 * @param other Iterator to compare with
+			 * @return true if iterators are equal, false otherwise
 			 */
 			NFX_CORE_INLINE bool operator==( const Iterator& other ) const noexcept;
 

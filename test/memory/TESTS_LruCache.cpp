@@ -511,7 +511,7 @@ namespace nfx::memory::test
 		EXPECT_EQ( cache.size(), 2 );
 
 		// Wait for expiration
-		std::this_thread::sleep_for( std::chrono::milliseconds( 15 ) );
+		std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
 
 		// Access cache to trigger potential background cleanup (should not happen)
 		cache.getOrCreate( "key3", []() { return 3; } );

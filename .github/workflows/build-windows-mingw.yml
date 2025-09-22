@@ -1,4 +1,4 @@
-name: NFX Core - Linux GCC
+name: NFX Core - Windows MinGW
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
       - 'samples/**'
       - 'benchmark/**'
       - 'CMakeLists.txt'
-      - '.github/workflows/build-linux-gcc.yml'
+      - '.github/workflows/build-windows-mingw.yml'
   pull_request:
     branches: [ main ]
     paths:
@@ -20,15 +20,15 @@ on:
       - 'samples/**'
       - 'benchmark/**'
       - 'CMakeLists.txt'
-      - '.github/workflows/build-linux-gcc.yml'
+      - '.github/workflows/build-windows-mingw.yml'
 
 env:
   BUILD_TYPE: Release
 
 jobs:
-  build-linux-gcc:
-    runs-on: ubuntu-24.04
-    name: Ubuntu GCC 14
+  build-windows-mingw:
+    runs-on: windows-2022
+    name: Windows MinGW
 
     steps:
     - name: Checkout repository
@@ -41,48 +41,59 @@ jobs:
       with:
         path: |
           build
-          ~/.cache/ccache
-        key: ${{ runner.os }}-gcc14-cmake-${{ hashFiles('**/CMakeLists.txt', 'include/**', 'src/**') }}
+          D:\a\_temp\msys64\home\runneradmin\.cache\ccache
+        key: ${{ runner.os }}-mingw-cmake-${{ hashFiles('**/CMakeLists.txt', 'include/**', 'src/**') }}
         restore-keys: |
-          ${{ runner.os }}-gcc14-cmake-
+          ${{ runner.os }}-mingw-cmake-
 
-    - name: Set up build environment
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake ninja-build gcc-14 g++-14 ccache
-
-    - name: Set environment variables
-      run: |
-        echo "CC=ccache gcc-14" >> $GITHUB_ENV
-        echo "CXX=ccache g++-14" >> $GITHUB_ENV
-        echo "CCACHE_DIR=$HOME/.cache/ccache" >> $GITHUB_ENV
-        echo "CCACHE_COMPILERCHECK=content" >> $GITHUB_ENV
-        echo "CCACHE_COMPRESS=true" >> $GITHUB_ENV
-        echo "CCACHE_MAXSIZE=200M" >> $GITHUB_ENV
+    - name: Set up MinGW
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: >-
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-ninja
+          mingw-w64-x86_64-ccache
 
     - name: Setup ccache
+      shell: msys2 {0}
       run: |
+        export CCACHE_DIR="$HOME/.cache/ccache"
+        export CCACHE_COMPILERCHECK=content
+        export CCACHE_COMPRESS=true
+        export CCACHE_MAXSIZE=200M
         ccache --zero-stats
         ccache --show-config
 
     - name: Configure CMake
+      shell: msys2 {0}
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
+        export CCACHE_DIR="$HOME/.cache/ccache"
         cmake -B build \
-              -G "Unix Makefiles" \
+              -G "Ninja" \
               -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
               -DNFX_CORE_BUILD_STATIC=ON \
               -DNFX_CORE_BUILD_SHARED=OFF \
               -DNFX_CORE_BUILD_TESTS=ON \
-              -DNFX_CORE_BUILD_BENCHMARKS=OFF \
               -DNFX_CORE_BUILD_SAMPLES=OFF \
+              -DNFX_CORE_BUILD_BENCHMARKS=OFF \
               -DNFX_CORE_BUILD_DOCUMENTATION=OFF
 
     - name: Build
-      run: cmake --build build --parallel
+      shell: msys2 {0}
+      run: |
+        export CCACHE_DIR="$HOME/.cache/ccache"
+        cmake --build build --parallel
 
     - name: Test
+      shell: msys2 {0}
       working-directory: build
       run: ctest --output-on-failure --parallel
 
     - name: Show ccache statistics
+      shell: msys2 {0}
       run: ccache --show-stats

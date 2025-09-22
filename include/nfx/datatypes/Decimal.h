@@ -18,7 +18,70 @@
  *          Storage Format:
  *          - 96-bit mantissa + 32-bit scale/sign = 128-bit total storage
  *
- *          IEEE 754-2008 Input Compatibility:
+ *          Memory Layout of Decimal (128 bits / 16 bytes):
+ *          ==============================================
+ *
+ *          1. Flags (32 bits):
+ *          ┌───────────┬─────────────────────────────────────┬───────────────────────────────────────────────────┐
+ *          │    Bits   │             Description             │                       Notes                       │
+ *          ├───────────┼─────────────────────────────────────┼───────────────────────────────────────────────────┤
+ *          │   0 - 15  │  Unused (must be zero)              │  Reserved - Required to be zero for valid format  │
+ *          │  16 - 23  │  Scale (0-28)                       │  Number of decimal digits after decimal point     │
+ *          │  24 - 30  │  Unused (must be zero)              │  Reserved - Required to be zero for valid format  │
+ *          │  31       │  Sign (0 = positive, 1 = negative)  │  Sign bit                                         │
+ *          └───────────┴─────────────────────────────────────┴───────────────────────────────────────────────────┘
+ *
+ *          2. Mantissa (96 bits total):
+ *          ┌───────────────┬───────────┬─────────────────────────────────┐
+ *          │ Mantissa Part │   Bits    │           Description           │
+ *          ├───────────────┼───────────┼─────────────────────────────────┤
+ *          │  mantissa[0]  │   0 - 31  │  Lower 32 bits of the mantissa  │
+ *          │  mantissa[1]  │  32 - 63  │  Middle 32 bits of the mantissa │
+ *          │  mantissa[2]  │  64 - 95  │  Upper 32 bits of the mantissa  │
+ *          └───────────────┴───────────┴─────────────────────────────────┘
+ *
+ *          Complete Memory Layout (128 bits / 16 bytes):
+ *          =============================================
+ *
+ *          ┌─────────────────────────────────┬─────────────────────────────────┬─────────────────────────────────┬─────────────────────────────────┐
+ *          │         mantissa[2]             │         mantissa[1]             │          mantissa[0]            │            flags                │
+ *          │       (upper 32 bits)           │      (middle 32 bits)           │       (lower 32 bits)           │        (scale + sign)           │
+ *          │          32 bits                │          32 bits                │           32 bits               │            32 bit               │
+ *          └─────────────────────────────────┴─────────────────────────────────┴─────────────────────────────────┴─────────────────────────────────┘
+ *          Bit 127                     Bit 96 Bit 95                     Bit 64 Bit 63                     Bit 32 Bit 31                       Bit 0
+ *
+ *          Where the 96-bit mantissa represents an unsigned integer from 0 to 2^96-1
+ *          and the sign is stored separately in bit 31 of the flags word.
+ *
+ *          Summary:
+ *          =======
+ *
+ *          - Total storage: 128 bits (16 bytes)
+ *          - Value formula: decimal_value = mantissa / 10^scale × (sign ? -1 : 1)
+ *
+ *          Examples with Memory Layout:
+ *          ============================
+ *
+ *          Example 1 - Value 123.45:
+ *          - mantissa: 12345 (stored across mantissa[0-2])
+ *          - scale   : 2 (bits 16-23 of flags, 2 decimal places)
+ *          - sign    : 0 (bit 31 of flags, positive)
+ *          - result  : 12345 / 10² = 123.45
+ *
+ *          Example 2 - Value -12,345,678,901,234,567,890.123456789:
+ *          - mantissa: 12345678901234567890123456789 (96-bit value across mantissa[0-2])
+ *                      mantissa[0] = 0x15CD5B07  - 365,072,135   (lower 32 bits)
+ *                      mantissa[1] = 0x9CE5A30A  - 2,632,713,994 (middle 32 bits)
+ *                      mantissa[2] = 0x27B95E997 - 669,260,439   (upper 32 bits)
+ *          - scale   : 9 (bits 16-23 of flags, 9 decimal places)
+ *          - sign    : 1 (bit 31 of flags, negative)
+ *          - result  : 12345678901234567890123456789 / 10⁹ × (-1) = -12,345,678,901,234,567,890.123456789
+ *
+ *          - Original = (mantissa[2] × 2^64) + (mantissa[1] × 2^32) + mantissa[0]
+ *          - Original = (669,260,439 × 18,446,744,073,709,551,616) + (2,632,713,994 × 4,294,967,296) + 365,072,135
+ *          - Original = 12345678901234567890123456789
+ *
+ *          IEEE 754-2008 binary64 Input Compatibility:
  *          - Construction from double uses IEEE 754-2008 std::isnan/std::isinf functions
  *          - Preserves IEEE 754 binary64 precision limits (~15-17 digits)
  *          - NaN and Infinity from double are converted to zero
@@ -54,7 +117,8 @@ namespace nfx::datatypes
 	 *
 	 *          Value Representation:
 	 *          - All values are of the form: mantissa / 10^scale
-	 *          - Mantissa: 96-bit signed integer (-2^96 < m < 2^96)
+	 *          - Mantissa: 96-bit unsigned integer (0 ≤ m < 2^96)
+	 *          - Sign: Stored separately in bit 31 of flags word
 	 *          - Scale: 0 to 28 inclusive (number of decimal places)
 	 *
 	 *          Financial Calculation Benefits:
@@ -62,7 +126,7 @@ namespace nfx::datatypes
 	 *          - No round-off errors in monetary calculations
 	 *          - Predictable precision for financial applications
 	 *
-	 *          IEEE 754-2008 Input Compatibility:
+	 *          IEEE 754-2008 binary64 Input Compatibility:
 	 *          - Double constructor uses IEEE 754-2008 std::isnan/std::isinf functions
 	 *          - Respects IEEE 754 binary64 precision limits (~15-17 digits)
 	 *          - NaN and Infinity from double input are converted to zero
@@ -94,28 +158,47 @@ namespace nfx::datatypes
 		explicit Decimal( double value ) noexcept;
 
 		/**
-		 * @brief Construct from integer
-		 * @param value Integer value
+		 * @brief Construct from 32-bit integer
+		 * @param value Integer value to convert
 		 */
 		explicit Decimal( std::int32_t value ) noexcept;
+
+		/**
+		 * @brief Construct from 64-bit integer
+		 * @param value Integer value to convert
+		 */
 		explicit Decimal( std::int64_t value ) noexcept;
+
+		/**
+		 * @brief Construct from 32-bit unsigned integer
+		 * @param value Unsigned integer value to convert
+		 */
 		explicit Decimal( std::uint32_t value ) noexcept;
+
+		/**
+		 * @brief Construct from 64-bit unsigned integer
+		 * @param value Unsigned integer value to convert
+		 */
 		explicit Decimal( std::uint64_t value ) noexcept;
 
 		/**
 		 * @brief Construct from string (exact parsing)
 		 * @param str String representation (e.g., "123.456")
 		 * @throws std::invalid_argument if string is not a valid decimal
+		 * @see parse() for static parsing with error handling
+		 * @see tryParse() for non-throwing parsing
 		 */
 		explicit Decimal( std::string_view str );
 
 		/**
 		 * @brief Copy constructor
+		 * @param other The Decimal object to copy from
 		 */
 		Decimal( const Decimal& other ) noexcept = default;
 
 		/**
 		 * @brief Move constructor
+		 * @param other The Decimal object to move from
 		 */
 		Decimal( Decimal&& other ) noexcept = default;
 
@@ -132,11 +215,15 @@ namespace nfx::datatypes
 
 		/**
 		 * @brief Copy assignment operator
+		 * @param other The Decimal object to copy from
+		 * @return Reference to this Decimal object after assignment
 		 */
 		Decimal& operator=( const Decimal& other ) noexcept = default;
 
 		/**
 		 * @brief Move assignment operator
+		 * @param other The Decimal object to move from
+		 * @return Reference to this Decimal object after assignment
 		 */
 		Decimal& operator=( Decimal&& other ) noexcept = default;
 
@@ -229,8 +316,25 @@ namespace nfx::datatypes
 		// Arithmetic operators
 		//----------------------------------------------
 
+		/**
+		 * @brief Addition operator
+		 * @param other The Decimal value to add
+		 * @return Result of addition
+		 */
 		Decimal operator+( const Decimal& other );
+
+		/**
+		 * @brief Subtraction operator
+		 * @param other The Decimal value to subtract
+		 * @return Result of subtraction
+		 */
 		Decimal operator-( const Decimal& other );
+
+		/**
+		 * @brief Multiplication operator
+		 * @param other The Decimal value to multiply by
+		 * @return Result of multiplication
+		 */
 		Decimal operator*( const Decimal& other ) const;
 
 		/**
@@ -241,8 +345,25 @@ namespace nfx::datatypes
 		 */
 		Decimal operator/( const Decimal& other ) const;
 
+		/**
+		 * @brief Addition assignment operator
+		 * @param other The Decimal value to add
+		 * @return Reference to this Decimal after addition
+		 */
 		Decimal& operator+=( const Decimal& other );
+
+		/**
+		 * @brief Subtraction assignment operator
+		 * @param other The Decimal value to subtract
+		 * @return Reference to this Decimal after subtraction
+		 */
 		Decimal& operator-=( const Decimal& other );
+
+		/**
+		 * @brief Multiplication assignment operator
+		 * @param other The Decimal value to multiply by
+		 * @return Reference to this Decimal after multiplication
+		 */
 		Decimal& operator*=( const Decimal& other );
 
 		/**
@@ -253,17 +374,56 @@ namespace nfx::datatypes
 		 */
 		Decimal& operator/=( const Decimal& other );
 
+		/**
+		 * @brief Unary minus operator (negation)
+		 * @return Negated decimal value
+		 */
 		Decimal operator-() const noexcept;
 
 		//----------------------------------------------
 		// Comparison operators
 		//----------------------------------------------
 
+		/**
+		 * @brief Equality comparison operator
+		 * @param other The Decimal value to compare with
+		 * @return true if values are equal, false otherwise
+		 */
 		bool operator==( const Decimal& other ) const noexcept;
+
+		/**
+		 * @brief Inequality comparison operator
+		 * @param other The Decimal value to compare with
+		 * @return true if values are not equal, false otherwise
+		 */
 		bool operator!=( const Decimal& other ) noexcept;
+
+		/**
+		 * @brief Less than comparison operator
+		 * @param other The Decimal value to compare with
+		 * @return true if this value is less than other, false otherwise
+		 */
 		bool operator<( const Decimal& other ) const noexcept;
+
+		/**
+		 * @brief Less than or equal comparison operator
+		 * @param other The Decimal value to compare with
+		 * @return true if this value is less than or equal to other, false otherwise
+		 */
 		bool operator<=( const Decimal& other ) noexcept;
+
+		/**
+		 * @brief Greater than comparison operator
+		 * @param other The Decimal value to compare with
+		 * @return true if this value is greater than other, false otherwise
+		 */
 		bool operator>( const Decimal& other ) noexcept;
+
+		/**
+		 * @brief Greater than or equal comparison operator
+		 * @param other The Decimal value to compare with
+		 * @return true if this value is greater than or equal to other, false otherwise
+		 */
 		bool operator>=( const Decimal& other ) noexcept;
 
 		//----------------------------------------------
@@ -296,6 +456,8 @@ namespace nfx::datatypes
 		/**
 		 * @brief Convert to double (may lose precision)
 		 * @return Double representation
+		 * @note Conversion may lose precision beyond ~15-17 significant digits
+		 * @note For exact precision, use toString() method instead
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		[[nodiscard]] double toDouble() const noexcept;

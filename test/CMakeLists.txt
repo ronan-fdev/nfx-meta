@@ -18,6 +18,20 @@ endif()
 include(GoogleTest)
 
 #----------------------------------------------
+# Parallel test configuration
+#----------------------------------------------
+
+include(ProcessorCount)
+ProcessorCount(N)
+if(NOT N EQUAL 0)
+	set(CTEST_PARALLEL_LEVEL ${N})
+	message(STATUS "Setting parallel test level to ${N} cores")
+else()
+	set(CTEST_PARALLEL_LEVEL 4)
+	message(STATUS "Could not detect CPU count, setting parallel test level to 4")
+endif()
+
+#----------------------------------------------
 # Tests source files
 #----------------------------------------------
 
@@ -193,6 +207,19 @@ foreach(test_source ${TEST_SOURCES})
 		)
 
 		#----------------------------------------------
+		# Windows: Copy DLL if building shared libs
+		#----------------------------------------------
+
+		if(WIN32 AND NFX_CORE_BUILD_SHARED)
+			add_custom_command(TARGET ${test_target_name} POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					$<TARGET_FILE:nfx-core>
+					$<TARGET_FILE_DIR:${test_target_name}>
+				COMMENT "Copying nfx-core DLL to test directory"
+			)
+		endif()
+
+		#----------------------------------------------
 		# Test discovery and registration
 		#----------------------------------------------
 
@@ -201,6 +228,17 @@ foreach(test_source ${TEST_SOURCES})
 			DISCOVERY_MODE POST_BUILD
 			PROPERTIES
 				TIMEOUT 120
+				RUN_SERIAL OFF
+		)
+		
+		#----------------------------------------------
+		# Add to tests target
+		#----------------------------------------------
+
+		if(NOT TARGET tests)
+			add_custom_target(tests)
+		endif()
+		add_dependencies(tests ${test_target_name}
 		)
 	endif()
 endforeach()
