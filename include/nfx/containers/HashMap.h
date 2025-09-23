@@ -252,4 +252,4 @@ namespace nfx::containers
 	};
 }
 
-#include "HashMap.inl"
+#include "nfx/detail/containers/HashMap.inl"

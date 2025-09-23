@@ -632,4 +632,4 @@ namespace nfx::datatypes
 	std::istream& operator>>( std::istream& is, Decimal& decimal );
 }
 
-#include "Decimal.inl"
+#include "nfx/detail/datatypes/Decimal.inl"

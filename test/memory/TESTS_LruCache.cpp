@@ -674,7 +674,7 @@ namespace nfx::memory::test
 		// Concurrent operations while background cleanup is active
 		for ( int t = 0; t < numThreads; ++t )
 		{
-			threads.emplace_back( [&cache, t, operationsPerThread]() {
+			threads.emplace_back( [&cache, t]() {
 				for ( int i = 0; i < operationsPerThread; ++i )
 				{
 					int key = t * operationsPerThread + i;

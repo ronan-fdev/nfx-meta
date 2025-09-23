@@ -36,12 +36,12 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Cache CMake build
+    - name: Cache CMake build and ccache
       uses: actions/cache@v4
       with:
         path: |
           build
-          D:\a\_temp\msys64\home\runneradmin\.cache\ccache
+          ${{ runner.temp }}/ccache
         key: ${{ runner.os }}-mingw-cmake-${{ hashFiles('**/CMakeLists.txt', 'include/**', 'src/**') }}
         restore-keys: |
           ${{ runner.os }}-mingw-cmake-
@@ -60,10 +60,11 @@ jobs:
     - name: Setup ccache
       shell: msys2 {0}
       run: |
-        export CCACHE_DIR="$HOME/.cache/ccache"
+        export CCACHE_DIR="${{ runner.temp }}/ccache"
         export CCACHE_COMPILERCHECK=content
         export CCACHE_COMPRESS=true
         export CCACHE_MAXSIZE=200M
+        mkdir -p "$CCACHE_DIR"
         ccache --zero-stats
         ccache --show-config
 
@@ -72,7 +73,7 @@ jobs:
       run: |
         export CC="ccache gcc"
         export CXX="ccache g++"
-        export CCACHE_DIR="$HOME/.cache/ccache"
+        export CCACHE_DIR="${{ runner.temp }}/ccache"
         cmake -B build \
               -G "Ninja" \
               -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
@@ -86,7 +87,7 @@ jobs:
     - name: Build
       shell: msys2 {0}
       run: |
-        export CCACHE_DIR="$HOME/.cache/ccache"
+        export CCACHE_DIR="${{ runner.temp }}/ccache"
         cmake --build build --parallel
 
     - name: Test
@@ -96,4 +97,6 @@ jobs:
 
     - name: Show ccache statistics
       shell: msys2 {0}
-      run: ccache --show-stats
+      run: |
+        export CCACHE_DIR="${{ runner.temp }}/ccache"
+        ccache --show-stats

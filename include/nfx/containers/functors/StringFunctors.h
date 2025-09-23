@@ -165,4 +165,4 @@ namespace nfx::containers
 	};
 }
 
-#include "StringFunctors.inl"
+#include "nfx/detail/containers/functors/StringFunctors.inl"

@@ -117,4 +117,4 @@ namespace nfx::core::hashing
 	[[nodiscard]] NFX_CORE_INLINE constexpr std::enable_if_t<std::is_integral_v<T>, size_t> hashInteger( T value ) noexcept;
 }
 
-#include "Hash.inl"
+#include "nfx/detail/core/hashing/Hash.inl"

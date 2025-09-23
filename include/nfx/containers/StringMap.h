@@ -211,4 +211,4 @@ namespace nfx::containers
 	};
 }
 
-#include "StringMap.inl"
+#include "nfx/detail/containers/StringMap.inl"

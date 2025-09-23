@@ -331,4 +331,4 @@ namespace nfx::memory
 	};
 }
 
-#include "LruCache.inl"
+#include "nfx/detail/memory/LruCache.inl"

@@ -3,7 +3,7 @@
  * @brief Inline implementations for cross-platform Decimal class
  */
 
-#include "constants/DecimalConstants.h"
+#include "nfx/datatypes/constants/DecimalConstants.h"
 #include "nfx/datatypes/Int128.h"
 
 namespace nfx::datatypes

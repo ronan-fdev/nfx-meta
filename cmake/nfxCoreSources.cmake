@@ -8,9 +8,14 @@
 
 # --- Always include platform configuration ---
 set(PUBLIC_HEADERS
-	${NFX_CORE_INCLUDE_DIR}/nfx/core/hashing/Hash.h
-	${NFX_CORE_INCLUDE_DIR}/nfx/core/hashing/Hash.inl
+	# --- Core configuration ---
 	${NFX_CORE_INCLUDE_DIR}/nfx/config.h
+
+	# --- Core hashing utilities ---
+	${NFX_CORE_INCLUDE_DIR}/nfx/core/hashing/Hash.h
+
+	# --- Core hashing implementation ---
+	${NFX_CORE_INCLUDE_DIR}/nfx/detail/core/hashing/Hash.inl
 )
 
 set(PRIVATE_SOURCES)
@@ -18,18 +23,25 @@ set(PRIVATE_SOURCES)
 # --- Container components ---
 if(NFX_CORE_WITH_CONTAINERS)
 	list(APPEND PUBLIC_HEADERS
+		# --- Container functors ---
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/functors/HashMapHashFunctor.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/functors/HashMapHashFunctor.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/functors/StringFunctors.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/functors/StringFunctors.inl
+
+		# --- Container headers ---
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/ChdHashMap.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/ChdHashMap.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/HashMap.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/HashMap.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringMap.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringMap.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringSet.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringSet.inl
+
+		# --- Container functors implementations ---
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/functors/HashMapHashFunctor.inl
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/functors/StringFunctors.inl
+
+		# --- Container inline implementations ---
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/ChdHashMap.inl
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/HashMap.inl
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/StringMap.inl
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/StringSet.inl
 	)
 	list(APPEND PRIVATE_SOURCES
 	)
@@ -38,14 +50,18 @@ endif()
 # --- Datatype components ---
 if(NFX_CORE_WITH_DATATYPES)
 	list(APPEND PUBLIC_HEADERS
+		# --- Datatype headers ---
 		${NFX_CORE_INCLUDE_DIR}/nfx/datatypes/constants/DecimalConstants.h
 		${NFX_CORE_INCLUDE_DIR}/nfx/datatypes/constants/Int128Constants.h
 		${NFX_CORE_INCLUDE_DIR}/nfx/datatypes/Decimal.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/datatypes/Decimal.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/datatypes/Int128.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/datatypes/Int128.inl
+
+		# --- Datatype implementations ---
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/datatypes/Decimal.inl
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/datatypes/Int128.inl
 	)
 	list(APPEND PRIVATE_SOURCES
+		# --- Datatype source files ---
 		${NFX_CORE_SOURCE_DIR}/datatypes/Decimal.cpp
 		${NFX_CORE_SOURCE_DIR}/datatypes/Int128.cpp
 	)
@@ -54,8 +70,11 @@ endif()
 # --- Container components ---
 if(NFX_CORE_WITH_MEMORY)
 	list(APPEND PUBLIC_HEADERS
+		# --- Memory management headers ---
 		${NFX_CORE_INCLUDE_DIR}/nfx/memory/LruCache.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/memory/LruCache.inl
+
+		# --- Memory management implementations ---
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/memory/LruCache.inl
 	)
 	list(APPEND PRIVATE_SOURCES
 	)
@@ -64,18 +83,23 @@ endif()
 # --- String components ---
 if(NFX_CORE_WITH_STRING)
 	list(APPEND PUBLIC_HEADERS
+		# --- String processing headers ---
 		${NFX_CORE_INCLUDE_DIR}/nfx/string/StringBuilderPool.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/string/StringBuilderPool.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/string/Splitter.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/string/Splitter.inl
 		${NFX_CORE_INCLUDE_DIR}/nfx/string/Utils.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/string/Utils.inl
+
+		# --- String processing implementations ---
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/string/StringBuilderPool.inl
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/string/Splitter.inl
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/string/Utils.inl
 	)
 	list(APPEND PRIVATE_HEADERS
+		# --- String processing private headers ---
 		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBuffer_impl.h
 		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBufferPool.cpp
 	)
 	list(APPEND PRIVATE_SOURCES
+		# --- String processing source files ---
 		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBuffer_impl.cpp
 		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBufferPool.cpp
 		${NFX_CORE_SOURCE_DIR}/string/StringBuilderPool.cpp
@@ -85,11 +109,15 @@ endif()
 # --- Temporal components ---
 if(NFX_CORE_WITH_TIME)
 	list(APPEND PUBLIC_HEADERS
+		# --- Time handling headers ---
 		${NFX_CORE_INCLUDE_DIR}/nfx/time/constants/DateTimeConstants.h
 		${NFX_CORE_INCLUDE_DIR}/nfx/time/DateTime.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/time/DateTime.inl
+
+		# --- Time handling implementations ---
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/time/DateTime.inl
 	)
 	list(APPEND PRIVATE_SOURCES
+		# --- Time handling source files ---
 		${NFX_CORE_SOURCE_DIR}/time/DateTime.cpp
 	)
 endif()

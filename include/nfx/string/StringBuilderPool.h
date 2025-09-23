@@ -784,4 +784,4 @@ namespace nfx::string
 	};
 }
 
-#include "StringBuilderPool.inl"
+#include "nfx/detail/string/StringBuilderPool.inl"

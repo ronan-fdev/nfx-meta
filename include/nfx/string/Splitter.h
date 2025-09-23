@@ -143,4 +143,4 @@ namespace nfx::string
 	[[nodiscard]] static NFX_CORE_INLINE Splitter splitView( String&& str, char delimiter ) noexcept;
 }
 
-#include "Splitter.inl"
+#include "nfx/detail/string/Splitter.inl"

@@ -1036,7 +1036,7 @@ namespace nfx::string::test
 		// Intentional self-move for testing - suppress compiler warnings
 #if defined( __GNUC__ ) && !defined( __clang__ )
 #	pragma GCC diagnostic push
-#	pragma GCC diagnostic ignored "-Wpessimizing-move"
+#	pragma GCC diagnostic ignored "-Wself-move"
 #elif defined( __clang__ )
 #	pragma clang diagnostic push
 #	pragma clang diagnostic ignored "-Wself-move"

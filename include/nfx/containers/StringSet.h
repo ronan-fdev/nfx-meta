@@ -138,4 +138,4 @@ namespace nfx::containers
 	};
 }
 
-#include "StringSet.inl"
+#include "nfx/detail/containers/StringSet.inl"

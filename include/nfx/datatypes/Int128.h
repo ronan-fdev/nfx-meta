@@ -475,4 +475,4 @@ namespace nfx::datatypes
 	std::istream& operator>>( std::istream& is, Int128& value );
 }
 
-#include "Int128.inl"
+#include "nfx/detail/datatypes/Int128.inl"

@@ -309,4 +309,4 @@ namespace nfx::string
 	[[nodiscard]] NFX_CORE_INLINE bool tryParseDouble( std::string_view str, double& result ) noexcept;
 }
 
-#include "Utils.inl"
+#include "nfx/detail/string/Utils.inl"

@@ -104,4 +104,4 @@ namespace nfx::containers
 	};
 }
 
-#include "HashMapHashFunctor.inl"
+#include "nfx/detail/containers/functors/HashMapHashFunctor.inl"

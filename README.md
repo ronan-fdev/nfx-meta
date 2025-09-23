@@ -2,7 +2,7 @@
 
 <!-- Project Info -->
 
-[![Version](https://img.shields.io/badge/Version-0.0.10-brightgreen?style=flat-square)](#) [![License](https://img.shields.io/github/license/ronan-fdev/nfx-core?style=flat-square)](https://github.com/ronan-fdev/nfx-core/blob/main/LICENSE)<br/>
+[![Version](https://img.shields.io/badge/Version-0.1.0-brightgreen?style=flat-square)](#) [![License](https://img.shields.io/github/license/ronan-fdev/nfx-core?style=flat-square)](https://github.com/ronan-fdev/nfx-core/blob/main/LICENSE)<br/>
 
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue?style=flat-square)](#) [![CMake](https://img.shields.io/badge/CMake-3.20+-green.svg?style=flat-square)](#) [![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey?style=flat-square)](#) <br/>
 
@@ -235,15 +235,13 @@ nfx-core/
 │   ├── core/              # Core utilities
 │   │   └── hashing/       # Hash algorithms (FNV-1a, CRC32, etc.)
 │   ├── datatypes/         # Int128, Decimal with high-precision arithmetic
+│   ├── detail/            # Implementation details and inline files
 │   ├── memory/            # LruCache with sliding expiration
 │   ├── string/            # StringBuilderPool, Splitter, Utils
 │   └── time/              # DateTime, DateTimeOffset, TimeSpan
 ├── licenses/              # Third-party license files
 ├── samples/               # Example usage and demonstrations
-├── src/                   # Implementation files (.cpp)
-│   ├── datatypes/         # Core mathematical type implementations
-│   ├── string/            # String processing internals
-│   └── time/              # Temporal calculation implementations
+├── src/                   # Implementation files
 └── test/                  # Comprehensive unit tests with GoogleTest
 ```
 

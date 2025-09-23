@@ -1513,4 +1513,4 @@ namespace nfx::time
 	std::istream& operator>>( std::istream& is, DateTimeOffset& dateTimeOffset );
 }
 
-#include "DateTime.inl"
+#include "nfx/detail/time/DateTime.inl"

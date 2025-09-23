@@ -661,4 +661,4 @@ namespace nfx::containers
 	};
 }
 
-#include "ChdHashMap.inl"
+#include "nfx/detail/containers/ChdHashMap.inl"
