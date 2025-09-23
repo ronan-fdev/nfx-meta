@@ -25,6 +25,9 @@ on:
 env:
   BUILD_TYPE: Release
 
+permissions:
+  contents: read
+
 jobs:
   build-linux-clang:
     runs-on: ubuntu-24.04

@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(nfx-core
-	VERSION 0.1.0
+	VERSION 0.1.1
 	DESCRIPTION "C++ utility library with cross-platform 128-bit arithmetic, temporal calculations, zero-copy containers, and advanced string processing"
 	LANGUAGES CXX
 )
@@ -37,9 +37,9 @@ option(NFX_CORE_WITH_TIME            "Enable temporal classes"            ON   )
 
 # --- Development ---
 option(NFX_CORE_BUILD_TESTS          "Build tests"                        ON   )
-option(NFX_CORE_BUILD_SAMPLES        "Build samples"                      ON   )
-option(NFX_CORE_BUILD_BENCHMARKS     "Build benchmarks"                   ON   )
-option(NFX_CORE_BUILD_DOCUMENTATION  "Build Doxygen documentation"        ON   )
+option(NFX_CORE_BUILD_SAMPLES        "Build samples"                      OFF  )
+option(NFX_CORE_BUILD_BENCHMARKS     "Build benchmarks"                   OFF  )
+option(NFX_CORE_BUILD_DOCUMENTATION  "Build Doxygen documentation"        OFF  )
 
 
 #----------------------------------------------

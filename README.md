@@ -2,7 +2,7 @@
 
 <!-- Project Info -->
 
-[![Version](https://img.shields.io/badge/Version-0.1.0-brightgreen?style=flat-square)](#) [![License](https://img.shields.io/github/license/ronan-fdev/nfx-core?style=flat-square)](https://github.com/ronan-fdev/nfx-core/blob/main/LICENSE)<br/>
+[![Version](https://img.shields.io/badge/Version-0.1.1-brightgreen?style=flat-square)](#) [![License](https://img.shields.io/github/license/ronan-fdev/nfx-core?style=flat-square)](https://github.com/ronan-fdev/nfx-core/blob/main/LICENSE)<br/>
 
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue?style=flat-square)](#) [![CMake](https://img.shields.io/badge/CMake-3.20+-green.svg?style=flat-square)](#) [![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey?style=flat-square)](#) <br/>
 
@@ -86,10 +86,10 @@ option(NFX_CORE_WITH_STRING          "Enable string utilities"            ON   )
 option(NFX_CORE_WITH_TIME            "Enable temporal classes"            ON   )
 
 # Development
-option(NFX_CORE_BUILD_TESTS          "Build tests"                        ON   )
-option(NFX_CORE_BUILD_SAMPLES        "Build samples"                      ON   )
-option(NFX_CORE_BUILD_BENCHMARKS     "Build benchmarks"                   ON   )
-option(NFX_CORE_BUILD_DOCUMENTATION  "Build Doxygen documentation"        ON   )
+option(NFX_CORE_BUILD_TESTS          "Build tests"                        OFF  )
+option(NFX_CORE_BUILD_SAMPLES        "Build samples"                      OFF   )
+option(NFX_CORE_BUILD_BENCHMARKS     "Build benchmarks"                   OFF   )
+option(NFX_CORE_BUILD_DOCUMENTATION  "Build Doxygen documentation"        OFF   )
 ```
 
 ### Using in Your Project
@@ -122,7 +122,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 
 # Run tests (optional)
-ctest --config Release
+ctest -C Release
 ```
 
 ### CMake Integration
@@ -207,21 +207,12 @@ int main()
 
 ### Sample Applications
 
-The `samples/` directory contains comprehensive examples demonstrating all NFX-Core features:
-
-- **`Sample_Datatypes.cpp`** - Int128 and Decimal arithmetic demonstrations
-- **`Sample_DateTime.cpp`** - DateTime, DateTimeOffset, and TimeSpan operations
-- **`Sample_FinancialWithTimestamps.cpp`** - Financial calculations with precise timestamps
-- **`Sample_LruCache.cpp`** - Thread-safe LRU cache with expiration policies
-- **`Sample_StringBuilder.cpp`** - Pooled string building and performance comparisons
-- **`Sample_StringContainers.cpp`** - StringMap, StringSet, and zero-copy operations
-- **`Sample_StringSplitter.cpp`** - Zero-allocation string splitting examples
-- **`Sample_StringUtils.cpp`** - Character classification and string utilities
+The `samples/` directory contains comprehensive examples demonstrating all NFX-Core features.
 
 To build and run samples:
 
 ```bash
-cmake --build . --config Release --target samples
+cmake .. -DCMAKE_BUILD_TYPE=Release -DNFX_CORE_BUILD_SAMPLES=ON
 ```
 
 ## Project Structure

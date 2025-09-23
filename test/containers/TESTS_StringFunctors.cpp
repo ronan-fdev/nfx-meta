@@ -61,7 +61,7 @@ namespace nfx::containers::test
 		size_t hash2{ hasher( "string2" ) };
 		size_t hash3{ hasher( "completely_different" ) };
 
-		// Different strings should produce different hashes (with high probability)
+		// Different strings should produce different hashes
 		EXPECT_NE( hash1, hash2 );
 		EXPECT_NE( hash1, hash3 );
 		EXPECT_NE( hash2, hash3 );

@@ -179,16 +179,6 @@ foreach(sample_source ${SAMPLE_SOURCES})
 				COMMENT "Copying nfx-core DLL to test directory"
 			)
 		endif()
-
-		#----------------------------------------------
-		# Add to samples target
-		#----------------------------------------------
-
-		if(NOT TARGET samples)
-			add_custom_target(samples)
-		endif()
-		add_dependencies(samples ${sample_target_name}
-		)
 	endif()
 endforeach()
 

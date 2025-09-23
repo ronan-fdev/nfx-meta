@@ -195,15 +195,5 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 				COMMENT "Copying nfx-core DLL to test directory"
 			)
 		endif()
-
-		#----------------------------------------------
-		# Add to benchmarks target
-		#----------------------------------------------
-
-		if(NOT TARGET benchmarks)
-			add_custom_target(benchmarks)
-		endif()
-		add_dependencies(benchmarks ${benchmark_target_name}
-		)
 	endif()
 endforeach()

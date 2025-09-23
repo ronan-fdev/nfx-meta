@@ -230,15 +230,5 @@ foreach(test_source ${TEST_SOURCES})
 				TIMEOUT 120
 				RUN_SERIAL OFF
 		)
-		
-		#----------------------------------------------
-		# Add to tests target
-		#----------------------------------------------
-
-		if(NOT TARGET tests)
-			add_custom_target(tests)
-		endif()
-		add_dependencies(tests ${test_target_name}
-		)
 	endif()
 endforeach()
