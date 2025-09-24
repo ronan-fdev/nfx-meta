@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.1.2] - 2025-09-24
+
+### Changed
+
+#### Dependency Updates
+
+- **fmt Library**: Updated fmt dependency from version 11.2.0 to 12.0.0
+
 ## [0.1.1] - 2025-09-23
 
 ### Security

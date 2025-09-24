@@ -2,7 +2,7 @@
 
 <!-- Project Info -->
 
-[![Version](https://img.shields.io/badge/Version-0.1.1-brightgreen?style=flat-square)](#) [![License](https://img.shields.io/github/license/ronan-fdev/nfx-core?style=flat-square)](https://github.com/ronan-fdev/nfx-core/blob/main/LICENSE)<br/>
+[![License](https://img.shields.io/github/license/ronan-fdev/nfx-core?style=flat-square)](https://github.com/ronan-fdev/nfx-core/blob/main/LICENSE)<br/>
 
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue?style=flat-square)](#) [![CMake](https://img.shields.io/badge/CMake-3.20+-green.svg?style=flat-square)](#) [![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey?style=flat-square)](#) <br/>
 
