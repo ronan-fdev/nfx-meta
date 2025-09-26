@@ -37,7 +37,7 @@ namespace nfx::string
 		/**
 		 * @brief Constructs a Splitter for the given string and delimiter
 		 * @details Accepts any string-like type that can be converted to std::string_view
-		 * @tparam StringType Any type convertible to std::string_view (std::string, const char*, etc.)
+		 * @tparam String Any type convertible to std::string_view (std::string, const char*, etc.)
 		 * @param str String to split
 		 * @param delimiter Character to split on
 		 */
@@ -133,7 +133,7 @@ namespace nfx::string
 	 * @details Creates a Splitter for efficient iteration over string segments
 	 *          without heap allocations. Accepts any string-like type that can
 	 *          be converted to std::string_view.
-	 * @tparam StringType Any type convertible to std::string_view (std::string, const char*, etc.)
+	 * @tparam String Any type convertible to std::string_view (std::string, const char*, etc.)
 	 * @param str String to split
 	 * @param delimiter Character to split on
 	 * @return Splitter object for range-based iteration

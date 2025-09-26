@@ -473,54 +473,6 @@ namespace nfx::datatypes
 		//----------------------------------------------
 
 		/**
-		 * @brief Equality comparison with double
-		 * @param val Right operand
-		 * @return true if values are equal (subject to floating-point precision)
-		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
-		 */
-		bool operator==( double val ) const noexcept;
-
-		/**
-		 * @brief Inequality comparison with double
-		 * @param val Right operand
-		 * @return true if values are not equal (subject to floating-point precision)
-		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
-		 */
-		bool operator!=( double val ) const noexcept;
-
-		/**
-		 * @brief Less than comparison with double
-		 * @param val Right operand
-		 * @return true if this is less than val (subject to floating-point precision)
-		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
-		 */
-		bool operator<( double val ) const noexcept;
-
-		/**
-		 * @brief Less than or equal comparison with double
-		 * @param val Right operand
-		 * @return true if this is less than or equal to val (subject to floating-point precision)
-		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
-		 */
-		bool operator<=( double val ) const noexcept;
-
-		/**
-		 * @brief Greater than comparison with double
-		 * @param val Right operand
-		 * @return true if this is greater than val (subject to floating-point precision)
-		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
-		 */
-		bool operator>( double val ) const noexcept;
-
-		/**
-		 * @brief Greater than or equal comparison with double
-		 * @param val Right operand
-		 * @return true if this is greater than or equal to val (subject to floating-point precision)
-		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
-		 */
-		bool operator>=( double val ) const noexcept;
-
-		/**
 		 * @brief Equality comparison with float
 		 * @param val Right operand
 		 * @return true if values are equal (subject to floating-point precision)
@@ -567,6 +519,54 @@ namespace nfx::datatypes
 		 * @note Comparison may have precision limitations due to float's ~6-7 digit precision
 		 */
 		bool operator>=( float val ) const noexcept;
+
+		/**
+		 * @brief Equality comparison with double
+		 * @param val Right operand
+		 * @return true if values are equal (subject to floating-point precision)
+		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
+		 */
+		bool operator==( double val ) const noexcept;
+
+		/**
+		 * @brief Inequality comparison with double
+		 * @param val Right operand
+		 * @return true if values are not equal (subject to floating-point precision)
+		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
+		 */
+		bool operator!=( double val ) const noexcept;
+
+		/**
+		 * @brief Less than comparison with double
+		 * @param val Right operand
+		 * @return true if this is less than val (subject to floating-point precision)
+		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
+		 */
+		bool operator<( double val ) const noexcept;
+
+		/**
+		 * @brief Less than or equal comparison with double
+		 * @param val Right operand
+		 * @return true if this is less than or equal to val (subject to floating-point precision)
+		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
+		 */
+		bool operator<=( double val ) const noexcept;
+
+		/**
+		 * @brief Greater than comparison with double
+		 * @param val Right operand
+		 * @return true if this is greater than val (subject to floating-point precision)
+		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
+		 */
+		bool operator>( double val ) const noexcept;
+
+		/**
+		 * @brief Greater than or equal comparison with double
+		 * @param val Right operand
+		 * @return true if this is greater than or equal to val (subject to floating-point precision)
+		 * @note Comparison may have precision limitations due to double's ~15-17 digit precision
+		 */
+		bool operator>=( double val ) const noexcept;
 
 		//----------------------------------------------
 		// Comparison with built-in integer types

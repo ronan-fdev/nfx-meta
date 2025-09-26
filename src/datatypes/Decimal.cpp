@@ -592,6 +592,36 @@ namespace nfx::datatypes
 	// Comparison with built-in floating point types
 	//----------------------------------------------
 
+	bool Decimal::operator==( float val ) const noexcept
+	{
+		return *this == static_cast<double>( val );
+	}
+
+	bool Decimal::operator!=( float val ) const noexcept
+	{
+		return *this != static_cast<double>( val );
+	}
+
+	bool Decimal::operator<( float val ) const noexcept
+	{
+		return *this < static_cast<double>( val );
+	}
+
+	bool Decimal::operator<=( float val ) const noexcept
+	{
+		return *this <= static_cast<double>( val );
+	}
+
+	bool Decimal::operator>( float val ) const noexcept
+	{
+		return *this > static_cast<double>( val );
+	}
+
+	bool Decimal::operator>=( float val ) const noexcept
+	{
+		return *this >= static_cast<double>( val );
+	}
+
 	bool Decimal::operator==( double val ) const noexcept
 	{
 		if ( std::isnan( val ) || std::isinf( val ) )
@@ -647,36 +677,6 @@ namespace nfx::datatypes
 	bool Decimal::operator>=( double val ) const noexcept
 	{
 		return *this > val || *this == val;
-	}
-
-	bool Decimal::operator==( float val ) const noexcept
-	{
-		return *this == static_cast<double>( val );
-	}
-
-	bool Decimal::operator!=( float val ) const noexcept
-	{
-		return *this != static_cast<double>( val );
-	}
-
-	bool Decimal::operator<( float val ) const noexcept
-	{
-		return *this < static_cast<double>( val );
-	}
-
-	bool Decimal::operator<=( float val ) const noexcept
-	{
-		return *this <= static_cast<double>( val );
-	}
-
-	bool Decimal::operator>( float val ) const noexcept
-	{
-		return *this > static_cast<double>( val );
-	}
-
-	bool Decimal::operator>=( float val ) const noexcept
-	{
-		return *this >= static_cast<double>( val );
 	}
 
 	//----------------------------------------------

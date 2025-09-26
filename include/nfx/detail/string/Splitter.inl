@@ -69,9 +69,8 @@ namespace nfx::string
 
 	NFX_CORE_INLINE std::string_view Splitter::Iterator::operator*() const noexcept
 	{
-		const char* data = m_splitter.m_str.data() + m_start;
 		const size_t length = m_end - m_start;
-		return std::string_view{ data, length };
+		return m_splitter.m_str.substr( m_start, length );
 	}
 
 	NFX_CORE_INLINE Splitter::Iterator& Splitter::Iterator::operator++() noexcept

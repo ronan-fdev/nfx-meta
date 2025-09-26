@@ -602,7 +602,8 @@ namespace nfx::datatypes::test
 		double imprecise_double = 123.456;
 
 		// The float and double have different precision errors
-		EXPECT_FALSE( static_cast<double>( imprecise_float ) == imprecise_double );
+		// Use explicit floating point comparison to demonstrate precision differences
+		EXPECT_FALSE( std::equal_to<double>{}( static_cast<double>( imprecise_float ), imprecise_double ) );
 
 		// But each Decimal compares equal to its source type due to consistent precision handling
 		datatypes::Decimal d_from_float{ static_cast<double>( imprecise_float ) };
@@ -613,7 +614,7 @@ namespace nfx::datatypes::test
 
 		// For 123.456, float and double typically have different precision errors,
 		// but we verify this rather than assume it
-		if ( static_cast<double>( imprecise_float ) != imprecise_double )
+		if ( !std::equal_to<double>{}( static_cast<double>( imprecise_float ), imprecise_double ) )
 		{
 			EXPECT_FALSE( d_from_float == d_from_double ); // Different precision sources
 		}

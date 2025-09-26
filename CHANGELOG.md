@@ -31,6 +31,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.1.4] - 2025-09-26
+
+### Fixed
+
+- **String Splitter Safety Enhancements**: Eliminated unsafe pointer arithmetic in string splitting operations
+
+#### Code Cleanup and Maintenance
+
+- **DateTime Chrono Function Removal**: Cleaned up unused chrono interoperability validation function
+
 ## [0.1.3] - 2025-09-26
 
 ### Added
