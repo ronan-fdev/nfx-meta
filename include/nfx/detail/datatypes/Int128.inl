@@ -3,6 +3,7 @@
  * @brief Inline implementations for cross-platform Int128 class
  */
 
+#include <cmath>
 #include <stdexcept>
 #include <string_view>
 
@@ -134,6 +135,165 @@ namespace nfx::datatypes
 	inline bool Int128::operator>=( const Int128& other ) const noexcept
 	{
 		return m_value >= other.m_value;
+	}
+
+	//----------------------------------------------
+	// Comparison with built-in integer types
+	//----------------------------------------------
+
+	inline bool Int128::operator==( std::int64_t val ) const noexcept
+	{
+		return m_value == val;
+	}
+
+	inline bool Int128::operator!=( std::int64_t val ) const noexcept
+	{
+		return m_value != val;
+	}
+
+	inline bool Int128::operator<( std::int64_t val ) const noexcept
+	{
+		return m_value < val;
+	}
+
+	inline bool Int128::operator<=( std::int64_t val ) const noexcept
+	{
+		return m_value <= val;
+	}
+
+	inline bool Int128::operator>( std::int64_t val ) const noexcept
+	{
+		return m_value > val;
+	}
+
+	inline bool Int128::operator>=( std::int64_t val ) const noexcept
+	{
+		return m_value >= val;
+	}
+
+	inline bool Int128::operator==( std::uint64_t val ) const noexcept
+	{
+		return m_value >= 0 && static_cast<std::uint64_t>( m_value ) == val;
+	}
+
+	inline bool Int128::operator!=( std::uint64_t val ) const noexcept
+	{
+		return m_value < 0 || static_cast<std::uint64_t>( m_value ) != val;
+	}
+
+	inline bool Int128::operator<( std::uint64_t val ) const noexcept
+	{
+		return m_value < 0 || static_cast<std::uint64_t>( m_value ) < val;
+	}
+
+	inline bool Int128::operator<=( std::uint64_t val ) const noexcept
+	{
+		return m_value < 0 || static_cast<std::uint64_t>( m_value ) <= val;
+	}
+
+	inline bool Int128::operator>( std::uint64_t val ) const noexcept
+	{
+		return m_value >= 0 && static_cast<std::uint64_t>( m_value ) > val;
+	}
+
+	inline bool Int128::operator>=( std::uint64_t val ) const noexcept
+	{
+		return m_value >= 0 && static_cast<std::uint64_t>( m_value ) >= val;
+	}
+
+	inline bool Int128::operator==( int val ) const noexcept
+	{
+		return m_value == val;
+	}
+
+	inline bool Int128::operator!=( int val ) const noexcept
+	{
+		return m_value != val;
+	}
+
+	inline bool Int128::operator<( int val ) const noexcept
+	{
+		return m_value < val;
+	}
+
+	inline bool Int128::operator<=( int val ) const noexcept
+	{
+		return m_value <= val;
+	}
+
+	inline bool Int128::operator>( int val ) const noexcept
+	{
+		return m_value > val;
+	}
+
+	inline bool Int128::operator>=( int val ) const noexcept
+	{
+		return m_value >= val;
+	}
+
+	//----------------------------------------------
+	// Comparison with built-in floating point types
+	//----------------------------------------------
+
+	inline bool Int128::operator==( double val ) const noexcept
+	{
+		// Convert to long double for better precision comparison
+		return static_cast<long double>( m_value ) == static_cast<long double>( val );
+	}
+
+	inline bool Int128::operator!=( double val ) const noexcept
+	{
+		return !( *this == val );
+	}
+
+	inline bool Int128::operator<( double val ) const noexcept
+	{
+		return static_cast<long double>( m_value ) < static_cast<long double>( val );
+	}
+
+	inline bool Int128::operator<=( double val ) const noexcept
+	{
+		return *this < val || *this == val;
+	}
+
+	inline bool Int128::operator>( double val ) const noexcept
+	{
+		return static_cast<long double>( m_value ) > static_cast<long double>( val );
+	}
+
+	inline bool Int128::operator>=( double val ) const noexcept
+	{
+		return *this > val || *this == val;
+	}
+
+	inline bool Int128::operator==( float val ) const noexcept
+	{
+		return *this == static_cast<double>( val );
+	}
+
+	inline bool Int128::operator!=( float val ) const noexcept
+	{
+		return *this != static_cast<double>( val );
+	}
+
+	inline bool Int128::operator<( float val ) const noexcept
+	{
+		return *this < static_cast<double>( val );
+	}
+
+	inline bool Int128::operator<=( float val ) const noexcept
+	{
+		return *this <= static_cast<double>( val );
+	}
+
+	inline bool Int128::operator>( float val ) const noexcept
+	{
+		return *this > static_cast<double>( val );
+	}
+
+	inline bool Int128::operator>=( float val ) const noexcept
+	{
+		return *this >= static_cast<double>( val );
 	}
 
 	//----------------------------------------------
@@ -494,6 +654,274 @@ namespace nfx::datatypes
 		}
 		return m_layout.lower64bits >= other.m_layout.lower64bits;
 	}
+
+	//----------------------------------------------
+	// Comparison with built-in integer types
+	//----------------------------------------------
+
+	inline bool Int128::operator==( std::int64_t val ) const noexcept
+	{
+		// For negative values, upper64bits should be all 1s (sign extension)
+		// For positive values, upper64bits should be 0
+		std::uint64_t expected_upper = ( val < 0 ) ? static_cast<std::uint64_t>( -1 ) : 0;
+		return m_layout.upper64bits == expected_upper &&
+			   m_layout.lower64bits == static_cast<std::uint64_t>( val );
+	}
+
+	inline bool Int128::operator!=( std::int64_t val ) const noexcept
+	{
+		return !( *this == val );
+	}
+
+	inline bool Int128::operator<( std::int64_t val ) const noexcept
+	{
+		return *this < Int128{ val };
+	}
+
+	inline bool Int128::operator<=( std::int64_t val ) const noexcept
+	{
+		return *this <= Int128{ val };
+	}
+
+	inline bool Int128::operator>( std::int64_t val ) const noexcept
+	{
+		return *this > Int128{ val };
+	}
+
+	inline bool Int128::operator>=( std::int64_t val ) const noexcept
+	{
+		return *this >= Int128{ val };
+	}
+
+	inline bool Int128::operator==( std::uint64_t val ) const noexcept
+	{
+		// For unsigned comparison, this Int128 must be non-negative
+		return m_layout.upper64bits == 0 && m_layout.lower64bits == val;
+	}
+
+	inline bool Int128::operator!=( std::uint64_t val ) const noexcept
+	{
+		return !( *this == val );
+	}
+
+	inline bool Int128::operator<( std::uint64_t val ) const noexcept
+	{
+		// If this is negative, it's always less than any positive uint64_t
+		if ( isNegative() )
+			return true;
+		// If upper bits are non-zero, this is definitely >= 2^64, so greater than any uint64_t
+		if ( m_layout.upper64bits != 0 )
+			return false;
+		// Compare lower bits
+		return m_layout.lower64bits < val;
+	}
+
+	inline bool Int128::operator<=( std::uint64_t val ) const noexcept
+	{
+		// If this is negative, it's always less than any positive uint64_t
+		if ( isNegative() )
+			return true;
+		// If upper bits are non-zero, this is definitely >= 2^64, so greater than any uint64_t
+		if ( m_layout.upper64bits != 0 )
+			return false;
+		// Compare lower bits
+		return m_layout.lower64bits <= val;
+	}
+
+	inline bool Int128::operator>( std::uint64_t val ) const noexcept
+	{
+		// If this is negative, it's never greater than any positive uint64_t
+		if ( isNegative() )
+			return false;
+		// If upper bits are non-zero, this is definitely >= 2^64, so greater than any uint64_t
+		if ( m_layout.upper64bits != 0 )
+			return true;
+		// Compare lower bits
+		return m_layout.lower64bits > val;
+	}
+
+	inline bool Int128::operator>=( std::uint64_t val ) const noexcept
+	{
+		// If this is negative, it's never greater than or equal to any positive uint64_t
+		if ( isNegative() )
+			return false;
+		// If upper bits are non-zero, this is definitely >= 2^64, so greater than any uint64_t
+		if ( m_layout.upper64bits != 0 )
+			return true;
+		// Compare lower bits
+		return m_layout.lower64bits >= val;
+	}
+
+	inline bool Int128::operator==( int val ) const noexcept
+	{
+		return *this == static_cast<std::int64_t>( val );
+	}
+
+	inline bool Int128::operator!=( int val ) const noexcept
+	{
+		return *this != static_cast<std::int64_t>( val );
+	}
+
+	inline bool Int128::operator<( int val ) const noexcept
+	{
+		return *this < static_cast<std::int64_t>( val );
+	}
+
+	inline bool Int128::operator<=( int val ) const noexcept
+	{
+		return *this <= static_cast<std::int64_t>( val );
+	}
+
+	inline bool Int128::operator>( int val ) const noexcept
+	{
+		return *this > static_cast<std::int64_t>( val );
+	}
+
+	inline bool Int128::operator>=( int val ) const noexcept
+	{
+		return *this >= static_cast<std::int64_t>( val );
+	}
+
+	//----------------------------------------------
+	// Comparison with built-in floating point types
+	//----------------------------------------------
+
+	inline bool Int128::operator==( double val ) const noexcept
+	{
+		if ( std::isnan( val ) || std::isinf( val ) )
+		{
+			return false; // Int128 has no NaN/Infinity representation
+		}
+
+		// Convert this Int128 to long double for comparison
+		// For manual implementation, we need to carefully construct the value
+		long double thisValue;
+		if ( isNegative() )
+		{
+			// Handle negative values using two's complement
+			Int128 abs_this = this->abs();
+			thisValue = -( static_cast<long double>( abs_this.m_layout.upper64bits ) *
+							   static_cast<long double>( 1ULL << 32 ) * static_cast<long double>( 1ULL << 32 ) +
+						   static_cast<long double>( abs_this.m_layout.lower64bits ) );
+		}
+		else
+		{
+			thisValue = static_cast<long double>( m_layout.upper64bits ) *
+							static_cast<long double>( 1ULL << 32 ) * static_cast<long double>( 1ULL << 32 ) +
+						static_cast<long double>( m_layout.lower64bits );
+		}
+
+		return thisValue == static_cast<long double>( val );
+	}
+
+	inline bool Int128::operator!=( double val ) const noexcept
+	{
+		return !( *this == val );
+	}
+
+	inline bool Int128::operator<( double val ) const noexcept
+	{
+		if ( std::isnan( val ) )
+		{
+			return false; // No ordering with NaN
+		}
+		if ( std::isinf( val ) )
+		{
+			return val > 0.0; // Any finite value < +infinity, any finite value > -infinity
+		}
+
+		// Convert this Int128 to long double for comparison
+		long double thisValue;
+		if ( isNegative() )
+		{
+			Int128 abs_this = this->abs();
+			thisValue = -( static_cast<long double>( abs_this.m_layout.upper64bits ) *
+							   static_cast<long double>( 1ULL << 32 ) * static_cast<long double>( 1ULL << 32 ) +
+						   static_cast<long double>( abs_this.m_layout.lower64bits ) );
+		}
+		else
+		{
+			thisValue = static_cast<long double>( m_layout.upper64bits ) *
+							static_cast<long double>( 1ULL << 32 ) * static_cast<long double>( 1ULL << 32 ) +
+						static_cast<long double>( m_layout.lower64bits );
+		}
+
+		return thisValue < static_cast<long double>( val );
+	}
+
+	inline bool Int128::operator<=( double val ) const noexcept
+	{
+		return *this < val || *this == val;
+	}
+
+	inline bool Int128::operator>( double val ) const noexcept
+	{
+		if ( std::isnan( val ) )
+		{
+			return false; // No ordering with NaN
+		}
+		if ( std::isinf( val ) )
+		{
+			return val < 0.0; // Any finite value > -infinity, any finite value < +infinity
+		}
+
+		// Convert this Int128 to long double for comparison
+		long double thisValue;
+		if ( isNegative() )
+		{
+			Int128 abs_this = this->abs();
+			thisValue = -( static_cast<long double>( abs_this.m_layout.upper64bits ) *
+							   static_cast<long double>( 1ULL << 32 ) * static_cast<long double>( 1ULL << 32 ) +
+						   static_cast<long double>( abs_this.m_layout.lower64bits ) );
+		}
+		else
+		{
+			thisValue = static_cast<long double>( m_layout.upper64bits ) *
+							static_cast<long double>( 1ULL << 32 ) * static_cast<long double>( 1ULL << 32 ) +
+						static_cast<long double>( m_layout.lower64bits );
+		}
+
+		return thisValue > static_cast<long double>( val );
+	}
+
+	inline bool Int128::operator>=( double val ) const noexcept
+	{
+		return *this > val || *this == val;
+	}
+
+	inline bool Int128::operator==( float val ) const noexcept
+	{
+		return *this == static_cast<double>( val );
+	}
+
+	inline bool Int128::operator!=( float val ) const noexcept
+	{
+		return *this != static_cast<double>( val );
+	}
+
+	inline bool Int128::operator<( float val ) const noexcept
+	{
+		return *this < static_cast<double>( val );
+	}
+
+	inline bool Int128::operator<=( float val ) const noexcept
+	{
+		return *this <= static_cast<double>( val );
+	}
+
+	inline bool Int128::operator>( float val ) const noexcept
+	{
+		return *this > static_cast<double>( val );
+	}
+
+	inline bool Int128::operator>=( float val ) const noexcept
+	{
+		return *this >= static_cast<double>( val );
+	}
+
+	//----------------------------------------------
+	// Comparison with nfx Decimal
+	//----------------------------------------------
 
 	//----------------------------------------------
 	// State checking

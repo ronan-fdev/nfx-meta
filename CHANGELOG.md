@@ -31,6 +31,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.1.3] - 2025-09-26
+
+### Added
+
+#### Enhanced High-Precision Arithmetic Integration
+
+- **Int128↔Decimal Cross-Type Conversions**: Bidirectional constructors enabling seamless conversion between 128-bit integers and 96-bit precision decimals
+
+  - `Int128(const Decimal&)` - Truncates fractional parts
+  - `Decimal(const Int128&)` - Converts with overflow clamping to Decimal's 96-bit capacity (2^96 - 1)
+
+- **Float Constructor for Int128**: `Int128(float)` and `Int128(double)` constructors with C++ standard compliance
+
+  - Truncation toward zero for fractional parts (matches `static_cast<int>(float)` behavior)
+  - NaN and infinity values converted to zero
+  - Overflow protection with range clamping
+
+- **Float Constructor for Decimal**: `Decimal(float)` constructor with IEEE 754-2008 compatibility
+  - NaN and infinity detection with zero conversion
+  - Precision-aware conversion with ~6-7 significant digit accuracy
+
+#### Comprehensive Cross-Type Comparison Operators
+
+- **Decimal Mixed-Type Comparisons**: Complete comparison operator suite (`==`, `!=`, `<`, `<=`, `>`, `>=`)
+
+  - Built-in integer types: `int32_t`, `int64_t`, `uint64_t`
+  - Built-in floating-point types: `float`, `double`
+  - High-precision type: `Int128`
+  - Precision-aware floating-point comparisons with documented limitations
+
+- **Int128 Mixed-Type Comparisons**: Full comparison operator coverage
+  - Built-in integer types: `int`, `int64_t`, `uint64_t`
+  - Built-in floating-point types: `float`, `double`
+  - High-precision type: `Decimal`
+  - Special handling for unsigned comparisons and sign differences
+
+#### Extensive Test Coverage Enhancement
+
+- **Int128 Construction Tests**: Comprehensive test suite for new constructors
+
+  - Float/double conversion with truncation behavior verification
+  - NaN/infinity handling validation
+  - Overflow and underflow boundary testing
+  - Decimal-to-Int128 conversion with fractional truncation
+
+- **Cross-Type Comparison Tests**: Exhaustive comparison testing
+  - Mixed-type arithmetic comparisons between Int128↔Decimal
+  - Boundary value testing with large numbers (28-digit precision)
+  - Sign handling and fractional part detection
+  - Symmetry verification for bidirectional comparisons
+
+### Fixed
+
+#### Cross-Platform String Conversion Consistency
+
+- **Decimal toString() MSVC Compatibility**: Fixed platform-specific differences in high-precision decimal string conversion
+  - **Root Cause**: MSVC code path incorrectly used 64-bit modulo operation (`mantissa.toLow() % 10`) instead of full 128-bit arithmetic
+  - **Impact**: Cross-platform test failures with different decimal representations between GCC and MSVC builds
+
+#### API Consistency Improvements
+
+- **Decimal Comparison Const-Correctness**: Fixed missing `const` qualifiers on comparison operators
+- **String Parsing Normalization**: Enhanced Decimal string parsing with automatic trailing zero removal
+
 ## [0.1.2] - 2025-09-24
 
 ### Changed

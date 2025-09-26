@@ -8,10 +8,10 @@
 #include <istream>
 #include <ostream>
 
-#include "nfx/config.h"
-
 #include "nfx/datatypes/Decimal.h"
+
 #include "nfx/datatypes/constants/DecimalConstants.h"
+#include "nfx/config.h"
 
 namespace nfx::datatypes
 {
@@ -168,6 +168,11 @@ namespace nfx::datatypes
 	// Construction
 	//----------------------------------------------
 
+	Decimal::Decimal( float value ) noexcept
+		: Decimal( static_cast<double>( value ) )
+	{
+	}
+
 	Decimal::Decimal( double value ) noexcept
 		: m_layout{ 0, { { 0, 0, 0 } } }
 	{
@@ -262,6 +267,46 @@ namespace nfx::datatypes
 		if ( !tryParse( str, *this ) )
 		{
 			throw std::invalid_argument{ "Invalid decimal string format" };
+		}
+	}
+
+	Decimal::Decimal( const Int128& val )
+		: m_layout{ 0, { { 0, 0, 0 } } }
+	{
+		// Handle zero case
+		if ( val.isZero() )
+		{
+			return;
+		}
+
+		// Extract sign and get absolute value
+		bool isNegative = val.isNegative();
+		Int128 absoluteValue = val.abs();
+
+		// Set sign flag if negative
+		if ( isNegative )
+		{
+			m_layout.flags |= constants::decimal::SIGN_MASK;
+		}
+
+		// Check if the absolute value fits in Decimal's 96-bit mantissa capacity
+		// Maximum 96-bit unsigned value: 2^96 - 1 = 79,228,162,514,264,337,593,543,950,335
+		// This is much smaller than Int128 max value: 2^127 - 1 = 170,141,183,460,469,231,731,687,303,715,884,105,727
+
+		// Check if the high 64 bits contain anything beyond what fits in 32 bits (mantissa[2])
+		std::uint64_t high64 = absoluteValue.toHigh();
+		if ( high64 > 0xFFFFFFFFULL )
+		{
+			// Value exceeds Decimal's capacity - clamp to maximum representable value
+			// Use the maximum 96-bit value: 2^96 - 1
+			m_layout.mantissa[0] = 0xFFFFFFFFU; // Lower 32 bits: all 1s
+			m_layout.mantissa[1] = 0xFFFFFFFFU; // Middle 32 bits: all 1s
+			m_layout.mantissa[2] = 0xFFFFFFFFU; // Upper 32 bits: all 1s
+		}
+		else
+		{
+			// Value fits in 96 bits - store it directly
+			internal::setMantissa( *this, absoluteValue );
 		}
 	}
 
@@ -504,7 +549,7 @@ namespace nfx::datatypes
 		return left == right;
 	}
 
-	bool Decimal::operator!=( const Decimal& other ) noexcept
+	bool Decimal::operator!=( const Decimal& other ) const noexcept
 	{
 		return !( *this == other );
 	}
@@ -528,19 +573,344 @@ namespace nfx::datatypes
 		}
 	}
 
-	bool Decimal::operator<=( const Decimal& other ) noexcept
+	bool Decimal::operator<=( const Decimal& other ) const noexcept
 	{
 		return *this < other || *this == other;
 	}
 
-	bool Decimal::operator>( const Decimal& other ) noexcept
+	bool Decimal::operator>( const Decimal& other ) const noexcept
 	{
 		return !( *this <= other );
 	}
 
-	bool Decimal::operator>=( const Decimal& other ) noexcept
+	bool Decimal::operator>=( const Decimal& other ) const noexcept
 	{
 		return !( *this < other );
+	}
+
+	//----------------------------------------------
+	// Comparison with built-in floating point types
+	//----------------------------------------------
+
+	bool Decimal::operator==( double val ) const noexcept
+	{
+		if ( std::isnan( val ) || std::isinf( val ) )
+		{
+			return false; // Decimal has no NaN/Infinity representation
+		}
+
+		// Convert double to Decimal for comparison
+		Decimal temp{ val };
+		return *this == temp;
+	}
+
+	bool Decimal::operator!=( double val ) const noexcept
+	{
+		return !( *this == val );
+	}
+
+	bool Decimal::operator<( double val ) const noexcept
+	{
+		if ( std::isnan( val ) )
+		{
+			return false; // No ordering with NaN
+		}
+		if ( std::isinf( val ) )
+		{
+			return val > 0.0; // Any finite value < +infinity, any finite value > -infinity
+		}
+
+		Decimal temp{ val };
+		return *this < temp;
+	}
+
+	bool Decimal::operator<=( double val ) const noexcept
+	{
+		return *this < val || *this == val;
+	}
+
+	bool Decimal::operator>( double val ) const noexcept
+	{
+		if ( std::isnan( val ) )
+		{
+			return false; // No ordering with NaN
+		}
+		if ( std::isinf( val ) )
+		{
+			return val < 0.0; // Any finite value > -infinity, any finite value < +infinity
+		}
+
+		Decimal temp{ val };
+		return *this > temp;
+	}
+
+	bool Decimal::operator>=( double val ) const noexcept
+	{
+		return *this > val || *this == val;
+	}
+
+	bool Decimal::operator==( float val ) const noexcept
+	{
+		return *this == static_cast<double>( val );
+	}
+
+	bool Decimal::operator!=( float val ) const noexcept
+	{
+		return *this != static_cast<double>( val );
+	}
+
+	bool Decimal::operator<( float val ) const noexcept
+	{
+		return *this < static_cast<double>( val );
+	}
+
+	bool Decimal::operator<=( float val ) const noexcept
+	{
+		return *this <= static_cast<double>( val );
+	}
+
+	bool Decimal::operator>( float val ) const noexcept
+	{
+		return *this > static_cast<double>( val );
+	}
+
+	bool Decimal::operator>=( float val ) const noexcept
+	{
+		return *this >= static_cast<double>( val );
+	}
+
+	//----------------------------------------------
+	// Comparison with built-in integer types
+	//----------------------------------------------
+
+	bool Decimal::operator==( std::int64_t val ) const noexcept
+	{
+		// For integer comparison, we need exact equality
+		if ( scale() > 0 )
+		{
+			// If this has fractional part, it can't equal an integer
+			return false;
+		}
+
+		Decimal temp{ val };
+		return *this == temp;
+	}
+
+	bool Decimal::operator!=( std::int64_t val ) const noexcept
+	{
+		return !( *this == val );
+	}
+
+	bool Decimal::operator<( std::int64_t val ) const noexcept
+	{
+		Decimal temp{ val };
+		return *this < temp;
+	}
+
+	bool Decimal::operator<=( std::int64_t val ) const noexcept
+	{
+		return *this < val || *this == val;
+	}
+
+	bool Decimal::operator>( std::int64_t val ) const noexcept
+	{
+		Decimal temp{ val };
+		return *this > temp;
+	}
+
+	bool Decimal::operator>=( std::int64_t val ) const noexcept
+	{
+		return *this > val || *this == val;
+	}
+
+	bool Decimal::operator==( std::uint64_t val ) const noexcept
+	{
+		// For integer comparison, we need exact equality
+		if ( scale() > 0 )
+		{
+			// If this has fractional part, it can't equal an integer
+			return false;
+		}
+
+		// Also check if this is negative (can't equal positive uint64_t)
+		if ( isNegative() )
+		{
+			return false;
+		}
+
+		Decimal temp{ val };
+		return *this == temp;
+	}
+
+	bool Decimal::operator!=( std::uint64_t val ) const noexcept
+	{
+		return !( *this == val );
+	}
+
+	bool Decimal::operator<( std::uint64_t val ) const noexcept
+	{
+		// Negative Decimal is always less than positive uint64_t
+		if ( isNegative() )
+		{
+			return true;
+		}
+
+		Decimal temp{ val };
+		return *this < temp;
+	}
+
+	bool Decimal::operator<=( std::uint64_t val ) const noexcept
+	{
+		return *this < val || *this == val;
+	}
+
+	bool Decimal::operator>( std::uint64_t val ) const noexcept
+	{
+		// Negative Decimal is never greater than positive uint64_t
+		if ( isNegative() )
+		{
+			return false;
+		}
+
+		Decimal temp{ val };
+		return *this > temp;
+	}
+
+	bool Decimal::operator>=( std::uint64_t val ) const noexcept
+	{
+		return *this > val || *this == val;
+	}
+
+	bool Decimal::operator==( std::int32_t val ) const noexcept
+	{
+		return *this == static_cast<std::int64_t>( val );
+	}
+
+	bool Decimal::operator!=( std::int32_t val ) const noexcept
+	{
+		return *this != static_cast<std::int64_t>( val );
+	}
+
+	bool Decimal::operator<( std::int32_t val ) const noexcept
+	{
+		return *this < static_cast<std::int64_t>( val );
+	}
+
+	bool Decimal::operator<=( std::int32_t val ) const noexcept
+	{
+		return *this <= static_cast<std::int64_t>( val );
+	}
+
+	bool Decimal::operator>( std::int32_t val ) const noexcept
+	{
+		return *this > static_cast<std::int64_t>( val );
+	}
+
+	bool Decimal::operator>=( std::int32_t val ) const noexcept
+	{
+		return *this >= static_cast<std::int64_t>( val );
+	}
+
+	//----------------------------------------------
+	// Comparison with nfx Int128
+	//----------------------------------------------
+
+	bool Decimal::operator==( const Int128& val ) const noexcept
+	{
+		// For integer comparison, we need exact equality
+		if ( scale() > 0 )
+		{
+			// If this has fractional part, it can't equal an integer
+			return false;
+		}
+
+		// Convert this decimal's mantissa to Int128 and compare directly
+		Int128 mantissa{ internal::mantissaAsInt128( *this ) };
+
+		// Handle signs
+		if ( isNegative() )
+		{
+			if ( val >= Int128{ 0 } )
+			{
+				return false; // Different signs
+			}
+			// Both negative - compare absolute values (negate mantissa for comparison)
+			return mantissa == -val;
+		}
+		else
+		{
+			if ( val < Int128{ 0 } )
+			{
+				return false; // Different signs
+			}
+			// Both positive
+			return mantissa == val;
+		}
+	}
+
+	bool Decimal::operator!=( const Int128& val ) const noexcept
+	{
+		return !( *this == val );
+	}
+
+	bool Decimal::operator<( const Int128& val ) const noexcept
+	{
+		// Handle different signs
+		if ( isNegative() && val >= Int128{ 0 } )
+		{
+			return true; // Negative < Non-negative
+		}
+		if ( !isNegative() && val < Int128{ 0 } )
+		{
+			return false; // Non-negative > Negative
+		}
+
+		// Same signs - convert decimal to comparable form
+		Int128 mantissa{ internal::mantissaAsInt128( *this ) };
+
+		if ( scale() > 0 )
+		{
+			// This decimal has fractional part - scale up the integer for comparison
+			Int128 scaledVal{ val * internal::getPowerOf10( scale() ) };
+
+			if ( isNegative() )
+			{
+				// Both negative - compare absolute values with flipped result
+				return mantissa > scaledVal.abs();
+			}
+			else
+			{
+				return mantissa < scaledVal;
+			}
+		}
+		else
+		{
+			// No fractional part - direct comparison
+			if ( isNegative() )
+			{
+				// Both negative - compare absolute values with flipped result
+				return mantissa > val.abs();
+			}
+			else
+			{
+				return mantissa < val;
+			}
+		}
+	}
+
+	bool Decimal::operator<=( const Int128& val ) const noexcept
+	{
+		return *this < val || *this == val;
+	}
+
+	bool Decimal::operator>( const Int128& val ) const noexcept
+	{
+		return !( *this <= val );
+	}
+
+	bool Decimal::operator>=( const Int128& val ) const noexcept
+	{
+		return !( *this < val );
 	}
 
 	//----------------------------------------------
@@ -704,6 +1074,9 @@ namespace nfx::datatypes
 			result.m_layout.mantissa[1] = static_cast<std::uint32_t>( low >> 32 );
 			result.m_layout.mantissa[2] = static_cast<std::uint32_t>( high );
 
+			// Normalize to remove trailing zeros
+			internal::normalize( result );
+
 			return true;
 		}
 		catch ( ... )
@@ -809,8 +1182,9 @@ namespace nfx::datatypes
 					}
 					break;
 				}
-				digits[digitCount++] = static_cast<char>( '0' +
-														  ( mantissa.toLow() % constants::decimal::BASE ) );
+				// Use full 128-bit value for modulo operation, not just low 64 bits
+				Int128 remainder{ mantissa % Int128{ constants::decimal::BASE } };
+				digits[digitCount++] = static_cast<char>( '0' + remainder.toLow() );
 
 				mantissa = mantissa / Int128{ constants::decimal::BASE };
 			}

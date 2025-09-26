@@ -129,6 +129,8 @@
 
 namespace nfx::datatypes
 {
+	class Decimal;
+
 	//=====================================================================
 	// Int128 class
 	//=====================================================================
@@ -199,6 +201,42 @@ namespace nfx::datatypes
 		 * @throws std::invalid_argument if string is not a valid integer
 		 */
 		explicit Int128( std::string_view str );
+
+		/**
+		 * @brief Construct from single-precision floating-point value
+		 * @param val Float value to convert
+		 * @details Follows C++ standard truncation behavior (like static_cast<int>(float)):
+		 *          - Fractional parts are truncated toward zero (42.9f → 42, -42.9f → -42)
+		 *          - NaN and infinity values are converted to zero
+		 *          - Values exceeding int64 range are clamped to int64 limits
+		 * @note This matches the behavior of static_cast<int>(float) for consistency
+		 */
+		explicit Int128( float val );
+
+		/**
+		 * @brief Construct from double-precision floating-point value
+		 * @param val Double value to convert
+		 * @details Follows C++ standard truncation behavior (like static_cast<int>(double)):
+		 *          - Fractional parts are truncated toward zero (42.7 → 42, -42.7 → -42)
+		 *          - NaN and infinity values are converted to zero
+		 *          - Very large values exceeding Int128 range are clamped to Int128 limits
+		 *          - Uses string conversion for high precision when needed
+		 * @note This matches the behavior of static_cast<int>(double) for consistency
+		 */
+		explicit Int128( double val );
+
+		/**
+		 * @brief Construct from Decimal value
+		 * @param decimal Decimal value to convert
+		 * @details Follows C++ standard truncation behavior (like static_cast<int>(double)):
+		 *          - Fractional parts are truncated toward zero (42.7 → 42, -42.7 → -42)
+		 *          - Integer part is extracted by dividing mantissa by 10^scale
+		 *          - Zero values are handled efficiently
+		 *          - Large values within Int128 range are supported
+		 * @note This matches the behavior of static_cast<int>(double) for consistency,
+		 *       rather than throwing exceptions for fractional parts
+		 */
+		explicit Int128( const Decimal& decimal );
 
 		/**
 		 * @brief Copy constructor
@@ -285,6 +323,14 @@ namespace nfx::datatypes
 		Int128 operator-() const noexcept;
 
 		//----------------------------------------------
+		// Todo: Arithmetic operators with Decimal
+		//----------------------------------------------
+
+		//----------------------------------------------
+		// Todo: Arithmetic operators with standard types
+		//----------------------------------------------
+
+		//----------------------------------------------
 		// Comparison operators
 		//----------------------------------------------
 
@@ -329,6 +375,271 @@ namespace nfx::datatypes
 		 * @return true if this is greater than or equal to other
 		 */
 		bool operator>=( const Int128& other ) const noexcept;
+
+		//----------------------------------------------
+		// Comparison with built-in integer types
+		//----------------------------------------------
+
+		/**
+		 * @brief Equality comparison with signed 64-bit integer
+		 * @param val Right operand
+		 * @return true if values are equal
+		 */
+		bool operator==( std::int64_t val ) const noexcept;
+
+		/**
+		 * @brief Inequality comparison with signed 64-bit integer
+		 * @param val Right operand
+		 * @return true if values are not equal
+		 */
+		bool operator!=( std::int64_t val ) const noexcept;
+
+		/**
+		 * @brief Less than comparison with signed 64-bit integer
+		 * @param val Right operand
+		 * @return true if this is less than val
+		 */
+		bool operator<( std::int64_t val ) const noexcept;
+
+		/**
+		 * @brief Less than or equal comparison with signed 64-bit integer
+		 * @param val Right operand
+		 * @return true if this is less than or equal to val
+		 */
+		bool operator<=( std::int64_t val ) const noexcept;
+
+		/**
+		 * @brief Greater than comparison with signed 64-bit integer
+		 * @param val Right operand
+		 * @return true if this is greater than val
+		 */
+		bool operator>( std::int64_t val ) const noexcept;
+
+		/**
+		 * @brief Greater than or equal comparison with signed 64-bit integer
+		 * @param val Right operand
+		 * @return true if this is greater than or equal to val
+		 */
+		bool operator>=( std::int64_t val ) const noexcept;
+
+		/**
+		 * @brief Equality comparison with unsigned 64-bit integer
+		 * @param val Right operand
+		 * @return true if values are equal
+		 */
+		bool operator==( std::uint64_t val ) const noexcept;
+
+		/**
+		 * @brief Inequality comparison with unsigned 64-bit integer
+		 * @param val Right operand
+		 * @return true if values are not equal
+		 */
+		bool operator!=( std::uint64_t val ) const noexcept;
+
+		/**
+		 * @brief Less than comparison with unsigned 64-bit integer
+		 * @param val Right operand
+		 * @return true if this is less than val
+		 */
+		bool operator<( std::uint64_t val ) const noexcept;
+
+		/**
+		 * @brief Less than or equal comparison with unsigned 64-bit integer
+		 * @param val Right operand
+		 * @return true if this is less than or equal to val
+		 */
+		bool operator<=( std::uint64_t val ) const noexcept;
+
+		/**
+		 * @brief Greater than comparison with unsigned 64-bit integer
+		 * @param val Right operand
+		 * @return true if this is greater than val
+		 */
+		bool operator>( std::uint64_t val ) const noexcept;
+
+		/**
+		 * @brief Greater than or equal comparison with unsigned 64-bit integer
+		 * @param val Right operand
+		 * @return true if this is greater than or equal to val
+		 */
+		bool operator>=( std::uint64_t val ) const noexcept;
+
+		/**
+		 * @brief Equality comparison with signed 32-bit integer
+		 * @param val Right operand
+		 * @return true if values are equal
+		 */
+		bool operator==( int val ) const noexcept;
+
+		/**
+		 * @brief Inequality comparison with signed 32-bit integer
+		 * @param val Right operand
+		 * @return true if values are not equal
+		 */
+		bool operator!=( int val ) const noexcept;
+
+		/**
+		 * @brief Less than comparison with signed 32-bit integer
+		 * @param val Right operand
+		 * @return true if this is less than val
+		 */
+		bool operator<( int val ) const noexcept;
+
+		/**
+		 * @brief Less than or equal comparison with signed 32-bit integer
+		 * @param val Right operand
+		 * @return true if this is less than or equal to val
+		 */
+		bool operator<=( int val ) const noexcept;
+
+		/**
+		 * @brief Greater than comparison with signed 32-bit integer
+		 * @param val Right operand
+		 * @return true if this is greater than val
+		 */
+		bool operator>( int val ) const noexcept;
+
+		/**
+		 * @brief Greater than or equal comparison with signed 32-bit integer
+		 * @param val Right operand
+		 * @return true if this is greater than or equal to val
+		 */
+		bool operator>=( int val ) const noexcept;
+
+		//----------------------------------------------
+		// Comparison with built-in floating point types
+		//----------------------------------------------
+
+		/**
+		 * @brief Equality comparison with double-precision floating-point
+		 * @param val Right operand
+		 * @return true if values are equal (within floating-point precision)
+		 */
+		bool operator==( double val ) const noexcept;
+
+		/**
+		 * @brief Inequality comparison with double-precision floating-point
+		 * @param val Right operand
+		 * @return true if values are not equal
+		 */
+		bool operator!=( double val ) const noexcept;
+
+		/**
+		 * @brief Less than comparison with double-precision floating-point
+		 * @param val Right operand
+		 * @return true if this is less than val
+		 */
+		bool operator<( double val ) const noexcept;
+
+		/**
+		 * @brief Less than or equal comparison with double-precision floating-point
+		 * @param val Right operand
+		 * @return true if this is less than or equal to val
+		 */
+		bool operator<=( double val ) const noexcept;
+
+		/**
+		 * @brief Greater than comparison with double-precision floating-point
+		 * @param val Right operand
+		 * @return true if this is greater than val
+		 */
+		bool operator>( double val ) const noexcept;
+
+		/**
+		 * @brief Greater than or equal comparison with double-precision floating-point
+		 * @param val Right operand
+		 * @return true if this is greater than or equal to val
+		 */
+		bool operator>=( double val ) const noexcept;
+
+		/**
+		 * @brief Equality comparison with single-precision floating-point
+		 * @param val Right operand
+		 * @return true if values are equal (within floating-point precision)
+		 */
+		bool operator==( float val ) const noexcept;
+
+		/**
+		 * @brief Inequality comparison with single-precision floating-point
+		 * @param val Right operand
+		 * @return true if values are not equal
+		 */
+		bool operator!=( float val ) const noexcept;
+
+		/**
+		 * @brief Less than comparison with single-precision floating-point
+		 * @param val Right operand
+		 * @return true if this is less than val
+		 */
+		bool operator<( float val ) const noexcept;
+
+		/**
+		 * @brief Less than or equal comparison with single-precision floating-point
+		 * @param val Right operand
+		 * @return true if this is less than or equal to val
+		 */
+		bool operator<=( float val ) const noexcept;
+
+		/**
+		 * @brief Greater than comparison with single-precision floating-point
+		 * @param val Right operand
+		 * @return true if this is greater than val
+		 */
+		bool operator>( float val ) const noexcept;
+
+		/**
+		 * @brief Greater than or equal comparison with single-precision floating-point
+		 * @param val Right operand
+		 * @return true if this is greater than or equal to val
+		 */
+		bool operator>=( float val ) const noexcept;
+
+		//----------------------------------------------
+		// Comparison with nfx Decimal
+		//----------------------------------------------
+
+		/**
+		 * @brief Equality comparison with Decimal
+		 * @param val Right operand
+		 * @return true if values are equal
+		 * @note For equality, the Decimal must have no fractional part and represent the same integer value
+		 */
+		bool operator==( const Decimal& val ) const noexcept;
+
+		/**
+		 * @brief Inequality comparison with Decimal
+		 * @param val Right operand
+		 * @return true if values are not equal
+		 */
+		bool operator!=( const Decimal& val ) const noexcept;
+
+		/**
+		 * @brief Less than comparison with Decimal
+		 * @param val Right operand
+		 * @return true if this is less than val
+		 */
+		bool operator<( const Decimal& val ) const noexcept;
+
+		/**
+		 * @brief Less than or equal comparison with Decimal
+		 * @param val Right operand
+		 * @return true if this is less than or equal to val
+		 */
+		bool operator<=( const Decimal& val ) const noexcept;
+
+		/**
+		 * @brief Greater than comparison with Decimal
+		 * @param val Right operand
+		 * @return true if this is greater than val
+		 */
+		bool operator>( const Decimal& val ) const noexcept;
+
+		/**
+		 * @brief Greater than or equal comparison with Decimal
+		 * @param val Right operand
+		 * @return true if this is greater than or equal to val
+		 */
+		bool operator>=( const Decimal& val ) const noexcept;
 
 		//----------------------------------------------
 		// String parsing and conversion
