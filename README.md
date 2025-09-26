@@ -87,9 +87,9 @@ option(NFX_CORE_WITH_TIME            "Enable temporal classes"            ON   )
 
 # Development
 option(NFX_CORE_BUILD_TESTS          "Build tests"                        OFF  )
-option(NFX_CORE_BUILD_SAMPLES        "Build samples"                      OFF   )
-option(NFX_CORE_BUILD_BENCHMARKS     "Build benchmarks"                   OFF   )
-option(NFX_CORE_BUILD_DOCUMENTATION  "Build Doxygen documentation"        OFF   )
+option(NFX_CORE_BUILD_SAMPLES        "Build samples"                      OFF  )
+option(NFX_CORE_BUILD_BENCHMARKS     "Build benchmarks"                   OFF  )
+option(NFX_CORE_BUILD_DOCUMENTATION  "Build Doxygen documentation"        OFF  )
 ```
 
 ### Using in Your Project

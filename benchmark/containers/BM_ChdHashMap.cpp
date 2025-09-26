@@ -837,8 +837,10 @@ namespace nfx::containers::benchmark
 		for ( auto _ : state )
 		{
 			int count = 0;
-			for ( const auto& [key, value] : chd )
+			for ( const auto& pair : chd )
 			{
+				(void)pair;
+
 				count++;
 				if ( count >= 10 ) // Stop after processing 10 items
 				{
@@ -966,8 +968,10 @@ namespace nfx::containers::benchmark
 
 			// Second pass: count items (requires new iteration)
 			int itemCount = 0;
-			for ( const auto& [key, value] : chd )
+			for ( const auto& pair : chd )
 			{
+				(void)pair;
+
 				itemCount++;
 			}
 
