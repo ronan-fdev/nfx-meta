@@ -27,19 +27,77 @@
  * @see https://en.wikipedia.org/wiki/Perfect_hash_function#CHD_algorithm
  * @see Vista.SDK.Internal.ChdDictionary (original C# implementation)
  * @see https://github.com/dnv-opensource/vista-sdk/blob/main/LICENSE (MIT License)
- */
-
-/**
- * @note **Configuration:**
- * Algorithm parameters are currently configured via `nfx::containers::constants::chd`:
- * - FNV_OFFSET_BASIS and FNV_PRIME: FNV-1a hash constants
- * - MAX_SEED_SEARCH_MULTIPLIER: CHD collision resolution threshold
  *
- * @todo Future enhancement: Make configurable via ChdHashMapOption struct:
- * - Per-instance hash algorithm selection (SSE4.2/FNV-1a/custom)
- * - Custom FNV constants for specialized use cases
- * - Unicode normalization options (UTF-8/UTF-16 compatibility modes)
- * - Advanced CHD tuning parameters (load factor, seed search strategy)
+ * ## Memory Layout & CHD Algorithm Structure:
+ *
+ * ```
+ * ChdHashMap Internal Structure:
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                      ChdHashMap<TValue>                     │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │ ┌─────────────────────────────────────────────────────────┐ │
+ * │ │                       m_table                           │ │ ← Primary storage
+ * │ │                std::vector<std::pair>                   │ │
+ * │ │ ┌─────────────────────────────────────────────────────┐ │ │
+ * │ │ │           [0] │ "key1"     │ value1     │           │ │ │ ← Key-value pairs
+ * │ │ │           [1] │ "key2"     │ value2     │           │ │ │
+ * │ │ │           [2] │ "key3"     │ value3     │           │ │ │
+ * │ │ │           ... │ ...        │ ...        │           │ │ │
+ * │ │ │           [n] │ "keyN"     │ valueN     │           │ │ │
+ * │ │ └─────────────────────────────────────────────────────┘ │ │
+ * │ └─────────────────────────────────────────────────────────┘ │
+ * │ ┌─────────────────────────────────────────────────────────┐ │
+ * │ │                      m_seeds                            │ │ ← CHD seeds
+ * │ │                  std::vector<int>                       │ │
+ * │ │ ┌─────────────────────────────────────────────────────┐ │ │
+ * │ │ │           [0] │ seed_0  │ ← Maps to table[0]        │ │ │
+ * │ │ │           [1] │ seed_1  │ ← Maps to table[1]        │ │ │
+ * │ │ │           [2] │ seed_2  │ ← Maps to table[2]        │ │ │
+ * │ │ │           ... │ ...     │                           │ │ │
+ * │ │ │           [n] │ seed_n  │ ← Maps to table[n]        │ │ │
+ * │ │ └─────────────────────────────────────────────────────┘ │ │
+ * │ └─────────────────────────────────────────────────────────┘ │
+ * └─────────────────────────────────────────────────────────────┘
+ *                              ↓
+ *                   Perfect Hash Lookup Process
+ *                              ↓
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                  CHD Hash Resolution                        │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  Input: "search_key"                                        │
+ * │                            ↓                                │
+ * │  1. Primary Hash: hash = <CRC32 || FNV-1a>(key, FnvOffset)  │
+ * │                            ↓                                │
+ * │  2. Index Mapping: idx = hash & (size - 1)                  │
+ * │                            ↓                                │
+ * │  3. Seed Mixing: final = seedMix(seeds[idx], hash, size)    │
+ * │                            ↓                                │
+ * │  4. Direct Access: return table[final]                      │
+ * │                            ↓                                │
+ * │  Result: O(1) guaranteed lookup with zero collisions        │
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
+ *
+ * ## CHD Construction Algorithm:
+ *
+ * ```
+ * Construction Phase (One-time):
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                CHD Perfect Hash Construction                │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  Input: vector<pair<string, TValue>>                        │
+ * │                            ↓                                │
+ * │  1. Hash all keys with CRC32 || FNV-1a                      │
+ * │  2. Group keys by hash collision buckets                    │
+ * │  3. For each bucket with collisions:                        │
+ * │     - Search for seed value (up to MAX_SEED_SEARCH × size)  │
+ * │     - Seed creates collision-free sub-mapping               │
+ * │  4. Store seeds aligned with final table positions          │
+ * │  5. Verify: All keys map to unique table positions          │
+ * │                            ↓                                │
+ * │  Result: Perfect hash function with zero collisions         │
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
  */
 
 #pragma once
@@ -81,13 +139,18 @@ namespace nfx::containers
 	 * by Botelho, Pagh, and Ziviani, ensuring no collisions for the stored keys.
 	 * This implementation is suitable for scenarios where a fixed set of key-value pairs
 	 * needs to be queried frequently and efficiently. It includes optimizations like
-	 * optional SSE4.2 hashing and thread-local caching.
+	 * optional SSE4.2 hashing and configurable FNV-1a hash constants for consistent
+	 * hashing across different components and external projects.
 	 *
 	 * @tparam TValue The type of values stored in the dictionary.
+	 * @tparam FnvOffsetBasis FNV-1a offset basis constant for hash calculation (default: 0x811C9DC5)
+	 * @tparam FnvPrime FNV-1a prime constant for hash calculation (default: 0x01000193)
 	 *
 	 * @see https://en.wikipedia.org/wiki/Perfect_hash_function#CHD_algorithm
 	 */
-	template <typename TValue, uint32_t FnvOffsetBasis = core::hashing::DEFAULT_FNV_OFFSET_BASIS, uint32_t FnvPrime = core::hashing::DEFAULT_FNV_PRIME>
+	template <typename TValue,
+		uint32_t FnvOffsetBasis = core::hashing::DEFAULT_FNV_OFFSET_BASIS,
+		uint32_t FnvPrime = core::hashing::DEFAULT_FNV_PRIME>
 	class ChdHashMap final
 	{
 	public:

@@ -126,7 +126,7 @@ namespace nfx::core::hashing
 	 * @return 32-bit hash value with excellent distribution
 	 * @details Uses hardware-accelerated CRC32 when available, falls back to FNV-1a
 	 */
-	template <uint32_t FnvOffsetBasis = DEFAULT_FNV_OFFSET_BASIS, uint32_t FnvPrime = DEFAULT_FNV_PRIME>
+	template <uint32_t FnvOffsetBasis, uint32_t FnvPrime>
 	[[nodiscard]] NFX_CORE_INLINE uint32_t hashStringView( std::string_view key ) noexcept;
 
 	//----------------------------

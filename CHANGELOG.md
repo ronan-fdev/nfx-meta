@@ -31,6 +31,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.1.6] - 2025-09-27
+
+### Added
+
+- **ChdHashMap, HashMap, StringMap ,StringSet**: Added extensive ASCII art diagrams showing Robin Hood hashing structure
+
+### Changed
+
+- **HashMap Template Configurability**: HashMap is now templated with configurable FNV hash constants
+
+  - **Template Signature**: `template<typename TKey, typename TValue, uint32_t FnvOffsetBasis = DEFAULT_FNV_OFFSET_BASIS, uint32_t FnvPrime = DEFAULT_FNV_PRIME>`
+  - **Ecosystem Consistency**: HashMap now uses the same template pattern as ChdHashMap for unified hash behavior across all containers
+  - **External Customization**: Projects can specify custom FNV constants: `HashMap<std::string, int, 0x12345678, 0x9ABCDEF0>`
+
+- **HashMapHashFunctor Template Infrastructure**: HashMapHashFunctor is now templated for configurable hash behavior
+
+  - **Template Signature**: `template<uint32_t FnvOffsetBasis, uint32_t FnvPrime> struct HashMapHash`
+  - **Dual-Path Hashing**: SSE4.2 CRC32 with FNV-1a fallback using configurable constants
+  - **Zero-Copy String Operations**: Heterogeneous lookup support with `std::string`, `std::string_view`, and `const char*`
+
 ## [0.1.5] - 2025-09-27
 
 ### Added
@@ -51,7 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Template-Based Hash Function Infrastructure**: Enhanced core hashing with configurable parameters
   - `template<uint32_t FnvPrime> fnv1a()` - Configurable FNV-1a single-step hashing
   - `template<uint32_t FnvOffsetBasis, uint32_t FnvPrime> hashStringView()` - Parameterized string hashing
-  - Full template specialization support for external hash algorithm customization
 
 ### Changed
 

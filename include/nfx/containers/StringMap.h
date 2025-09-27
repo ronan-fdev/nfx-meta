@@ -3,6 +3,51 @@
  * @brief Enhanced unordered_map with heterogeneous string lookup optimization
  * @details Provides zero-copy string_view lookups while maintaining std::string storage,
  *          eliminating temporary string allocations during key operations
+ *
+ * ## Memory Layout & std::unordered_map Structure:
+ *
+ * ```
+ * StringMap Internal Structure:
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                    StringMap<T> Wrapper                     │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  Base: std::unordered_map<std::string, T,                   │
+ * │                           StringViewHash,                   │ ← Custom functors
+ * │                           StringViewEqual>                  │
+ * │ ┌─────────────────────────────────────────────────────────┐ │
+ * │ │              Standard Hash Table Buckets                │ │ ← STL implementation
+ * │ │ ┌─────────────────────────────────────────────────────┐ │ │
+ * │ │ │ Bucket[0] → [key: "hello"] → [value: T] → next...   │ │ │ ← Chain/bucket structure
+ * │ │ │ Bucket[1] → [key: "world"] → [value: T] → nullptr   │ │ │
+ * │ │ │ Bucket[2] → nullptr                                 │ │ │
+ * │ │ │ Bucket[3] → [key: "test"] → [value: T] → next...    │ │ │
+ * │ │ │ ...                                                 │ │ │
+ * │ │ │ Bucket[n] → [key: "data"] → [value: T] → nullptr    │ │ │
+ * │ │ └─────────────────────────────────────────────────────┘ │ │
+ * │ └─────────────────────────────────────────────────────────┘ │
+ * └─────────────────────────────────────────────────────────────┘
+ *                              ↓
+ *                   Heterogeneous Lookup Process
+ *                              ↓
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │              Zero-Copy String Lookup Resolution             │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  Input: string_view / const char* / char* key               │
+ * │                            ↓                                │
+ * │  1. Hash: StringViewHash{}(key) → std::hash<string_view>    │
+ * │                            ↓                                │
+ * │  2. Bucket: hash % bucket_count                             │
+ * │                            ↓                                │
+ * │  3. Chain Walk: for each node in bucket                     │
+ * │     - Compare: StringViewEqual{}(stored_key, input_key)     │
+ * │     - Zero-copy: No temporary string creation               │
+ * │     - Match: Return reference to stored value               │
+ * │                            ↓                                │
+ * │  4. Insert (operator[]): Convert to std::string for storage │
+ * │                            ↓                                │
+ * │  Result: O(1) average case, heterogeneous lookup support    │
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
  */
 
 #pragma once

@@ -163,7 +163,7 @@ namespace nfx::core::benchmark
 			uint32_t totalHash = 0;
 			for ( const auto& str : shortStrings )
 			{
-				totalHash += nfx::core::hashing::hashStringView( str );
+				totalHash += nfx::core::hashing::hashStringView<nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS, nfx::core::hashing::DEFAULT_FNV_PRIME>( str );
 			}
 			::benchmark::DoNotOptimize( totalHash );
 		}
@@ -176,7 +176,7 @@ namespace nfx::core::benchmark
 			uint32_t totalHash = 0;
 			for ( const auto& str : mediumStrings )
 			{
-				totalHash += nfx::core::hashing::hashStringView( str );
+				totalHash += nfx::core::hashing::hashStringView<nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS, nfx::core::hashing::DEFAULT_FNV_PRIME>( str );
 			}
 			::benchmark::DoNotOptimize( totalHash );
 		}
@@ -189,7 +189,7 @@ namespace nfx::core::benchmark
 			uint32_t totalHash = 0;
 			for ( const auto& str : longStrings )
 			{
-				totalHash += nfx::core::hashing::hashStringView( str );
+				totalHash += nfx::core::hashing::hashStringView<nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS, nfx::core::hashing::DEFAULT_FNV_PRIME>( str );
 			}
 			::benchmark::DoNotOptimize( totalHash );
 		}
@@ -454,7 +454,7 @@ namespace nfx::core::benchmark
 
 		for ( auto _ : state )
 		{
-			uint32_t hash = nfx::core::hashing::hashStringView( testStr );
+			uint32_t hash = nfx::core::hashing::hashStringView<nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS, nfx::core::hashing::DEFAULT_FNV_PRIME>( testStr );
 			::benchmark::DoNotOptimize( hash );
 		}
 	}
@@ -492,7 +492,7 @@ namespace nfx::core::benchmark
 			uint32_t totalHash = 0;
 			for ( const auto& str : repeatedStrings )
 			{
-				totalHash += nfx::core::hashing::hashStringView( str );
+				totalHash += nfx::core::hashing::hashStringView<nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS, nfx::core::hashing::DEFAULT_FNV_PRIME>( str );
 			}
 			::benchmark::DoNotOptimize( totalHash );
 		}
@@ -515,7 +515,7 @@ namespace nfx::core::benchmark
 			uint32_t totalHash = 0;
 			for ( const auto& str : sequentialStrings )
 			{
-				totalHash += nfx::core::hashing::hashStringView( str );
+				totalHash += nfx::core::hashing::hashStringView<nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS, nfx::core::hashing::DEFAULT_FNV_PRIME>( str );
 			}
 			::benchmark::DoNotOptimize( totalHash );
 		}
@@ -530,7 +530,7 @@ namespace nfx::core::benchmark
 			uint32_t totalHash = 0;
 			for ( const auto& str : randomStrings )
 			{
-				totalHash += nfx::core::hashing::hashStringView( str );
+				totalHash += nfx::core::hashing::hashStringView<nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS, nfx::core::hashing::DEFAULT_FNV_PRIME>( str );
 			}
 			::benchmark::DoNotOptimize( totalHash );
 		}

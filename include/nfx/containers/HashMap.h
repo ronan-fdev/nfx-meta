@@ -2,6 +2,72 @@
  * @file HashMap.h
  * @brief Map with Robin Hood hashing and string optimization
  * @note Extensible design supports future enhancements for custom hash policies and additional transparent lookup types
+ *
+ * ## Memory Layout & Robin Hood Hashing Structure:
+ *
+ * ```
+ * HashMap Internal Structure:
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                      HashMap<TKey, TValue>                  │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │ ┌─────────────────────────────────────────────────────────┐ │
+ * │ │                      m_buckets                          │ │ ← Primary storage
+ * │ │                  std::vector<Bucket>                    │ │
+ * │ │ ┌─────────────────────────────────────────────────────┐ │ │
+ * │ │ │  [0] │ key1    │ value1  │ hash1  │ dist1 │ true    │ │ │ ← Robin Hood buckets
+ * │ │ │  [1] │ key2    │ value2  │ hash2  │ dist2 │ true    │ │ │
+ * │ │ │  [2] │ empty   │ empty   │ 0      │ 0     │ false   │ │ │
+ * │ │ │  [3] │ key3    │ value3  │ hash3  │ dist3 │ true    │ │ │
+ * │ │ │  ... │ ...     │ ...     │ ...    │ ...   │ ...     │ │ │
+ * │ │ │  [n] │ keyN    │ valueN  │ hashN  │ distN │ true    │ │ │
+ * │ │ └─────────────────────────────────────────────────────┘ │ │
+ * │ └─────────────────────────────────────────────────────────┘ │
+ * │  m_size: 4           m_capacity: 8          m_mask: 7       │ ← Metadata
+ * └─────────────────────────────────────────────────────────────┘
+ *                              ↓
+ *                   Robin Hood Lookup Process
+ *                              ↓
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                  Robin Hood Hash Resolution                 │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  Input: "search_key"                                        │
+ * │                            ↓                                │
+ * │  1. Primary Hash: hash = <CRC32 || FNV-1a>(key)             │
+ * │                            ↓                                │
+ * │  2. Index Mapping: idx = hash & (capacity - 1)              │
+ * │                            ↓                                │
+ * │  3. Linear Probe: while(bucket[idx].occupied)               │
+ * │     - Compare: if(key == bucket[idx].key) return found      │
+ * │     - Robin Hood: if(distance > bucket[idx].distance) stop  │
+ * │     - Continue: idx = (idx + 1) & mask                      │
+ * │                            ↓                                │
+ * │  4. Result: O(1) average, O(log n) worst-case               │
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
+ *
+ * ## Robin Hood Insertion Algorithm:
+ *
+ * ```
+ * Insertion Phase:
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                Robin Hood Hash Insertion                    │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  Input: key-value pair                                      │
+ * │                            ↓                                │
+ * │  1. Hash key with <CRC32 || FNV-1a>                         │
+ * │  2. Find initial position: idx = hash & (capacity - 1)      │
+ * │  3. While inserting:                                        │
+ * │     - If slot empty: place element, done                    │
+ * │     - If key exists: update value, done                     │
+ * │     - If current distance > slot distance:                  │
+ * │       * Displace "rich" element (Robin Hood swap)           │
+ * │       * Continue inserting displaced element                │
+ * │     - Else: move to next slot, increment distance           │
+ * │  4. Resize table if load factor > 75%                       │
+ * │                            ↓                                │
+ * │  Result: Bounded probe distances, fair cache performance    │
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
  */
 
 #pragma once
@@ -9,6 +75,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "nfx/core/hashing/Hash.h"
 #include "functors/StringFunctors.h"
 #include "functors/HashMapHashFunctor.h"
 #include "StringMap.h"
@@ -22,20 +89,26 @@ namespace nfx::containers
 	//=====================================================================
 
 	/**
-	 * @brief Hash table with Robin Hood hashing and string optimizations
+	 * @brief Hash table with Robin Hood hashing and configurable string hash constants
 	 * @details Generic hash map using Robin Hood algorithm for bounded probe distances.
 	 *          Automatically enables zero-copy heterogeneous lookups when using string keys.
+	 *          Supports configurable FNV-1a hash constants for consistent hashing across components.
 	 *
 	 * @tparam TKey Key type (automatically optimized for std::string/string_view)
 	 * @tparam TValue Value type
+	 * @tparam FnvOffsetBasis FNV-1a offset basis constant (default: 0x811C9DC5)
+	 * @tparam FnvPrime FNV-1a prime constant (default: 0x01000193)
 	 *
 	 * Features:
 	 * - Robin Hood hashing for consistent performance
 	 * - Zero-copy string_view lookups for string keys
 	 * - Bounded probe distances for predictable cache behavior
+	 * - Configurable FNV hash constants for ecosystem-wide hash compatibility
 	 * - Template specialization for optimal string handling
 	 */
-	template <typename TKey, typename TValue>
+	template <typename TKey, typename TValue,
+		uint32_t FnvOffsetBasis = core::hashing::DEFAULT_FNV_OFFSET_BASIS,
+		uint32_t FnvPrime = core::hashing::DEFAULT_FNV_PRIME>
 	class HashMap final
 	{
 	public:
@@ -195,7 +268,7 @@ namespace nfx::containers
 		 *          and proper integer mixing for optimal Robin Hood performance.
 		 *          Supports heterogeneous lookup while maintaining excellent hash distribution.
 		 */
-		NFX_CORE_NO_UNIQUE_ADDRESS HashMapHash m_hasher;
+		NFX_CORE_NO_UNIQUE_ADDRESS HashMapHash<FnvOffsetBasis, FnvPrime> m_hasher;
 
 		//----------------------------------------------
 		// Internal implementation

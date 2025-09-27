@@ -3,6 +3,80 @@
  * @brief Enhanced unordered_set with heterogeneous string lookup optimization
  * @details Provides zero-copy string_view lookups while maintaining std::string storage,
  *          eliminating temporary string allocations during key operations
+ *
+ * ## Memory Layout & std::unordered_set Structure:
+ *
+ * ```
+ * StringSet Internal Structure:
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                    StringSet Wrapper                        │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  Base: std::unordered_set<std::string,                      │
+ * │                           StringViewHash,                   │ ← Custom functors
+ * │                           StringViewEqual>                  │
+ * │ ┌─────────────────────────────────────────────────────────┐ │
+ * │ │              Standard Hash Table Buckets                │ │ ← STL implementation
+ * │ │ ┌─────────────────────────────────────────────────────┐ │ │
+ * │ │ │ Bucket[0] → ["hello"] → ["world"] → next...         │ │ │ ← Chain/bucket structure
+ * │ │ │ Bucket[1] → ["test"] → nullptr                      │ │ │
+ * │ │ │ Bucket[2] → nullptr                                 │ │ │
+ * │ │ │ Bucket[3] → ["data"] → ["value"] → next...          │ │ │
+ * │ │ │ ...                                                 │ │ │
+ * │ │ │ Bucket[n] → ["key"] → nullptr                       │ │ │
+ * │ │ └─────────────────────────────────────────────────────┘ │ │
+ * │ └─────────────────────────────────────────────────────────┘ │
+ * └─────────────────────────────────────────────────────────────┘
+ *                              ↓
+ *                 Heterogeneous Lookup Process
+ *                              ↓
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │              Zero-Copy String Lookup Resolution             │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  Input: string_view /const char* / char* key                │
+ * │                            ↓                                │
+ * │  1. Hash: StringViewHash{}(key) → std::hash<string_view>    │
+ * │                            ↓                                │
+ * │  2. Bucket: hash % bucket_count                             │
+ * │                            ↓                                │
+ * │  3. Chain Walk: for each string in bucket                   │
+ * │     - Compare: StringViewEqual{}(stored_string, input_key)  │
+ * │     - Zero-copy: No temporary string creation               │
+ * │     - Match: Return iterator to stored string               │
+ * │                            ↓                                │
+ * │  4. Insert: Convert to std::string for storage              │
+ * │                            ↓                                │
+ * │  Result: O(1) average case, heterogeneous lookup support    │
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
+ *
+ * ## Heterogeneous Set Operations:
+ *
+ * ```
+ * Zero-Copy Set Operations:
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                  StringSet Heterogeneous API                │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  Key Types: const char*, char*, std::string_view            │
+ * │                            ↓                                │
+ * │  1. insert(): Add string with zero-copy duplicate check     │
+ * │     - Lookup: Zero-copy hash and comparison                 │
+ * │     - Insert: Convert to std::string only when new          │
+ * │                            ↓                                │
+ * │  2. contains(): C++20-style existence check                 │
+ * │     - Lookup: No temporary allocation                       │
+ * │     - Return: Boolean result without iterator overhead      │
+ * │                            ↓                                │
+ * │  3. emplace(): In-place construction with efficiency        │
+ * │     - Check: Zero-copy existence test                       │
+ * │     - Insert: std::string construction only on new keys     │
+ * │                            ↓                                │
+ * │  4. find(): STL iterator-based lookup (inherited)           │
+ * │     - Access: Zero-copy heterogeneous search                │
+ * │     - Return: Iterator for advanced operations              │
+ * │                            ↓                                │
+ * │  Result: Full std::unordered_set API + zero-copy lookups    │
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
  */
 
 #pragma once
