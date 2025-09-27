@@ -10,6 +10,9 @@
 #if defined( __GNUC__ )
 #	include <cpuid.h>
 #endif
+#if defined( _MSC_VER ) || defined( __SSE4_2__ )
+#	include <nmmintrin.h>
+#endif
 
 namespace nfx::core::hashing
 {
@@ -23,7 +26,7 @@ namespace nfx::core::hashing
 
 	NFX_CORE_INLINE bool hasSSE42Support() noexcept
 	{
-		static thread_local const bool s_hasSSE42 = []() {
+		static const bool s_hasSSE42 = []() {
 			bool hasSupport = false;
 #if defined( _MSC_VER )
 			std::array<int, 4> cpuInfo{};
@@ -54,7 +57,9 @@ namespace nfx::core::hashing
 	template <uint32_t FnvPrime>
 	NFX_CORE_INLINE constexpr uint32_t fnv1a( uint32_t hash, uint8_t ch ) noexcept
 	{
-		return ( ch ^ hash ) * FnvPrime;
+		hash ^= ch;		  // XOR byte into hash first
+		hash *= FnvPrime; // Then multiply by prime
+		return hash;
 	}
 
 	NFX_CORE_INLINE uint32_t crc32( uint32_t hash, uint8_t ch ) noexcept
@@ -63,6 +68,8 @@ namespace nfx::core::hashing
 		return _mm_crc32_u8( hash, ch );
 #elif defined( __SSE4_2__ )
 		return __builtin_ia32_crc32qi( hash, ch );
+#else
+		static_assert( sizeof( hash ) == 0, "CRC32 intrinsics not available on this platform" );
 #endif
 	}
 
@@ -70,9 +77,9 @@ namespace nfx::core::hashing
 	{
 		// Mixes the primary hash with the seed to find the final table slot
 		uint32_t x{ seed + hash }; // Mix seed with original hash
-		x ^= x >> 12;			   // Avalanche mixing
-		x ^= x << 25;			   // More mixing
-		x ^= x >> 27;			   // Final mixing
+		x ^= x >> 12;			   // Thomas Wang's bit-mixing: spread high bits to low positions
+		x ^= x << 25;			   // Fold low bits back to high positions for avalanche effect
+		x ^= x >> 27;			   // Final avalanche step ensures all bits influence result
 
 		/*
 		 * Final step: Multiplicative hashing with 64-bit magic constant followed by modulo reduction.
@@ -88,6 +95,18 @@ namespace nfx::core::hashing
 		 * - Cast to uint32_t: Return type matches the expected table index size.
 		 */
 		return static_cast<uint32_t>( ( x * DEFAULT_HASH_MIX_64 ) & ( size - 1 ) );
+	}
+
+	//----------------------------------------------
+	// Hash combination
+	//----------------------------------------------
+
+	NFX_CORE_INLINE constexpr uint32_t combine( uint32_t existing, uint32_t newHash, uint32_t prime ) noexcept
+	{
+		// FNV-1a style combination: XOR then multiply
+		existing ^= newHash;
+		existing *= prime;
+		return existing;
 	}
 
 	//----------------------------------------------
@@ -109,9 +128,7 @@ namespace nfx::core::hashing
 		uint32_t hashValue = FnvOffsetBasis;
 
 		// Check for SSE4.2 support
-		static const bool hasSSE42 = hasSSE42Support();
-
-		if ( hasSSE42 )
+		if ( hasSSE42Support() )
 		{
 			// Use SSE4.2 CRC32 for hardware acceleration
 			for ( size_t i = 0; i < key.length(); ++i )
@@ -125,11 +142,10 @@ namespace nfx::core::hashing
 		}
 		else
 		{
-			// FNV-1a software fallback
+			// FNV-1a software fallback using the template function
 			for ( size_t i = 0; i < key.length(); ++i )
 			{
-				hashValue ^= static_cast<uint8_t>( key[i] );
-				hashValue *= FnvPrime;
+				hashValue = fnv1a<FnvPrime>( hashValue, static_cast<uint8_t>( key[i] ) );
 			}
 		}
 

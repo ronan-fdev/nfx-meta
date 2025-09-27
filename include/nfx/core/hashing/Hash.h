@@ -113,6 +113,20 @@ namespace nfx::core::hashing
 	[[nodiscard]] NFX_CORE_INLINE constexpr uint32_t seedMix( uint32_t seed, uint32_t hash, size_t size ) noexcept;
 
 	//----------------------------------------------
+	// Hash combination
+	//----------------------------------------------
+
+	/**
+	 * @brief Combines two hash values using FNV-1a mixing.
+	 * @param[in] existing The current accumulated hash value.
+	 * @param[in] newHash The new hash value to combine.
+	 * @param[in] prime The FNV prime constant for mixing.
+	 * @return Combined hash value with good distribution properties.
+	 * @note Uses XOR followed by multiplication for optimal bit mixing.
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr uint32_t combine( uint32_t existing, uint32_t newHash, uint32_t prime ) noexcept;
+
+	//----------------------------------------------
 	// High-level complete hash operations
 	//----------------------------------------------
 

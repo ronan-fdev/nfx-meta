@@ -31,6 +31,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.1.7] - 2025-09-27
+
+### Added
+
+- **Hash Combination Function**: New `combine()` function for composing hash values
+
+### Changed
+
+- **Hash Infrastructure Robustness**: Enhanced cross-platform compilation safety
+
+  - **SSE4.2 Headers**: Added proper `#include <nmmintrin.h>` for CRC32 intrinsics
+  - **CRC32 Safety**: Added `static_assert` fallback to prevent silent failures on unsupported platforms
+  - **Thread Optimization**: Removed unnecessary `thread_local` from CPU feature detection (global hardware capability)
+  - **Code Consistency**: Centralized FNV-1a logic using template functions to eliminate duplication
+
+### Fixed
+
+- **FNV-1a Algorithm Correctness**: Fixed critical algorithm implementation bug
+
+  - **Before**: `return (ch ^ hash) * FnvPrime;` (incorrect order)
+  - **After**: `hash ^= ch; hash *= FnvPrime; return hash;` (correct FNV-1a specification)
+
 ## [0.1.6] - 2025-09-27
 
 ### Added

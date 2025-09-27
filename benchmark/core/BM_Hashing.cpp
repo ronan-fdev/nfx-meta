@@ -545,16 +545,21 @@ namespace nfx::core::benchmark
 // CPU feature detection
 //----------------------------------------------
 
-BENCHMARK( nfx::core::benchmark::BM_HasSSE42Support );
+BENCHMARK( nfx::core::benchmark::BM_HasSSE42Support )
+	->Repetitions( 3 );
 
 //----------------------------------------------
 // Low-level hash building blocks
 //----------------------------------------------
 
-BENCHMARK( nfx::core::benchmark::BM_FNV1a_SingleStep );
-BENCHMARK( nfx::core::benchmark::BM_CRC32_SingleStep );
-BENCHMARK( nfx::core::benchmark::BM_Larson_SingleStep );
-BENCHMARK( nfx::core::benchmark::BM_SeedMix_Function );
+BENCHMARK( nfx::core::benchmark::BM_FNV1a_SingleStep )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_CRC32_SingleStep )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_Larson_SingleStep )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_SeedMix_Function )
+	->Repetitions( 3 );
 
 //----------------------------------------------
 // String hashing comparisons
@@ -564,58 +569,80 @@ BENCHMARK( nfx::core::benchmark::BM_SeedMix_Function );
 // High-level API
 //----------------------------
 
-BENCHMARK( nfx::core::benchmark::BM_HashStringView_Short );
-BENCHMARK( nfx::core::benchmark::BM_HashStringView_Medium );
-BENCHMARK( nfx::core::benchmark::BM_HashStringView_Long );
+BENCHMARK( nfx::core::benchmark::BM_HashStringView_Short )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_HashStringView_Medium )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_HashStringView_Long )
+	->Repetitions( 3 );
 
 //----------------------------
 // Manual FNV-1a
 //----------------------------
 
-BENCHMARK( nfx::core::benchmark::BM_ManualFNV1a_Short );
-BENCHMARK( nfx::core::benchmark::BM_ManualFNV1a_Medium );
-BENCHMARK( nfx::core::benchmark::BM_ManualFNV1a_Long );
+BENCHMARK( nfx::core::benchmark::BM_ManualFNV1a_Short )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_ManualFNV1a_Medium )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_ManualFNV1a_Long )
+	->Repetitions( 3 );
 
 //----------------------------
 // Manual CRC32
 //----------------------------
 
-BENCHMARK( nfx::core::benchmark::BM_ManualCRC32_Short );
-BENCHMARK( nfx::core::benchmark::BM_ManualCRC32_Medium );
-BENCHMARK( nfx::core::benchmark::BM_ManualCRC32_Long );
+BENCHMARK( nfx::core::benchmark::BM_ManualCRC32_Short )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_ManualCRC32_Medium )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_ManualCRC32_Long )
+	->Repetitions( 3 );
 
 //----------------------------
 // std::hash comparison
 //----------------------------
 
-BENCHMARK( nfx::core::benchmark::BM_StdHash_Short );
-BENCHMARK( nfx::core::benchmark::BM_StdHash_Medium );
-BENCHMARK( nfx::core::benchmark::BM_StdHash_Long );
+BENCHMARK( nfx::core::benchmark::BM_StdHash_Short )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_StdHash_Medium )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_StdHash_Long )
+	->Repetitions( 3 );
 
 //----------------------------------------------
 // Integer hashing comparisons
 //----------------------------------------------
 
-BENCHMARK( nfx::core::benchmark::BM_HashInteger_uint32 );
-BENCHMARK( nfx::core::benchmark::BM_HashInteger_uint64 );
-BENCHMARK( nfx::core::benchmark::BM_HashInteger_int32 );
+BENCHMARK( nfx::core::benchmark::BM_HashInteger_uint32 )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_HashInteger_uint64 )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_HashInteger_int32 )
+	->Repetitions( 3 );
 
-BENCHMARK( nfx::core::benchmark::BM_StdHash_uint32 );
-BENCHMARK( nfx::core::benchmark::BM_StdHash_uint64 );
+BENCHMARK( nfx::core::benchmark::BM_StdHash_uint32 )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_StdHash_uint64 )
+	->Repetitions( 3 );
 
 //----------------------------------------------
 // Single string comparisons
 //----------------------------------------------
 
-BENCHMARK( nfx::core::benchmark::BM_SingleString_HashStringView );
-BENCHMARK( nfx::core::benchmark::BM_SingleString_StdHash );
+BENCHMARK( nfx::core::benchmark::BM_SingleString_HashStringView )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_SingleString_StdHash )
+	->Repetitions( 3 );
 
 //----------------------------------------------
 // Cache and memory patterns
 //----------------------------------------------
 
-BENCHMARK( nfx::core::benchmark::BM_HashStringView_CacheTest );
-BENCHMARK( nfx::core::benchmark::BM_Sequential_StringHashing );
-BENCHMARK( nfx::core::benchmark::BM_Random_StringHashing );
+BENCHMARK( nfx::core::benchmark::BM_HashStringView_CacheTest )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_Sequential_StringHashing )
+	->Repetitions( 3 );
+BENCHMARK( nfx::core::benchmark::BM_Random_StringHashing )
+	->Repetitions( 3 );
 
 BENCHMARK_MAIN();
