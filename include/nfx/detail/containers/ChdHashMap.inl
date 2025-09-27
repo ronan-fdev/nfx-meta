@@ -27,54 +27,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "nfx/core/hashing/Hash.h"
-
 namespace nfx::containers
 {
-	namespace
-	{
-		//=====================================================================
-		// Internal helper components
-		//=====================================================================
-
-		//----------------------------------------------
-		// ThrowHelper class
-		//----------------------------------------------
-
-		//----------------------------
-		// Public static methods
-		//----------------------------
-
-		inline void ThrowHelper::throwKeyNotFoundException( std::string_view key )
-		{
-			throw KeyNotFoundException{ key };
-		}
-
-		inline void ThrowHelper::throwInvalidOperationException()
-		{
-			throw InvalidOperationException{};
-		}
-	}
-
-	//=====================================================================
-	// Exception class
-	//=====================================================================
-
-	inline KeyNotFoundException::KeyNotFoundException( std::string_view key )
-		: std::runtime_error{ std::string{ "No value associated to key: " } + std::string{ key } }
-	{
-	}
-
-	inline InvalidOperationException::InvalidOperationException()
-		: std::runtime_error{ "Operation is not valid due to the current state of the object." }
-	{
-	}
-
-	inline InvalidOperationException::InvalidOperationException( std::string_view message )
-		: std::runtime_error{ std::string{ message } }
-	{
-	}
-
 	//=====================================================================
 	// ChdHashMap class
 	//=====================================================================
@@ -83,8 +37,8 @@ namespace nfx::containers
 	// Construction
 	//----------------------------------------------
 
-	template <typename TValue>
-	inline ChdHashMap<TValue>::ChdHashMap( std::vector<std::pair<std::string, TValue>>&& items )
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::ChdHashMap( std::vector<std::pair<std::string, TValue>>&& items )
 		: m_table{},
 		  m_seeds{}
 	{
@@ -219,8 +173,8 @@ namespace nfx::containers
 	// Lookup operators
 	//----------------------------------------------
 
-	template <typename TValue>
-	NFX_CORE_INLINE TValue& ChdHashMap<TValue>::operator[]( std::string_view key )
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	NFX_CORE_INLINE TValue& ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::operator[]( std::string_view key )
 	{
 		if ( isEmpty() )
 		{
@@ -256,8 +210,8 @@ namespace nfx::containers
 	// Lookup methods
 	//----------------------------------------------
 
-	template <typename TValue>
-	inline const TValue& ChdHashMap<TValue>::at( std::string_view key )
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline const TValue& ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::at( std::string_view key )
 	{
 		if ( isEmpty() )
 		{
@@ -277,8 +231,8 @@ namespace nfx::containers
 	// Accessors
 	//----------------------------------------------
 
-	template <typename TValue>
-	inline size_t ChdHashMap<TValue>::size() const noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline size_t ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::size() const noexcept
 	{
 		return m_table.size();
 	}
@@ -287,8 +241,8 @@ namespace nfx::containers
 	// State inspection methods
 	//----------------------------------------------
 
-	template <typename TValue>
-	inline bool ChdHashMap<TValue>::isEmpty() const noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline bool ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::isEmpty() const noexcept
 	{
 		return m_table.empty();
 	}
@@ -297,8 +251,8 @@ namespace nfx::containers
 	// Static query methods
 	//----------------------------------------------
 
-	template <typename TValue>
-	NFX_CORE_INLINE bool ChdHashMap<TValue>::tryGetValue( std::string_view key, TValue*& outValue ) noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	NFX_CORE_INLINE bool ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::tryGetValue( std::string_view key, TValue*& outValue ) noexcept
 	{
 		if ( isEmpty() )
 		{
@@ -334,8 +288,8 @@ namespace nfx::containers
 	// Iteration
 	//----------------------------------------------
 
-	template <typename TValue>
-	inline typename ChdHashMap<TValue>::Iterator ChdHashMap<TValue>::begin() const noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline typename ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::begin() const noexcept
 	{
 		for ( size_t i{ 0 }; i < m_table.size(); ++i )
 		{
@@ -348,8 +302,8 @@ namespace nfx::containers
 		return end();
 	}
 
-	template <typename TValue>
-	inline typename ChdHashMap<TValue>::Iterator ChdHashMap<TValue>::end() const noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline typename ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::end() const noexcept
 	{
 		return Iterator{ &m_table, m_table.size() };
 	}
@@ -358,8 +312,8 @@ namespace nfx::containers
 	// Enumeration
 	//----------------------------------------------
 
-	template <typename TValue>
-	inline typename ChdHashMap<TValue>::Enumerator ChdHashMap<TValue>::enumerator() const noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline typename ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Enumerator ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::enumerator() const noexcept
 	{
 		return Enumerator{ &m_table };
 	}
@@ -368,10 +322,40 @@ namespace nfx::containers
 	// Hashing
 	//---------------------------
 
-	template <typename TValue>
-	NFX_CORE_INLINE uint32_t ChdHashMap<TValue>::hash( std::string_view key ) noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	NFX_CORE_INLINE uint32_t ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::hash( std::string_view key ) noexcept
 	{
-		return core::hashing::hashStringView( key );
+		return core::hashing::hashStringView<FnvOffsetBasis, FnvPrime>( key );
+	}
+
+	//----------------------------------------------
+	// Exception classes
+	//----------------------------------------------
+
+	//----------------------------
+	// ChdHashMap::KeyNotFoundException
+	//----------------------------
+
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::KeyNotFoundException::KeyNotFoundException( std::string_view key )
+		: std::runtime_error{ std::string{ "No value associated to key: " } + std::string{ key } }
+	{
+	}
+
+	//----------------------------
+	// ChdHashMap::InvalidOperationException
+	//----------------------------
+
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::InvalidOperationException::InvalidOperationException()
+		: std::runtime_error{ "Operation is not valid due to the current state of the object." }
+	{
+	}
+
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::InvalidOperationException::InvalidOperationException( std::string_view message )
+		: std::runtime_error{ std::string{ message } }
+	{
 	}
 
 	//----------------------------------------------
@@ -382,8 +366,8 @@ namespace nfx::containers
 	// Construction
 	//---------------------------
 
-	template <typename TValue>
-	inline ChdHashMap<TValue>::Iterator::Iterator( const std::vector<std::pair<std::string, TValue>>* table, size_t index ) noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator::Iterator( const std::vector<std::pair<std::string, TValue>>* table, size_t index ) noexcept
 		: m_table{ table },
 		  m_index{ index }
 	{
@@ -393,8 +377,8 @@ namespace nfx::containers
 	// Operations
 	//---------------------------
 
-	template <typename TValue>
-	inline const std::pair<std::string, TValue>& ChdHashMap<TValue>::Iterator::operator*() const
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline const std::pair<std::string, TValue>& ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator::operator*() const
 	{
 		if ( m_index >= m_table->size() )
 		{
@@ -406,8 +390,8 @@ namespace nfx::containers
 		return ( *m_table )[m_index];
 	}
 
-	template <typename TValue>
-	inline const std::pair<std::string, TValue>* ChdHashMap<TValue>::Iterator::operator->() const
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline const std::pair<std::string, TValue>* ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator::operator->() const
 	{
 		if ( m_index >= m_table->size() )
 		{
@@ -419,8 +403,8 @@ namespace nfx::containers
 		return &( ( *m_table )[m_index] );
 	}
 
-	template <typename TValue>
-	inline typename ChdHashMap<TValue>::Iterator& ChdHashMap<TValue>::Iterator::operator++() noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline typename ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator& ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator::operator++() noexcept
 	{
 		if ( m_table == nullptr )
 		{
@@ -441,8 +425,8 @@ namespace nfx::containers
 		return *this;
 	}
 
-	template <typename TValue>
-	inline typename ChdHashMap<TValue>::Iterator ChdHashMap<TValue>::Iterator::operator++( int ) noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline typename ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator::operator++( int ) noexcept
 	{
 		auto tmp{ Iterator{ *this } };
 		++( *this );
@@ -454,14 +438,14 @@ namespace nfx::containers
 	// Comparison
 	//---------------------------
 
-	template <typename TValue>
-	inline bool ChdHashMap<TValue>::Iterator::operator==( const Iterator& other ) const noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline bool ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator::operator==( const Iterator& other ) const noexcept
 	{
 		return m_table == other.m_table && m_index == other.m_index;
 	}
 
-	template <typename TValue>
-	inline bool ChdHashMap<TValue>::Iterator::operator!=( const Iterator& other ) const noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline bool ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Iterator::operator!=( const Iterator& other ) const noexcept
 	{
 		return !( *this == other );
 	}
@@ -474,8 +458,8 @@ namespace nfx::containers
 	// Construction
 	//----------------------------
 
-	template <typename TValue>
-	inline ChdHashMap<TValue>::Enumerator::Enumerator( const std::vector<std::pair<std::string, TValue>>* table ) noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Enumerator::Enumerator( const std::vector<std::pair<std::string, TValue>>* table ) noexcept
 		: m_table{ table },
 		  m_index{ std::numeric_limits<size_t>::max() }
 	{
@@ -485,8 +469,8 @@ namespace nfx::containers
 	// Enumeration
 	//----------------------------
 
-	template <typename TValue>
-	inline bool ChdHashMap<TValue>::Enumerator::next() noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline bool ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Enumerator::next() noexcept
 	{
 		do
 		{
@@ -496,8 +480,8 @@ namespace nfx::containers
 		return m_index < m_table->size();
 	}
 
-	template <typename TValue>
-	inline const std::pair<std::string, TValue>& ChdHashMap<TValue>::Enumerator::current() const
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline const std::pair<std::string, TValue>& ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Enumerator::current() const
 	{
 		if ( !m_table || m_index == SIZE_MAX || m_index >= m_table->size() )
 		{
@@ -507,9 +491,29 @@ namespace nfx::containers
 		return ( *m_table )[m_index];
 	}
 
-	template <typename TValue>
-	inline void ChdHashMap<TValue>::Enumerator::reset() noexcept
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline void ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::Enumerator::reset() noexcept
 	{
 		m_index = std::numeric_limits<size_t>::max();
+	}
+
+	//----------------------------------------------
+	// ChdHashMap::ThrowHelper
+	//----------------------------------------------
+
+	//----------------------------
+	// Static exception methods
+	//----------------------------
+
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline void ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::ThrowHelper::throwKeyNotFoundException( std::string_view key )
+	{
+		throw KeyNotFoundException{ key };
+	}
+
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline void ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::ThrowHelper::throwInvalidOperationException()
+	{
+		throw InvalidOperationException{};
 	}
 }

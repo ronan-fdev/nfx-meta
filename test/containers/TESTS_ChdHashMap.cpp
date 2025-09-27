@@ -108,7 +108,7 @@ namespace nfx::containers::test
 
 		ChdHashMap<int> map{ std::move( items ) };
 
-		EXPECT_THROW( static_cast<void>( map["non_existent_key"] ), KeyNotFoundException );
+		EXPECT_THROW( static_cast<void>( map["non_existent_key"] ), ChdHashMap<int>::KeyNotFoundException );
 	}
 
 	TEST( ChdHashMapExceptions, KeyNotFoundAt )
@@ -118,15 +118,15 @@ namespace nfx::containers::test
 
 		ChdHashMap<std::string> map{ std::move( items ) };
 
-		EXPECT_THROW( static_cast<void>( map.at( "invalid_key" ) ), KeyNotFoundException );
+		EXPECT_THROW( static_cast<void>( map.at( "invalid_key" ) ), ChdHashMap<std::string>::KeyNotFoundException );
 	}
 
 	TEST( ChdHashMapExceptions, EmptyMapAccess )
 	{
 		ChdHashMap<int> emptyMap;
 
-		EXPECT_THROW( static_cast<void>( emptyMap["any_key"] ), KeyNotFoundException );
-		EXPECT_THROW( static_cast<void>( emptyMap.at( "any_key" ) ), KeyNotFoundException );
+		EXPECT_THROW( static_cast<void>( emptyMap["any_key"] ), ChdHashMap<int>::KeyNotFoundException );
+		EXPECT_THROW( static_cast<void>( emptyMap.at( "any_key" ) ), ChdHashMap<int>::KeyNotFoundException );
 	}
 
 	//----------------------------------------------
@@ -194,7 +194,7 @@ namespace nfx::containers::test
 			int emptyValue2 = map[emptySv];
 			EXPECT_EQ( emptyValue2, 123 );
 		}
-		catch ( const KeyNotFoundException& )
+		catch ( const ChdHashMap<int>::KeyNotFoundException& )
 		{
 			// If empty strings are not supported, this is acceptable
 			SUCCEED() << "CHD algorithm correctly rejects empty string keys";
@@ -555,6 +555,6 @@ namespace nfx::containers::test
 		EXPECT_EQ( statusCodes["INTERNAL_ERROR"], 500 );
 
 		// Error case
-		EXPECT_THROW( static_cast<void>( statusCodes["UNKNOWN_STATUS"] ), KeyNotFoundException );
+		EXPECT_THROW( static_cast<void>( statusCodes["UNKNOWN_STATUS"] ), ChdHashMap<int>::KeyNotFoundException );
 	}
 }

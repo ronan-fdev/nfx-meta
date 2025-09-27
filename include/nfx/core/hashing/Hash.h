@@ -18,11 +18,35 @@ namespace nfx::core::hashing
 	// Hash algorithm constants
 	//=====================================================================
 
-	/** @brief FNV offset basis constant for hash calculations. */
-	inline constexpr uint32_t FNV_OFFSET_BASIS{ 0x811C9DC5 };
+	//----------------------------------------------
+	// FNV-1a Hash Algorithm Constants
+	//----------------------------------------------
 
-	/** @brief FNV prime constant for hash calculations. */
-	inline constexpr uint32_t FNV_PRIME{ 0x01000193 };
+	/** @brief FNV-1a 32-bit offset basis constant. */
+	inline constexpr uint32_t DEFAULT_FNV_OFFSET_BASIS{ 0x811C9DC5 }; // Fowler-Noll-Vo algorithm
+
+	/** @brief FNV-1a 32-bit prime constant. */
+	inline constexpr uint32_t DEFAULT_FNV_PRIME{ 0x01000193 }; // Fowler-Noll-Vo algorithm
+
+	//----------------------------------------------
+	// Integer Hashing Constants
+	//----------------------------------------------
+
+	/** @brief Integer hash constant for 32-bit values. */
+	inline constexpr uint32_t DEFAULT_INTEGER_HASH_32{ 0x45d9f3b }; // Donald Knuth, TAOCP Vol 3
+
+	/** @brief Integer hash constant #1 for 64-bit avalanche mixing. */
+	inline constexpr uint64_t DEFAULT_INTEGER_HASH_64_C1{ 0xbf58476d1ce4e5b9ull }; // Thomas Wang (2007)
+
+	/** @brief Integer hash constant #2 for 64-bit avalanche mixing. */
+	inline constexpr uint64_t DEFAULT_INTEGER_HASH_64_C2{ 0x94d049bb133111ebull }; // Thomas Wang (2007)
+
+	//----------------------------------------------
+	// Generic Hash Mixing Constants
+	//----------------------------------------------
+
+	/** @brief Generic 64-bit hash constant for bit avalanche mixing. */
+	inline constexpr uint64_t DEFAULT_HASH_MIX_64{ 0x2545F4914F6CDD1DUL }; // Universal hashing
 
 	//=====================================================================
 	// Hash infrastructure
@@ -64,6 +88,7 @@ namespace nfx::core::hashing
 	 * @see https://en.wikipedia.org/wiki/Fowler-Noll-Vo_hash_function
 	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 	 */
+	template <uint32_t FnvPrime>
 	[[nodiscard]] NFX_CORE_INLINE constexpr uint32_t fnv1a( uint32_t hash, uint8_t ch ) noexcept;
 
 	/**
@@ -101,6 +126,7 @@ namespace nfx::core::hashing
 	 * @return 32-bit hash value with excellent distribution
 	 * @details Uses hardware-accelerated CRC32 when available, falls back to FNV-1a
 	 */
+	template <uint32_t FnvOffsetBasis = DEFAULT_FNV_OFFSET_BASIS, uint32_t FnvPrime = DEFAULT_FNV_PRIME>
 	[[nodiscard]] NFX_CORE_INLINE uint32_t hashStringView( std::string_view key ) noexcept;
 
 	//----------------------------

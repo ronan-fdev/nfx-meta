@@ -97,12 +97,12 @@ namespace nfx::core::benchmark
 
 	static void BM_FNV1a_SingleStep( ::benchmark::State& state )
 	{
-		const uint32_t initialHash = nfx::core::hashing::FNV_OFFSET_BASIS;
+		const uint32_t initialHash = nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS;
 		const uint8_t testByte = 'A';
 
 		for ( auto _ : state )
 		{
-			uint32_t hash = nfx::core::hashing::fnv1a( initialHash, testByte );
+			uint32_t hash = nfx::core::hashing::fnv1a<nfx::core::hashing::DEFAULT_FNV_PRIME>( initialHash, testByte );
 			::benchmark::DoNotOptimize( hash );
 		}
 	}
@@ -206,10 +206,10 @@ namespace nfx::core::benchmark
 			uint32_t totalHash = 0;
 			for ( const auto& str : shortStrings )
 			{
-				uint32_t hash = nfx::core::hashing::FNV_OFFSET_BASIS;
+				uint32_t hash = nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS;
 				for ( char c : str )
 				{
-					hash = nfx::core::hashing::fnv1a( hash, static_cast<uint8_t>( c ) );
+					hash = nfx::core::hashing::fnv1a<nfx::core::hashing::DEFAULT_FNV_PRIME>( hash, static_cast<uint8_t>( c ) );
 				}
 				totalHash += hash;
 			}
@@ -224,10 +224,10 @@ namespace nfx::core::benchmark
 			uint32_t totalHash = 0;
 			for ( const auto& str : mediumStrings )
 			{
-				uint32_t hash = nfx::core::hashing::FNV_OFFSET_BASIS;
+				uint32_t hash = nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS;
 				for ( char c : str )
 				{
-					hash = nfx::core::hashing::fnv1a( hash, static_cast<uint8_t>( c ) );
+					hash = nfx::core::hashing::fnv1a<nfx::core::hashing::DEFAULT_FNV_PRIME>( hash, static_cast<uint8_t>( c ) );
 				}
 				totalHash += hash;
 			}
@@ -242,10 +242,10 @@ namespace nfx::core::benchmark
 			uint32_t totalHash = 0;
 			for ( const auto& str : longStrings )
 			{
-				uint32_t hash = nfx::core::hashing::FNV_OFFSET_BASIS;
+				uint32_t hash = nfx::core::hashing::DEFAULT_FNV_OFFSET_BASIS;
 				for ( char c : str )
 				{
-					hash = nfx::core::hashing::fnv1a( hash, static_cast<uint8_t>( c ) );
+					hash = nfx::core::hashing::fnv1a<nfx::core::hashing::DEFAULT_FNV_PRIME>( hash, static_cast<uint8_t>( c ) );
 				}
 				totalHash += hash;
 			}

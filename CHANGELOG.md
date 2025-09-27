@@ -31,6 +31,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.1.5] - 2025-09-27
+
+### Added
+
+#### Enhanced Hash Algorithm Configuration System
+
+- **Configurable FNV Hash Constants**: ChdHashMap now supports custom FNV-1a hash parameters for external project customization
+
+  - Template parameters `FnvOffsetBasis` and `FnvPrime` with academic naming and default values
+  - `DEFAULT_FNV_OFFSET_BASIS = 0x811C9DC5` and `DEFAULT_FNV_PRIME = 0x01000193` constants in Hash.h
+
+- **Comprehensive Hash Constant Library**: Extended Hash.h with academically-named hashing constants
+
+  - **FNV-1a Constants**: `DEFAULT_FNV_OFFSET_BASIS`, `DEFAULT_FNV_PRIME` with Fowler-Noll-Vo algorithm attribution
+  - **Integer Hashing Constants**: `DEFAULT_INTEGER_HASH_32` (Donald Knuth), `DEFAULT_INTEGER_HASH_64_C1/C2` (Thomas Wang)
+  - **Generic Mixing**: `DEFAULT_HASH_MIX_64` universal hashing constant for bit avalanche mixing
+
+- **Template-Based Hash Function Infrastructure**: Enhanced core hashing with configurable parameters
+  - `template<uint32_t FnvPrime> fnv1a()` - Configurable FNV-1a single-step hashing
+  - `template<uint32_t FnvOffsetBasis, uint32_t FnvPrime> hashStringView()` - Parameterized string hashing
+  - Full template specialization support for external hash algorithm customization
+
+### Changed
+
+#### ChdHashMap Architecture Modernization
+
+- **Template Parameter Enhancement**: ChdHashMap signature updated to support configurable hash constants
+
+  - From: `template<typename TValue>`
+  - To: `template<typename TValue, uint32_t FnvOffsetBasis = DEFAULT_FNV_OFFSET_BASIS, uint32_t FnvPrime = DEFAULT_FNV_PRIME>`
+  - External projects can now customize hash behavior: `ChdHashMap<int, 0x12345678, 0x9ABCDEF0>`
+
+- **Improved Code Organization and Encapsulation**
+
+  - **ThrowHelper Encapsulation**: Moved ThrowHelper class from global anonymous namespace to private nested class
+  - **Exception Class Encapsulation**: Moved KeyNotFoundException and InvalidOperationException to nested classes within ChdHashMap
+  - **Consistent Access Patterns**: All exception classes now accessed as `ChdHashMap<T>::KeyNotFoundException`
+
 ## [0.1.4] - 2025-09-26
 
 ### Fixed

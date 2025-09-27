@@ -53,123 +53,23 @@
 #include <vector>
 
 #include "nfx/config.h"
+#include "nfx/core/hashing/Hash.h"
 
 namespace nfx::containers
 {
-	namespace
-	{
-		//=====================================================================
-		// CHD HashMap configuration
-		//=====================================================================
-
-		/** @brief Maximum multiplier for seed search iterations in CHD construction. */
-		inline constexpr uint32_t MAX_SEED_SEARCH_MULTIPLIER = 100;
-
-		//=====================================================================
-		// Internal helper components
-		//=====================================================================
-
-		//----------------------------------------------
-		// ThrowHelper class
-		//----------------------------------------------
-
-		class ThrowHelper final
-		{
-		public:
-			//----------------------------
-			// Construction
-			//----------------------------
-
-			/** @brief Default constructor. */
-			ThrowHelper() = delete;
-
-			/** @brief Copy constructor */
-			ThrowHelper( const ThrowHelper& ) = delete;
-
-			/** @brief Move constructor */
-			ThrowHelper( ThrowHelper&& ) noexcept = delete;
-
-			//----------------------------
-			// Destruction
-			//----------------------------
-
-			/** @brief Destructor */
-			~ThrowHelper() = delete;
-
-			//----------------------------
-			// Assignment operators
-			//----------------------------
-
-			/** @brief Copy assignment operator */
-			ThrowHelper& operator=( const ThrowHelper& ) = delete;
-
-			/** @brief Move assignment operator */
-			ThrowHelper& operator=( ThrowHelper&& ) noexcept = delete;
-
-			//----------------------------
-			// Public static methods
-			//----------------------------
-
-			/**
-			 * @brief Throws a key not found exception with the specified key.
-			 * @param[in] key The key that was not found.
-			 * @throws KeyNotFoundException Always.
-			 */
-			[[noreturn]] inline static void throwKeyNotFoundException( std::string_view key );
-
-			/**
-			 * @brief Throws an invalid operation exception.
-			 * @details This exception is thrown when an operation is not valid due to
-			 *          the current state of the object, such as accessing Current on
-			 *          an enumerator that hasn't been positioned properly.
-			 * @throws InvalidOperationException Always.
-			 */
-			[[noreturn]] inline static void throwInvalidOperationException();
-		};
-	}
-
-	//======================================================================
-	// Exception classes
-	//======================================================================
-
-	/**
-	 * @brief Exception thrown when a requested key is not found in the dictionary.
-	 * @details This exception is thrown by operator[] and at() methods when
-	 *          the specified key does not exist in the dictionary.
-	 */
-	class KeyNotFoundException : public std::runtime_error
-	{
-	public:
-		/**
-		 * @brief Constructs a key not found exception.
-		 * @param[in] key The key that was not found.
-		 */
-		inline explicit KeyNotFoundException( std::string_view key );
-	};
-
-	/**
-	 * @brief Exception thrown when an operation is not valid due to the current state.
-	 * @details This exception is thrown by enumerator operations when the enumerator
-	 *          is not positioned on a valid element.
-	 */
-	class InvalidOperationException : public std::runtime_error
-	{
-	public:
-		/**
-		 * @brief Constructs an invalid operation exception with default message.
-		 */
-		inline InvalidOperationException();
-
-		/**
-		 * @brief Constructs an invalid operation exception with custom message.
-		 * @param[in] message The exception message.
-		 */
-		inline explicit InvalidOperationException( std::string_view message );
-	};
-
 	//=====================================================================
 	// ChdHashMap class
 	//=====================================================================
+
+	namespace
+	{
+		//----------------------------------------------
+		// Configuration
+		//----------------------------------------------
+
+		/** @brief Maximum multiplier for seed search iterations in CHD construction. */
+		inline constexpr uint32_t MAX_SEED_SEARCH_MULTIPLIER = 100;
+	}
 
 	/**
 	 * @class ChdHashMap
@@ -187,7 +87,7 @@ namespace nfx::containers
 	 *
 	 * @see https://en.wikipedia.org/wiki/Perfect_hash_function#CHD_algorithm
 	 */
-	template <typename TValue>
+	template <typename TValue, uint32_t FnvOffsetBasis = core::hashing::DEFAULT_FNV_OFFSET_BASIS, uint32_t FnvPrime = core::hashing::DEFAULT_FNV_PRIME>
 	class ChdHashMap final
 	{
 	public:
@@ -366,18 +266,53 @@ namespace nfx::containers
 		 */
 		[[nodiscard]] static NFX_CORE_INLINE uint32_t hash( std::string_view key ) noexcept;
 
-	private:
 		//----------------------------------------------
-		// Private member variables
+		// Exception classes
 		//----------------------------------------------
 
-		/** @brief The primary storage table containing the key-value pairs. Order determined during construction. */
-		std::vector<std::pair<std::string, TValue>> m_table;
+		//----------------------------
+		// ChdHashMap::KeyNotFoundException
+		//----------------------------
 
-		/** @brief The seed values used by the CHD perfect hash function to resolve hash collisions. Size matches `m_table`. */
-		std::vector<int> m_seeds;
+		/**
+		 * @brief Exception thrown when a requested key is not found in the dictionary.
+		 * @details This exception is thrown by operator[] and at() methods when
+		 *          the specified key does not exist in the dictionary.
+		 */
+		class KeyNotFoundException : public std::runtime_error
+		{
+		public:
+			/**
+			 * @brief Constructs a key not found exception.
+			 * @param[in] key The key that was not found.
+			 */
+			inline explicit KeyNotFoundException( std::string_view key );
+		};
 
-	public:
+		//----------------------------
+		// ChdHashMap::InvalidOperationException
+		//----------------------------
+
+		/**
+		 * @brief Exception thrown when an operation is not valid due to the current state.
+		 * @details This exception is thrown by enumerator operations when the enumerator
+		 *          is not positioned on a valid element.
+		 */
+		class InvalidOperationException : public std::runtime_error
+		{
+		public:
+			/**
+			 * @brief Constructs an invalid operation exception with default message.
+			 */
+			inline InvalidOperationException();
+
+			/**
+			 * @brief Constructs an invalid operation exception with custom message.
+			 * @param[in] message The exception message.
+			 */
+			inline explicit InvalidOperationException( std::string_view message );
+		};
+
 		//----------------------------------------------
 		// ChdHashMap::Iterator class
 		//----------------------------------------------
@@ -658,6 +593,58 @@ namespace nfx::containers
 			/** @brief Current index within the table.*/
 			size_t m_index;
 		};
+
+	private:
+		//----------------------------------------------
+		// ChdHashMap::ThrowHelper
+		//----------------------------------------------
+
+		/**
+		 * @brief Internal exception throwing utility for ChdHashMap.
+		 * @details Provides centralized exception handling with consistent error messages.
+		 *          This class is implementation-specific and not intended for external use.
+		 */
+		class ThrowHelper final
+		{
+		public:
+			//----------------------------
+			// Construction (deleted)
+			//----------------------------
+
+			ThrowHelper() = delete;
+			ThrowHelper( const ThrowHelper& ) = delete;
+			ThrowHelper( ThrowHelper&& ) noexcept = delete;
+			ThrowHelper& operator=( const ThrowHelper& ) = delete;
+			ThrowHelper& operator=( ThrowHelper&& ) noexcept = delete;
+			~ThrowHelper() = delete;
+
+			//----------------------------
+			// Static exception methods
+			//----------------------------
+
+			/**
+			 * @brief Throws a key not found exception with the specified key.
+			 * @param[in] key The key that was not found.
+			 * @throws KeyNotFoundException Always.
+			 */
+			[[noreturn]] inline static void throwKeyNotFoundException( std::string_view key );
+
+			/**
+			 * @brief Throws an invalid operation exception.
+			 * @throws InvalidOperationException Always.
+			 */
+			[[noreturn]] inline static void throwInvalidOperationException();
+		};
+
+		//----------------------------------------------
+		// Private member variables
+		//----------------------------------------------
+
+		/** @brief The primary storage table containing the key-value pairs. Order determined during construction. */
+		std::vector<std::pair<std::string, TValue>> m_table;
+
+		/** @brief The seed values used by the CHD perfect hash function to resolve hash collisions. Size matches `m_table`. */
+		std::vector<int> m_seeds;
 	};
 }
 
