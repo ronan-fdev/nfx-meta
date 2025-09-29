@@ -82,7 +82,7 @@ namespace nfx::core::benchmark
 	{
 		for ( auto _ : state )
 		{
-			bool hasSSE42 = nfx::core::hashing::hasSSE42Support();
+			bool hasSSE42 = nfx::core::hashing::internal::hasSSE42Support();
 			::benchmark::DoNotOptimize( hasSSE42 );
 		}
 	}

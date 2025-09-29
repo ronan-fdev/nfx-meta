@@ -31,6 +31,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.1.8] - 2025-09-29
+
+### Added
+
+#### Cross-Platform CPU Architecture Detection
+
+- **Dynamic CPU Feature Detection**: Runtime CPU capability detection in CMake configuration
+  - **Sandy Bridge Support**: Automatic detection and fallback for older CPUs (i7-2xxx series, 2011-2012) that support AVX but not AVX2/FMA
+  - **Haswell+ Optimization**: Enables AVX2/FMA optimizations on supported CPUs (i7-4xxx series, 2013+)
+
+### Changed
+
+#### Build System Architecture Modernization
+
+- **Conditional Compiler Flags**:
+  - **MSVC**: Conditional `/arch:AVX2` vs `/arch:SSE2` based on CPU support
+  - **GCC/Clang**: Conditional `-mavx2` and `-mfma` flags only when CPU supports AVX2
+  - **Fallback Safety**: Automatic degradation to SSE4.2 baseline on unsupported hardware
+
+### Fixed
+
+#### High-Precision Arithmetic Edge Case Handling
+
+- **Int128 Minimum Value Overflow Protection**: Fixed critical two's complement arithmetic edge case
+  - **toString() Fix**: Special case handling in `Int128::toString()` prevents overflow when calling `abs()` on minimum value
+  - **Decimal Constructor Fix**: Enhanced `Decimal(const Int128&)` constructor to handle minimum value without overflow
+
+#### Test Suite Reliability Improvements
+
+- **DateTime Test Precision**: Fixed floating-point arithmetic precision issue
+
 ## [0.1.7] - 2025-09-27
 
 ### Added

@@ -411,6 +411,17 @@ namespace nfx::datatypes
 			return "0";
 		}
 
+		// Handle the special case of minimum value (-2^127)
+		// This value cannot be represented positively in 128-bit signed integer
+#if NFX_CORE_HAS_INT128
+		if ( toNative() == static_cast<NFX_CORE_INT128>( constants::int128::MIN_NEGATIVE_HIGH ) << 64 )
+#else
+		if ( toHigh() == constants::int128::MIN_NEGATIVE_HIGH && toLow() == constants::int128::MIN_NEGATIVE_LOW )
+#endif
+		{
+			return "-" + std::string{ constants::int128::MAX_NEGATIVE_STRING };
+		}
+
 		std::string result;
 		result.reserve( 40 ); // Reserve space for efficiency (128-bit max ~39 digits)
 

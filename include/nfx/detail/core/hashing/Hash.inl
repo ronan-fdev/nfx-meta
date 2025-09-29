@@ -20,29 +20,32 @@ namespace nfx::core::hashing
 	// Hash infrastructure
 	//=====================================================================
 
-	//----------------------------
-	// CPU feature detection
-	//----------------------------
-
-	NFX_CORE_INLINE bool hasSSE42Support() noexcept
+	namespace internal
 	{
-		static const bool s_hasSSE42 = []() {
-			bool hasSupport = false;
-#if defined( _MSC_VER )
-			std::array<int, 4> cpuInfo{};
-			__cpuid( cpuInfo.data(), 1 );
-			hasSupport = ( cpuInfo[2] & ( 1 << 20 ) ) != 0;
-#elif defined( __GNUC__ )
-			unsigned int eax, ebx, ecx, edx;
-			if ( __get_cpuid( 1, &eax, &ebx, &ecx, &edx ) )
-			{
-				hasSupport = ( ecx & ( 1 << 20 ) ) != 0;
-			}
-#endif
-			return hasSupport;
-		}();
+		//----------------------------
+		// CPU feature detection
+		//----------------------------
 
-		return s_hasSSE42;
+		NFX_CORE_INLINE bool hasSSE42Support() noexcept
+		{
+			static const bool s_hasSSE42 = []() {
+				bool hasSupport = false;
+#if defined( _MSC_VER )
+				std::array<int, 4> cpuInfo{};
+				__cpuid( cpuInfo.data(), 1 );
+				hasSupport = ( cpuInfo[2] & ( 1 << 20 ) ) != 0;
+#elif defined( __GNUC__ )
+				unsigned int eax, ebx, ecx, edx;
+				if ( __get_cpuid( 1, &eax, &ebx, &ecx, &edx ) )
+				{
+					hasSupport = ( ecx & ( 1 << 20 ) ) != 0;
+				}
+#endif
+				return hasSupport;
+			}();
+
+			return s_hasSSE42;
+		}
 	}
 
 	//----------------------------------------------
@@ -64,12 +67,15 @@ namespace nfx::core::hashing
 
 	NFX_CORE_INLINE uint32_t crc32( uint32_t hash, uint8_t ch ) noexcept
 	{
-#if defined( _MSC_VER )
+#if defined( _MSC_VER ) && !defined( __clang__ )
+		// Pure MSVC compiler
 		return _mm_crc32_u8( hash, ch );
 #elif defined( __SSE4_2__ )
+		// GCC, Clang, or Clang-CL with SSE4.2 support
 		return __builtin_ia32_crc32qi( hash, ch );
 #else
-		static_assert( sizeof( hash ) == 0, "CRC32 intrinsics not available on this platform" );
+		// This should never be reached due to runtime check, but ensures compilation
+		return fnv1a<DEFAULT_FNV_PRIME>( hash, ch );
 #endif
 	}
 
@@ -127,22 +133,15 @@ namespace nfx::core::hashing
 
 		uint32_t hashValue = FnvOffsetBasis;
 
-		// Check for SSE4.2 support
-		if ( hasSSE42Support() )
+		if ( internal::hasSSE42Support() )
 		{
-			// Use SSE4.2 CRC32 for hardware acceleration
 			for ( size_t i = 0; i < key.length(); ++i )
 			{
-#if defined( _MSC_VER )
-				hashValue = _mm_crc32_u8( hashValue, static_cast<uint8_t>( key[i] ) );
-#elif defined( __SSE4_2__ )
-				hashValue = __builtin_ia32_crc32qi( hashValue, static_cast<uint8_t>( key[i] ) );
-#endif
+				hashValue = crc32( hashValue, static_cast<uint8_t>( key[i] ) );
 			}
 		}
 		else
 		{
-			// FNV-1a software fallback using the template function
 			for ( size_t i = 0; i < key.length(); ++i )
 			{
 				hashValue = fnv1a<FnvPrime>( hashValue, static_cast<uint8_t>( key[i] ) );

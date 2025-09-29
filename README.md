@@ -277,6 +277,36 @@ NFX-Core is designed with performance as a primary concern. For detailed perform
 - **Architectures**: x64, x86 (multi-architecture build matrix)
 - **Standards**: C++20 required
 
+## CPU Architecture Detection
+
+NFX-Core includes CPU feature detection to optimize performance across different hardware generations.
+
+### Build-Time CPU Detection
+
+The library automatically detects CPU capabilities during CMake configuration:
+
+- **Sandy Bridge CPUs** (i7-2xxx series, 2011-2012): Supports AVX but not AVX2/FMA
+  - Automatically falls back to SSE4.2 + AVX baseline
+  - Prevents illegal instruction crashes on older hardware
+- **Haswell+ CPUs** (i7-4xxx series, 2013+): Full AVX2/FMA support
+  - Enables advanced optimizations for maximum performance
+
+### Binary Distribution Considerations
+
+⚠️ **Important for Binary Distribution:**
+
+The current implementation performs CPU detection at **configure time**, which means:
+
+- ✅ **Development builds**: Optimal performance for your specific hardware
+- ✅ **Local compilation**: Automatically adapts to target machine CPU
+- ❌ **Binary distribution**: Built binaries are CPU-specific and may not run on different hardware generations
+
+### Future Enhancement: Runtime CPU Detection
+
+- **Planned Feature**: Runtime CPU capability detection for truly portable binaries
+
+A future version will implement runtime CPU feature detection to enable single binaries that work across all hardware generations while maintaining optimal performance through dynamic dispatch.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

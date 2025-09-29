@@ -387,7 +387,7 @@ namespace nfx::time::test
 
 		// Time of day extraction
 		time::TimeSpan timeOfDay = dtWithTime.timeOfDay();
-		EXPECT_DOUBLE_EQ( 14.0, timeOfDay.totalHours() - 30.0 / 60.0 - 45.0 / 3600.0 );
+		EXPECT_DOUBLE_EQ( 14.0 + 30.0 / 60.0 + 45.0 / 3600.0, timeOfDay.totalHours() );
 	}
 
 	TEST( DateTimeOperations, StringFormatting )

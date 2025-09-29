@@ -11,6 +11,7 @@
 #include "nfx/datatypes/Decimal.h"
 
 #include "nfx/datatypes/constants/DecimalConstants.h"
+#include "nfx/datatypes/constants/Int128Constants.h"
 #include "nfx/config.h"
 
 namespace nfx::datatypes
@@ -281,7 +282,33 @@ namespace nfx::datatypes
 
 		// Extract sign and get absolute value
 		bool isNegative = val.isNegative();
-		Int128 absoluteValue = val.abs();
+
+		// Handle the special case of minimum Int128 value (-2^127)
+		// This value cannot be represented positively in 128-bit signed integer
+		Int128 absoluteValue;
+#if NFX_CORE_HAS_INT128
+		if ( val.toNative() == static_cast<NFX_CORE_INT128>( constants::int128::MIN_NEGATIVE_HIGH ) << 64 )
+#else
+		if ( val.toHigh() == constants::int128::MIN_NEGATIVE_HIGH && val.toLow() == constants::int128::MIN_NEGATIVE_LOW )
+#endif
+		{
+			// For the minimum value, we manually construct the absolute value
+			// Since -2^127 cannot be represented as a positive Int128, we clamp to Decimal max
+			m_layout.mantissa[0] = 0xFFFFFFFFU; // Lower 32 bits: all 1s
+			m_layout.mantissa[1] = 0xFFFFFFFFU; // Middle 32 bits: all 1s
+			m_layout.mantissa[2] = 0xFFFFFFFFU; // Upper 32 bits: all 1s
+
+			// Set sign flag if negative
+			if ( isNegative )
+			{
+				m_layout.flags |= constants::decimal::SIGN_MASK;
+			}
+			return;
+		}
+		else
+		{
+			absoluteValue = val.abs();
+		}
 
 		// Set sign flag if negative
 		if ( isNegative )
