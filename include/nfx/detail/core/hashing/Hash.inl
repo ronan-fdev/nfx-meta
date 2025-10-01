@@ -115,6 +115,19 @@ namespace nfx::core::hashing
 		return existing;
 	}
 
+	NFX_CORE_INLINE constexpr size_t combine( size_t existing, size_t newHash ) noexcept
+	{
+		existing ^= newHash + DEFAULT_GOLDEN_RATIO_64 + ( existing << 6 ) + ( existing >> 2 );
+
+		existing ^= existing >> 33;
+		existing *= DEFAULT_MURMUR3_C1;
+		existing ^= existing >> 33;
+		existing *= DEFAULT_MURMUR3_C2;
+		existing ^= existing >> 33;
+
+		return existing;
+	}
+
 	//----------------------------------------------
 	// High-level complete hash operations
 	//----------------------------------------------

@@ -19,7 +19,7 @@ namespace nfx::core::hashing
 	//=====================================================================
 
 	//----------------------------------------------
-	// FNV-1a Hash Algorithm Constants
+	// FNV-1a 32-bit hash algorithm constants
 	//----------------------------------------------
 
 	/** @brief FNV-1a 32-bit offset basis constant. */
@@ -29,7 +29,14 @@ namespace nfx::core::hashing
 	inline constexpr uint32_t DEFAULT_FNV_PRIME{ 0x01000193 }; // Fowler-Noll-Vo algorithm
 
 	//----------------------------------------------
-	// Integer Hashing Constants
+	// 64-bit generic hash mixing constants
+	//----------------------------------------------
+
+	/** @brief Generic 64-bit hash constant for bit avalanche mixing. */
+	inline constexpr uint64_t DEFAULT_HASH_MIX_64{ 0x2545F4914F6CDD1DUL };
+
+	//----------------------------------------------
+	// Integer hashing constants
 	//----------------------------------------------
 
 	/** @brief Integer hash constant for 32-bit values. */
@@ -42,11 +49,17 @@ namespace nfx::core::hashing
 	inline constexpr uint64_t DEFAULT_INTEGER_HASH_64_C2{ 0x94d049bb133111ebull }; // Thomas Wang (2007)
 
 	//----------------------------------------------
-	// Generic Hash Mixing Constants
+	// 64-bit hashing constants
 	//----------------------------------------------
 
-	/** @brief Generic 64-bit hash constant for bit avalanche mixing. */
-	inline constexpr uint64_t DEFAULT_HASH_MIX_64{ 0x2545F4914F6CDD1DUL }; // Universal hashing
+	/** @brief Golden ratio constant for hash combining (φ = 2^64 / golden_ratio). */
+	inline constexpr uint64_t DEFAULT_GOLDEN_RATIO_64{ 0x9e3779b97f4a7c15ULL };
+
+	/** @brief MurmurHash3 64-bit avalanche constant #1. */
+	inline constexpr uint64_t DEFAULT_MURMUR3_C1{ 0xff51afd7ed558ccdULL };
+
+	/** @brief MurmurHash3 64-bit avalanche constant #2. */
+	inline constexpr uint64_t DEFAULT_MURMUR3_C2{ 0xc4ceb9fe1a85ec53ULL };
 
 	//=====================================================================
 	// Hash infrastructure
@@ -118,13 +131,38 @@ namespace nfx::core::hashing
 
 	/**
 	 * @brief Combines two hash values using FNV-1a mixing.
-	 * @param[in] existing The current accumulated hash value.
-	 * @param[in] newHash The new hash value to combine.
+	 * @param[in] existing The current accumulated 32-bit hash value.
+	 * @param[in] newHash The new 32-bit hash value to combine.
 	 * @param[in] prime The FNV prime constant for mixing.
+	 * @details Uses XOR followed by multiplication for optimal bit mixing.
 	 * @return Combined hash value with good distribution properties.
-	 * @note Uses XOR followed by multiplication for optimal bit mixing.
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 	 */
 	[[nodiscard]] NFX_CORE_INLINE constexpr uint32_t combine( uint32_t existing, uint32_t newHash, uint32_t prime ) noexcept;
+
+	/**
+	 * @brief Combines two 64-bit hash values using Boost hash_combine with MurmurHash3 finalizer
+	 * @param[in] existing The current accumulated 64-bit hash value.
+	 * @param[in] newHash The new 64-bit hash value to combine.
+	 * @details Hybrid algorithm combining Boost's hash_combine formula with MurmurHash3's 64-bit finalizer.
+	 *
+	 *          **Phase 1 - Initial Mixing (Boost-style):**
+	 *          - Uses golden ratio constant (φ = 0x9E3779B97F4A7C15) for uniform distribution
+	 *          - Incorporates bit-shift mixing to prevent linear correlation between inputs
+	 *
+	 *          **Phase 2 - Avalanche Finalization (MurmurHash3):**
+	 *          - Triple avalanche rounds ensure complete bit interdependency
+	 *          - Uses proven MurmurHash3 constants for optimal statistical properties
+	 *          - Guarantees that single-bit input changes affect ~50% of output bits
+	 *
+	 *          **Performance:** O(1) with ~6 operations, excellent for combining multiple hash values
+	 *          in composite keys, tuples, or hash table chaining scenarios.
+	 * @return Combined hash value with strong collision resistance and uniform distribution.
+	 * @see https://github.com/aappleby/smhasher/wiki/MurmurHash3
+	 * @see https://www.boost.org/doc/libs/1_89_0/boost/hash2/legacy/murmur3.hpp
+	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+	 */
+	[[nodiscard]] NFX_CORE_INLINE constexpr size_t combine( size_t existing, size_t newHash ) noexcept;
 
 	//----------------------------------------------
 	// High-level complete hash operations

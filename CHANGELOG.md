@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.1.9] - 2025-10-01
+
+### Added
+
+- **64-bit Hash Combination Function**: New `combine(size_t, size_t)` overload for 64-bit hash composition
+
 ## [0.1.8] - 2025-09-29
 
 ### Added
