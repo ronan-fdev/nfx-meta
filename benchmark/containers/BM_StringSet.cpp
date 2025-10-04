@@ -629,7 +629,7 @@ namespace nfx::containers::benchmark
 			::benchmark::DoNotOptimize( set );
 		}
 	}
-}
+} // namespace nfx::containers::benchmark
 
 //=====================================================================
 // Benchmarks registration

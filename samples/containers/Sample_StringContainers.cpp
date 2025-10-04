@@ -106,7 +106,7 @@ static void demoHttpHeaders()
 	for ( const auto& header : requiredSecurityHeaders )
 	{
 		bool present{ headers.contains( std::string_view{ header } ) };
-		std::cout << "  " << header << ": " << ( present ? "✓" : "✗" ) << "\n";
+		std::cout << "  " << header << ": " << ( present ? "YES" : "NO" ) << "\n";
 	}
 }
 
@@ -277,7 +277,7 @@ static void demoStringSetUsage()
 	{
 		std::cout << "  ";
 		bool valid{ validateRequest( method, user ) };
-		std::cout << "  -> " << ( valid ? "✓ Allowed" : "✗ Rejected" ) << "\n";
+		std::cout << "  -> " << ( valid ? "ALLOWED" : "REJECTED" ) << "\n";
 	}
 
 	std::cout << "\nAllowed methods: ";
@@ -409,12 +409,12 @@ int main()
 
 		std::cout << "\n=== Demo Complete ===\n";
 		std::cout << "Key benefits demonstrated:\n";
-		std::cout << "✓ Zero-copy string_view lookups\n";
-		std::cout << "✓ Heterogeneous key operations\n";
-		std::cout << "✓ Robin Hood hashing performance\n";
-		std::cout << "✓ Performance improvements\n";
-		std::cout << "✓ Drop-in STL compatibility\n";
-		std::cout << "✓ Real-world usage patterns\n";
+		std::cout << "    Zero-copy string_view lookups\n";
+		std::cout << "    Heterogeneous key operations\n";
+		std::cout << "    Robin Hood hashing performance\n";
+		std::cout << "    Performance improvements\n";
+		std::cout << "    Drop-in STL compatibility\n";
+		std::cout << "    Real-world usage patterns\n";
 	}
 	catch ( const std::exception& e )
 	{

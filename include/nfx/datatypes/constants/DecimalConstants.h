@@ -93,4 +93,4 @@ namespace nfx::datatypes::constants::decimal
 		{ 0x9FD0803CE8000000ULL, 0x00000000003336A9ULL }, // 10^27
 		{ 0x3E25026110000000ULL, 0x0000000000204FCEULL }  // 10^28
 	} };
-}
+} // namespace nfx::datatypes::constants::decimal

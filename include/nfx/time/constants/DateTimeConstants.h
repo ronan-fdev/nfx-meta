@@ -168,4 +168,4 @@ namespace nfx::time::constants::datetime
 		std::min(
 			MAX_DATETIME_TICKS,
 			UNIX_EPOCH_TICKS + ( std::numeric_limits<std::int64_t>::max() / 100 ) );
-}
+} // namespace nfx::time::constants::datetime

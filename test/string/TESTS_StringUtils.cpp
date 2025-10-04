@@ -1358,4 +1358,4 @@ namespace nfx::string::test
 		EXPECT_EQ( '\n', toUpper( '\n' ) );
 		EXPECT_EQ( '\r', toUpper( '\r' ) );
 	}
-}
+} // namespace nfx::string::test

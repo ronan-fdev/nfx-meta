@@ -149,4 +149,4 @@ namespace nfx::containers::test
 		EXPECT_TRUE( eq( emptySv, emptyStr ) );
 		EXPECT_TRUE( eq( emptyCstr, emptySv ) );
 	}
-}
+} // namespace nfx::containers::test

@@ -181,4 +181,4 @@ namespace nfx::string
 	{
 		return m_buffer.data() + m_buffer.size();
 	}
-}
+} // namespace nfx::string

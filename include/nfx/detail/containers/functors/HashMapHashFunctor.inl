@@ -71,4 +71,4 @@ namespace nfx::containers
 		// Delegate to standard library for types we don't optimize
 		return std::hash<T>{}( value );
 	}
-}
+} // namespace nfx::containers

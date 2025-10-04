@@ -347,11 +347,11 @@ int main()
 	std::cout << std::endl;
 
 	std::cout << "Operations Completed:" << std::endl;
-	std::cout << "  ✓ Executed " << trades.size() << " trades with precision timestamps" << std::endl;
-	std::cout << "  ✓ Consolidated into " << positions.size() << " portfolio positions" << std::endl;
-	std::cout << "  ✓ Performed mark-to-market valuation" << std::endl;
-	std::cout << "  ✓ Calculated accrued interest over " << days_elapsed << " days" << std::endl;
-	std::cout << "  ✓ Generated comprehensive risk and performance analytics" << std::endl;
+	std::cout << "    Executed " << trades.size() << " trades with precision timestamps" << std::endl;
+	std::cout << "    Consolidated into " << positions.size() << " portfolio positions" << std::endl;
+	std::cout << "    Performed mark-to-market valuation" << std::endl;
+	std::cout << "    Calculated accrued interest over " << days_elapsed << " days" << std::endl;
+	std::cout << "    Generated comprehensive risk and performance analytics" << std::endl;
 	std::cout << std::endl;
 
 	std::cout << "=== NFX Financial Trading & Portfolio Management sample completed successfully ===" << std::endl;

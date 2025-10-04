@@ -307,6 +307,6 @@ namespace nfx::string
 	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 	 */
 	[[nodiscard]] NFX_CORE_INLINE bool tryParseDouble( std::string_view str, double& result ) noexcept;
-}
+} // namespace nfx::string
 
 #include "nfx/detail/string/Utils.inl"

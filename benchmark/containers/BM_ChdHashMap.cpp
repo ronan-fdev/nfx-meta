@@ -35,6 +35,7 @@ namespace nfx::containers::benchmark
 		std::string department;
 
 		Employee() = default;
+
 		Employee( std::string n, uint32_t i, double s, std::string dept )
 			: name{ std::move( n ) },
 			  id{ i },
@@ -50,6 +51,7 @@ namespace nfx::containers::benchmark
 		std::chrono::system_clock::time_point timestamp;
 
 		Config() = default;
+
 		Config( std::string v, bool valid = true )
 			: value{ std::move( v ) },
 			  isValid{ valid },
@@ -1075,7 +1077,7 @@ namespace nfx::containers::benchmark
 			::benchmark::DoNotOptimize( totalSalary );
 		}
 	}
-}
+} // namespace nfx::containers::benchmark
 
 //=====================================================================
 // Benchmarks registration

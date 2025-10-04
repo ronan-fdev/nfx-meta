@@ -82,7 +82,7 @@
  *          - Original = 12345678901234567890123456789
  *
  *          IEEE 754-2008 binary64 Input Compatibility:
- *          - Construction from double uses IEEE 754-2008 std::isnan/std::isinf functions
+ *          - Construction from double uses IEEE 754-2008 std::isnan and std::isinf functions
  *          - Preserves IEEE 754 binary64 precision limits (~15-17 digits)
  *          - NaN and Infinity from double are converted to zero
  *          - String construction provides exact decimal precision (up to 28 digits)
@@ -127,7 +127,7 @@ namespace nfx::datatypes
 	 *          - Predictable precision for financial applications
 	 *
 	 *          IEEE 754-2008 binary64 Input Compatibility:
-	 *          - Double constructor uses IEEE 754-2008 std::isnan/std::isinf functions
+	 *          - Double constructor uses IEEE 754-2008 std::isnan and std::isinf functions
 	 *          - Respects IEEE 754 binary64 precision limits (~15-17 digits)
 	 *          - NaN and Infinity from double input are converted to zero
 	 *          - No internal NaN/Infinity states (division by zero throws std::overflow_error)
@@ -152,7 +152,7 @@ namespace nfx::datatypes
 		 * @param value Float value to convert
 		 * @details Delegates to the double constructor for consistent behavior.
 		 *          Limited to IEEE 754 binary32 precision (~6-7 significant digits).
-		 *          Uses IEEE 754-2008 std::isnan/std::isinf for special value detection.
+		 *          Uses IEEE 754-2008 std::isnan and std::isinf for special value detection.
 		 *          NaN and Infinity values are converted to zero.
 		 * @note For exact precision with fractional values, use string constructor instead.
 		 *       Float precision is inherently limited and may introduce rounding artifacts.
@@ -163,7 +163,7 @@ namespace nfx::datatypes
 		 * @brief Construct from double with IEEE 754-2008 input compatibility
 		 * @param value Double value to convert
 		 * @note Limited to IEEE 754 binary64 precision (~15-17 significant digits).
-		 *       Uses IEEE 754-2008 std::isnan/std::isinf for special value detection.
+		 *       Uses IEEE 754-2008 std::isnan and std::isinf for special value detection.
 		 *       NaN and Infinity values are converted to zero.
 		 *       For exact precision, use string constructor instead.
 		 */
@@ -244,7 +244,7 @@ namespace nfx::datatypes
 		~Decimal() = default;
 
 		//----------------------------------------------
-		// Assignment operators
+		// Assignment
 		//----------------------------------------------
 
 		/**
@@ -949,6 +949,6 @@ namespace nfx::datatypes
 	 * @return Reference to input stream
 	 */
 	std::istream& operator>>( std::istream& is, Decimal& decimal );
-}
+} // namespace nfx::datatypes
 
 #include "nfx/detail/datatypes/Decimal.inl"

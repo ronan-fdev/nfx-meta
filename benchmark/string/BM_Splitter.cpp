@@ -233,7 +233,7 @@ namespace nfx::string::benchmark
 			::benchmark::DoNotOptimize( count );
 		}
 	}
-}
+} // namespace nfx::string::benchmark
 
 //=====================================================================
 // Benchmarks registration

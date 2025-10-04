@@ -35,20 +35,54 @@ endif()
 # Tests source files
 #----------------------------------------------
 
-set(TEST_SOURCES
-	containers/TESTS_ChdHashMap.cpp
-	containers/TESTS_HashMap.cpp
-	containers/TESTS_StringFunctors.cpp
-	containers/TESTS_StringMap.cpp
-	containers/TESTS_StringSet.cpp
-	datatypes/TESTS_Decimal.cpp
-	datatypes/TESTS_Int128.cpp
-	memory/TESTS_LruCache.cpp
-	string/TESTS_StringBuilderPool.cpp
-	string/TESTS_StringSplitter.cpp
-	string/TESTS_StringUtils.cpp
-	time/TESTS_DateTime.cpp
-)
+set(TEST_SOURCES)
+
+if(NFX_CORE_WITH_CONTAINERS)
+	list(APPEND TEST_SOURCES
+		containers/TESTS_ChdHashMap.cpp
+		containers/TESTS_HashMap.cpp
+		containers/TESTS_StringFunctors.cpp
+		containers/TESTS_StringMap.cpp
+		containers/TESTS_StringSet.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_DATATYPES)
+	list(APPEND TEST_SOURCES
+		datatypes/TESTS_Decimal.cpp
+		datatypes/TESTS_Int128.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_MEMORY)
+	list(APPEND TEST_SOURCES
+		memory/TESTS_LruCache.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_JSON)
+	list(APPEND TEST_SOURCES
+		serialization/json/TESTS_JSONArrayEnumerator.cpp
+		serialization/json/TESTS_JSONDocument.cpp
+		serialization/json/TESTS_JSONFieldEnumerator.cpp
+		serialization/json/TESTS_JSONSchemaValidator.cpp
+		serialization/json/TESTS_JSONSerializer.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_STRING)
+	list(APPEND TEST_SOURCES
+		string/TESTS_StringBuilderPool.cpp
+		string/TESTS_StringSplitter.cpp
+		string/TESTS_StringUtils.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_TIME)
+	list(APPEND TEST_SOURCES
+		time/TESTS_DateTime.cpp
+	)
+endif()
 
 #----------------------------------------------
 # Configure test executables

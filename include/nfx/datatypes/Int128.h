@@ -258,7 +258,7 @@ namespace nfx::datatypes
 		~Int128() = default;
 
 		//----------------------------------------------
-		// Assignment operators
+		// Assignment
 		//----------------------------------------------
 
 		/**
@@ -784,6 +784,6 @@ namespace nfx::datatypes
 	 * @return Reference to input stream
 	 */
 	std::istream& operator>>( std::istream& is, Int128& value );
-}
+} // namespace nfx::datatypes
 
 #include "nfx/detail/datatypes/Int128.inl"

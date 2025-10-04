@@ -76,7 +76,7 @@ namespace nfx::string
 		~DynamicStringBuffer();
 
 		//----------------------------------------------
-		// Assignment operators
+		// Assignment
 		//----------------------------------------------
 
 		/**
@@ -339,7 +339,7 @@ namespace nfx::string
 		~StringBuilder() = default;
 
 		//----------------------------------------------
-		// Assignment operators
+		// Assignment
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -615,7 +615,7 @@ namespace nfx::string
 		~StringBuilderLease();
 
 		//----------------------------------------------
-		// Assignment operators
+		// Assignment
 		//----------------------------------------------
 
 		/** @brief Copy assignment operator */
@@ -782,6 +782,6 @@ namespace nfx::string
 		 */
 		static size_t size() noexcept;
 	};
-}
+} // namespace nfx::string
 
 #include "nfx/detail/string/StringBuilderPool.inl"

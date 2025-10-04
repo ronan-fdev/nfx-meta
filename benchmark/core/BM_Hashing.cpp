@@ -14,7 +14,8 @@
 #include <string_view>
 #include <vector>
 
-#include <nfx/core/hashing/Hash.h>
+#include <nfx/core/Hashing.h>
+#include <nfx/core/CPU.h>
 
 namespace nfx::core::benchmark
 {
@@ -82,7 +83,7 @@ namespace nfx::core::benchmark
 	{
 		for ( auto _ : state )
 		{
-			bool hasSSE42 = nfx::core::hashing::internal::hasSSE42Support();
+			bool hasSSE42 = nfx::core::cpu::hasSSE42Support();
 			::benchmark::DoNotOptimize( hasSSE42 );
 		}
 	}
@@ -535,7 +536,7 @@ namespace nfx::core::benchmark
 			::benchmark::DoNotOptimize( totalHash );
 		}
 	}
-}
+} // namespace nfx::core::benchmark
 
 //=====================================================================
 // Benchmarks registration

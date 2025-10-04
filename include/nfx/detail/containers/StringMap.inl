@@ -146,4 +146,4 @@ namespace nfx::containers
 	{
 		return Base::insert_or_assign( std::string{ key }, std::forward<M>( obj ) );
 	}
-}
+} // namespace nfx::containers

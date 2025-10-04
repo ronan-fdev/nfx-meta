@@ -720,4 +720,4 @@ namespace nfx::memory::test
 		// At least some entries should be accessible
 		EXPECT_GT( accessibleCount, 0 ) << "Should have at least some accessible entries after concurrent operations";
 	}
-}
+} // namespace nfx::memory::test

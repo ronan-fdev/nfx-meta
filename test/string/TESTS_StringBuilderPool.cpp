@@ -1034,21 +1034,22 @@ namespace nfx::string::test
 
 		// Self move assignment should be safe
 		// Intentional self-move for testing - suppress compiler warnings
-#if defined( __GNUC__ ) && !defined( __clang__ )
-#	pragma GCC diagnostic push
-#	pragma GCC diagnostic ignored "-Wself-move"
-#elif defined( __clang__ )
+#if defined( __clang__ )
 #	pragma clang diagnostic push
 #	pragma clang diagnostic ignored "-Wself-move"
+#elif defined( __GNUC__ )
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wself-move"
+#	pragma GCC diagnostic ignored "-Wpessimizing-move"
 #elif defined( _MSC_VER )
 #	pragma warning( push )
 #	pragma warning( disable : 4996 )
 #endif
 		lease = std::move( lease );
-#if defined( __GNUC__ ) && !defined( __clang__ )
-#	pragma GCC diagnostic pop
-#elif defined( __clang__ )
+#if defined( __clang__ )
 #	pragma clang diagnostic pop
+#elif defined( __GNUC__ )
+#	pragma GCC diagnostic pop
 #elif defined( _MSC_VER )
 #	pragma warning( pop )
 #endif
@@ -1841,4 +1842,4 @@ namespace nfx::string::test
 		EXPECT_EQ( buffer2.toString(), "Source buffer modified" );
 		EXPECT_EQ( buffer1.toString(), "Source buffer" ); // Source still unchanged
 	}
-}
+} // namespace nfx::string::test

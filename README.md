@@ -52,6 +52,14 @@ Originally developed as foundational infrastructure for the C++ port of the [DNV
 - Intrusive LRU lists for cache-friendly performance
 - Configurable size limits and automatic eviction policies
 
+### 📄 JSON Serialization
+
+- **Document**: Comprehensive JSON parsing, manipulation, and serialization with RFC 6901 JSON Pointer support
+- **Serializer<T>**: Templated JSON serializer with automatic type detection and customizable strategies
+- **ArrayEnumerator/FieldEnumerator**: Efficient JSON traversal with stateful positioning and type-safe access
+- **SchemaValidator**: JSON Schema Draft 7 validation with detailed error reporting
+- **SerializationTraits<T>**: Extensible framework for custom type serialization with cross-platform compatibility
+
 ### 🕒 Temporal Processing (ISO 8601 compliant)
 
 - **DateTime**: High-precision date and time handling
@@ -81,6 +89,7 @@ option(NFX_CORE_BUILD_SHARED         "Build shared library"               OFF  )
 # Components
 option(NFX_CORE_WITH_CONTAINERS      "Enable container utilities"         ON   )
 option(NFX_CORE_WITH_DATATYPES       "Enable mathematical datatypes"      ON   )
+option(NFX_CORE_WITH_JSON            "Enable JSON serialization support"  ON   )
 option(NFX_CORE_WITH_MEMORY          "Enable memory management utilities" ON   )
 option(NFX_CORE_WITH_STRING          "Enable string utilities"            ON   )
 option(NFX_CORE_WITH_TIME            "Enable temporal classes"            ON   )
@@ -140,6 +149,7 @@ ctest -C Release
 #include <nfx/datatypes/Int128.h>
 #include <nfx/datatypes/Decimal.h>
 #include <nfx/memory/LruCache.h>
+#include <nfx/serialization/json/Serializer.h>
 #include <nfx/string/StringBuilderPool.h>
 
 struct ExpensiveObject
@@ -201,8 +211,24 @@ int main()
 		nfx::memory::LruCacheOptions{ 1000, std::chrono::minutes{ 30 } } };
 	cache.getOrCreate( "cache_key", [&expensiveObject]() { return expensiveObject; } );
 	std::cout << "LruCache: Added entry, cache size = " << cache.size() << std::endl;
+
+	// JSON serialization with cross-platform compatibility
+	auto serializer = nfx::serialization::json::Serializer<nfx::datatypes::Decimal>{};
+	std::string jsonString = serializer.serializeToString( preciseCalc );
+	auto deserializedDecimal = serializer.deserializeFromString( jsonString );
+	std::cout << "JSON serialization roundtrip: " << deserializedDecimal.toString() << std::endl;
 }
 
+```
+
+**Sample Output:**
+```
+	Int128 arithmetic: 1234567890123456789 * 42 = 51851851385185185138
+	Decimal arithmetic: 123.456789 * 987.654321 = 121932.631112635269
+	String building: Result: 121932.631112635269
+	StringMap lookup: key = 42
+	LruCache: Added entry, cache size = 1
+	JSON serialization roundtrip: 121932.631112635269
 ```
 
 ### Sample Applications
@@ -223,11 +249,12 @@ nfx-core/
 ├── cmake/                 # CMake modules and configuration
 ├── include/nfx/           # Public headers with .inl implementation files
 │   ├── containers/        # HashMap, ChdHashMap, StringMap, StringSet
-│   ├── core/              # Core utilities
-│   │   └── hashing/       # Hash algorithms (FNV-1a, CRC32, etc.)
+│   ├── core/              # Core utilities, hash utilities and CPU feature detection
 │   ├── datatypes/         # Int128, Decimal with high-precision arithmetic
 │   ├── detail/            # Implementation details and inline files
 │   ├── memory/            # LruCache with sliding expiration
+│   ├── serialization/     # JSON Document, Serializer, SchemaValidator
+│   │   └── json/          # JSON serialization framework
 │   ├── string/            # StringBuilderPool, Splitter, Utils
 │   └── time/              # DateTime, DateTimeOffset, TimeSpan
 ├── licenses/              # Third-party license files
@@ -315,6 +342,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **ChdHashMap algorithm**: Derived from [DNV Vista SDK](https://github.com/dnv-opensource/vista-sdk) (MIT License)
 - **[{fmt}](https://github.com/fmtlib/fmt)**: Modern formatting library (MIT License)
+- **[nlohmann/json](https://github.com/nlohmann/json)**: JSON for Modern C++ (MIT License)
 - **[GoogleTest](https://github.com/google/googletest)**: Testing framework (BSD 3-Clause License)
 - **[Google Benchmark](https://github.com/google/benchmark)**: Performance benchmarking framework (Apache 2.0 License)
 
@@ -324,4 +352,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-_Updated on September 22, 2025_
+_Updated on October 4, 2025_

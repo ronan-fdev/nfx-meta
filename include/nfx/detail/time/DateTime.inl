@@ -641,4 +641,4 @@ namespace nfx::time
 	{
 		return left.compareTo( right );
 	}
-}
+} // namespace nfx::time

@@ -541,4 +541,4 @@ namespace nfx::string::test
 		EXPECT_EQ( first_segment.data(), original.data() );
 		EXPECT_EQ( first_segment, "hello" );
 	}
-}
+} // namespace nfx::string::test

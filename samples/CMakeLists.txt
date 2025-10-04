@@ -15,16 +15,56 @@ endif()
 # Samples source files
 #----------------------------------------------
 
-set(SAMPLE_SOURCES
-	Sample_Datatypes.cpp
-	Sample_DateTime.cpp
-	Sample_FinancialWithTimestamps.cpp
-	Sample_LruCache.cpp
-	Sample_StringBuilder.cpp
-	Sample_StringContainers.cpp
-	Sample_StringSplitter.cpp
-	Sample_StringUtils.cpp
-)
+set(SAMPLE_SOURCES)
+
+if(NFX_CORE_WITH_CONTAINERS)
+	list(APPEND SAMPLE_SOURCES
+		containers/Sample_StringContainers.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_DATATYPES)
+	list(APPEND SAMPLE_SOURCES
+		datatypes/Sample_Datatypes.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_MEMORY)
+	list(APPEND SAMPLE_SOURCES
+		memory/Sample_LruCache.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_JSON)
+	list(APPEND SAMPLE_SOURCES
+		serialization/json/Sample_JSONArrayEnumerator.cpp
+		serialization/json/Sample_JSONDocument.cpp
+		serialization/json/Sample_JSONFieldEnumerator.cpp
+		serialization/json/Sample_JSONPointer.cpp
+		serialization/json/Sample_JSONPSerializer.cpp
+		serialization/json/Sample_JSONSchemaValidator.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_STRING)
+	list(APPEND SAMPLE_SOURCES
+		string/Sample_StringBuilder.cpp
+		string/Sample_StringSplitter.cpp
+		string/Sample_StringUtils.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_TIME)
+	list(APPEND SAMPLE_SOURCES
+		time/Sample_DateTime.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_DATATYPES AND NFX_CORE_WITH_TIME)
+	list(APPEND SAMPLE_SOURCES
+		realworld/Sample_FinancialWithTimestamps.cpp
+	)
+endif()
 
 #----------------------------------------------
 # Configure samples executables

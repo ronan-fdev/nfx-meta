@@ -153,4 +153,4 @@ namespace nfx::datatypes
 
 		return currentScale - trailingZeros;
 	}
-}
+} // namespace nfx::datatypes

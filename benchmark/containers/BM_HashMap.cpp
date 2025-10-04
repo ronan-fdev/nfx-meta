@@ -33,6 +33,7 @@ namespace nfx::containers::benchmark
 		std::string department;
 
 		Employee() = default;
+
 		Employee( std::string n, uint32_t i, double s, std::string dept )
 			: name{ std::move( n ) },
 			  id{ i }, salary{ s },
@@ -605,7 +606,7 @@ namespace nfx::containers::benchmark
 			::benchmark::DoNotOptimize( total_length );
 		}
 	}
-}
+} // namespace nfx::containers::benchmark
 
 //=====================================================================
 // Benchmarks registration

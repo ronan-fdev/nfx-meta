@@ -40,7 +40,7 @@ int main()
 	auto difference = huge_number - large_int;
 
 	std::cout << "Sum of small + large: " << sum << std::endl;
-	std::cout << "Huge number × 2: " << product << std::endl;
+	std::cout << "Huge number * 2: " << product << std::endl;
 	std::cout << "Huge - large: " << difference << std::endl;
 
 	// Comparisons
@@ -56,7 +56,7 @@ int main()
 	// Division and modulo operations
 	auto quotient = huge_number / nfx::datatypes::Int128{ 7 };
 	auto remainder = huge_number % nfx::datatypes::Int128{ 7 };
-	std::cout << "Huge number ÷ 7: " << quotient << std::endl;
+	std::cout << "Huge number / 7: " << quotient << std::endl;
 	std::cout << "Huge number % 7: " << remainder << std::endl;
 
 	// Sign operations and mathematical functions
@@ -92,8 +92,8 @@ int main()
 	auto tax = subtotal * rate_from_double;
 	auto total = subtotal + tax;
 
-	std::cout << "Subtotal (price × quantity): " << subtotal << std::endl;
-	std::cout << "Tax (subtotal × rate): " << tax << std::endl;
+	std::cout << "Subtotal (price * quantity): " << subtotal << std::endl;
+	std::cout << "Tax (subtotal * rate): " << tax << std::endl;
 	std::cout << "Total (subtotal + tax): " << total << std::endl;
 
 	// High-precision calculations
@@ -101,8 +101,8 @@ int main()
 	nfx::datatypes::Decimal radius{ "5.5" };
 	auto area = precise_pi * radius * radius;
 
-	std::cout << "π (high precision): " << precise_pi << std::endl;
-	std::cout << "Circle area (π × r²) with r=5.5: " << area << std::endl;
+	std::cout << "pi (high precision): " << precise_pi << std::endl;
+	std::cout << "Circle area (pi * r^2) with r=5.5: " << area << std::endl;
 
 	// Rounding operations
 	nfx::datatypes::Decimal unrounded{ "123.456789" };
@@ -191,9 +191,9 @@ int main()
 	auto decimal_result = decimal_price * decimal_quantity;
 
 	std::cout << std::fixed << std::setprecision( 17 );
-	std::cout << "Double precision: 0.1 × 3 = " << double_result << std::endl;
+	std::cout << "Double precision: 0.1 * 3 = " << double_result << std::endl;
 	std::cout << std::setprecision( 6 );
-	std::cout << "Decimal precision: 0.1 × 3 = " << decimal_result << std::endl;
+	std::cout << "Decimal precision: 0.1 * 3 = " << decimal_result << std::endl;
 
 	bool is_exact = ( decimal_result == nfx::datatypes::Decimal{ "0.3" } );
 	std::cout << "Decimal is exact: " << ( is_exact ? "Yes" : "No" ) << std::endl;

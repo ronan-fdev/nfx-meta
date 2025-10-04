@@ -272,6 +272,7 @@ namespace nfx::memory
 		 * @details Called during normal operations to amortize cleanup cost
 		 */
 		NFX_CORE_INLINE void checkAndPerformBackgroundCleanup() const;
+
 		//----------------------------------------------
 		// Internal data structures
 		//----------------------------------------------
@@ -329,6 +330,6 @@ namespace nfx::memory
 		 */
 		NFX_CORE_INLINE void evictLeastRecentlyUsed();
 	};
-}
+} // namespace nfx::memory
 
 #include "nfx/detail/memory/LruCache.inl"

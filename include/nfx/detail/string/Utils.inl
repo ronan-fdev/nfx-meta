@@ -366,4 +366,4 @@ namespace nfx::string
 		const auto parseResult{ std::from_chars( str.data(), end, result ) };
 		return parseResult.ec == std::errc{} && parseResult.ptr == end;
 	}
-}
+} // namespace nfx::string

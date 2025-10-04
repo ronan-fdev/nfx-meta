@@ -691,4 +691,4 @@ namespace nfx::containers::test
 		config.insert_or_assign( dynamic_key, "dynamic_value" );
 		EXPECT_EQ( config[std::string_view{ "dynamic_setting" }], "dynamic_value" );
 	}
-}
+} // namespace nfx::containers::test

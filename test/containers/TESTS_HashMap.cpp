@@ -524,4 +524,4 @@ namespace nfx::containers::test
 		EXPECT_EQ( **value1, 42 );
 		EXPECT_EQ( **value2, 84 );
 	}
-}
+} // namespace nfx::containers::test

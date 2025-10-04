@@ -1691,4 +1691,4 @@ namespace nfx::datatypes::test
 		datatypes::Int128 negatedMin{ -minNegative };
 		EXPECT_EQ( minNegative, negatedMin );
 	}
-}
+} // namespace nfx::datatypes::test

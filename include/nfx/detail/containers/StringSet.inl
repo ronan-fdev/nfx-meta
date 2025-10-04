@@ -72,4 +72,4 @@ namespace nfx::containers
 	{
 		return this->find( key ) != this->end();
 	}
-}
+} // namespace nfx::containers

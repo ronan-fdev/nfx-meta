@@ -286,4 +286,62 @@ namespace nfx::containers
 			return k1 == k2;
 		}
 	}
-}
+
+	//----------------------------------------------
+	// STL-compatible iteration support
+	//----------------------------------------------
+
+	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	typename HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::iterator
+	HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::begin() noexcept
+	{
+		return iterator( m_buckets.data(), m_buckets.data() + m_capacity );
+	}
+
+	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	typename HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::const_iterator
+	HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::begin() const noexcept
+	{
+		return const_iterator( m_buckets.data(), m_buckets.data() + m_capacity );
+	}
+
+	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	typename HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::iterator
+	HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::end() noexcept
+	{
+		return iterator( m_buckets.data() + m_capacity, m_buckets.data() + m_capacity );
+	}
+
+	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	typename HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::const_iterator
+	HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::end() const noexcept
+	{
+		return const_iterator( m_buckets.data() + m_capacity, m_buckets.data() + m_capacity );
+	}
+
+	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::operator==( const HashMap& other ) const noexcept
+	{
+		if ( m_size != other.m_size )
+		{
+			return false;
+		}
+
+		// Compare all key-value pairs
+		for ( const auto& pair : *this )
+		{
+			// Find key in other HashMap and compare values
+			auto it = std::find_if( other.begin(), other.end(),
+				[&pair]( const auto& otherPair ) {
+					return pair.first == otherPair.first;
+				} );
+
+			if ( it == other.end() || it->second != pair.second )
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+} // namespace nfx::containers

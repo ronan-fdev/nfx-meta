@@ -6,16 +6,17 @@
 # Conditional headers and sources
 #----------------------------------------------
 
-# --- Always include platform configuration ---
+# --- Always include core headers ---
 set(PUBLIC_HEADERS
 	# --- Core configuration ---
 	${NFX_CORE_INCLUDE_DIR}/nfx/config.h
 
-	# --- Core hashing utilities ---
-	${NFX_CORE_INCLUDE_DIR}/nfx/core/hashing/Hash.h
+	#--- Core utilities ---
+	${NFX_CORE_INCLUDE_DIR}/nfx/core/CPU.h
+	${NFX_CORE_INCLUDE_DIR}/nfx/core/Hashing.h
 
-	# --- Core hashing implementation ---
-	${NFX_CORE_INCLUDE_DIR}/nfx/detail/core/hashing/Hash.inl
+	# --- Core utilities implementation ---
+	${NFX_CORE_INCLUDE_DIR}/nfx/detail/core/Hashing.inl
 )
 
 set(PRIVATE_SOURCES)
@@ -80,6 +81,42 @@ if(NFX_CORE_WITH_MEMORY)
 	)
 endif()
 
+# --- Serialization components ---
+if(NFX_CORE_WITH_JSON)
+	list(APPEND PUBLIC_HEADERS
+		# --- JSON serialization headers ---
+		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/ArrayEnumerator.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/Document.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/FieldEnumerator.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/SchemaValidator.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/SerializationTraits.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/SerializationTraits.h
+		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/Serializer.h
+
+		# --- JSON serialization implementations ---
+		${NFX_CORE_INCLUDE_DIR}/nfx/detail/serialization/json/Serializer.inl
+	)
+
+	list(APPEND PRIVATE_HEADERS
+		# --- JSON serialization private headers ---
+		${NFX_CORE_SOURCE_DIR}/serialization/json/ArrayEnumerator_impl.h
+		${NFX_CORE_SOURCE_DIR}/serialization/json/Document_impl.h
+		${NFX_CORE_SOURCE_DIR}/serialization/json/FieldEnumerator_impl.h
+		${NFX_CORE_SOURCE_DIR}/serialization/json/SchemaValidator_impl.h
+	)
+	list(APPEND PRIVATE_SOURCES
+		# --- JSON serialization implementations ---
+		${NFX_CORE_SOURCE_DIR}/serialization/json/ArrayEnumerator_impl.cpp
+		${NFX_CORE_SOURCE_DIR}/serialization/json/ArrayEnumerator.cpp
+		${NFX_CORE_SOURCE_DIR}/serialization/json/Document_impl.cpp
+		${NFX_CORE_SOURCE_DIR}/serialization/json/Document.cpp
+		${NFX_CORE_SOURCE_DIR}/serialization/json/FieldEnumerator_impl.cpp
+		${NFX_CORE_SOURCE_DIR}/serialization/json/FieldEnumerator.cpp
+		${NFX_CORE_SOURCE_DIR}/serialization/json/SchemaValidator.cpp
+		${NFX_CORE_SOURCE_DIR}/serialization/json/SchemaValidator_impl.cpp
+	)
+endif()
+
 # --- String components ---
 if(NFX_CORE_WITH_STRING)
 	list(APPEND PUBLIC_HEADERS
@@ -96,7 +133,6 @@ if(NFX_CORE_WITH_STRING)
 	list(APPEND PRIVATE_HEADERS
 		# --- String processing private headers ---
 		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBuffer_impl.h
-		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBufferPool.cpp
 	)
 	list(APPEND PRIVATE_SOURCES
 		# --- String processing source files ---
@@ -136,13 +172,13 @@ endif()
 if(NFX_CORE_WITH_STRING)
 	message(STATUS "  - String utilities (StringBuilderPool, Splitter, Utils)")
 endif()
+if(NFX_CORE_WITH_JSON)
+    message(STATUS "  - Serialization (JSON Document)")
+endif()
 if(NFX_CORE_WITH_TIME)
 	message(STATUS "  - Time utilities (DateTime, DateTimeOffset, TimeSpan)")
 endif()
 
-list(LENGTH PUBLIC_HEADERS header_count)
-list(LENGTH PRIVATE_SOURCES source_count)
-message(STATUS "Building with ${header_count} headers and ${source_count} source files")
 
 #----------------------------------------------
 # Library definition
@@ -204,6 +240,12 @@ function(configure_target target_name)
 	if(NFX_CORE_WITH_STRING)
 		target_link_libraries(${target_name} PRIVATE
 			fmt::fmt-header-only
+		)
+	endif()
+
+	if(NFX_CORE_WITH_JSON)
+		target_link_libraries(${target_name} PRIVATE
+			nlohmann_json::nlohmann_json
 		)
 	endif()
 

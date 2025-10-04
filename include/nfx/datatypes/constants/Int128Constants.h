@@ -42,4 +42,4 @@ namespace nfx::datatypes::constants::int128
 
 	/** @brief Maximum negative value as decimal string (absolute value of -2^127). */
 	inline constexpr std::string_view MAX_NEGATIVE_STRING{ "170141183460469231731687303715884105728" };
-}
+} // namespace nfx::datatypes::constants::int128

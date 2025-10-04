@@ -103,6 +103,6 @@ namespace nfx::containers
 			size_t>
 		operator()( const T& value ) const noexcept;
 	};
-}
+} // namespace nfx::containers
 
 #include "nfx/detail/containers/functors/HashMapHashFunctor.inl"

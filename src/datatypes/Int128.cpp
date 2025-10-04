@@ -523,4 +523,4 @@ namespace nfx::datatypes
 
 		return is;
 	}
-}
+} // namespace nfx::datatypes

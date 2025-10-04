@@ -163,6 +163,6 @@ namespace nfx::containers
 		 */
 		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( std::string_view lhs, const std::string& rhs ) const noexcept;
 	};
-}
+} // namespace nfx::containers
 
 #include "nfx/detail/containers/functors/StringFunctors.inl"

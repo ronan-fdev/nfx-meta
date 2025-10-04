@@ -254,7 +254,7 @@ int main()
 	const std::size_t ops_per_thread{ 1000 };
 
 	std::vector<std::thread> threads;
-	std::vector<std::size_t> hits_per_thread{ num_threads, 0 };
+	std::vector<std::size_t> hits_per_thread( num_threads, 0 );
 
 	auto start_threads{ std::chrono::high_resolution_clock::now() };
 
@@ -274,7 +274,7 @@ int main()
 				}
 				else
 				{
-					threadSafeCache.getOrCreate( key, [&key]() {
+					threadSafeCache.getOrCreate( key, [key]() {
 						return std::string{ "value_for_" + key };
 					} );
 				}
@@ -287,8 +287,14 @@ int main()
 	// Wait for all threads to complete
 	for ( auto& thread : threads )
 	{
-		thread.join();
+		if ( thread.joinable() )
+		{
+			thread.join();
+		}
 	}
+
+	// Ensure all threads are completely finished
+	threads.clear();
 
 	auto end_threads{ std::chrono::high_resolution_clock::now() };
 	auto thread_duration{ std::chrono::duration_cast<std::chrono::milliseconds>( end_threads - start_threads ) };

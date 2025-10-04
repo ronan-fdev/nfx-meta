@@ -141,6 +141,6 @@ namespace nfx::string
 	 */
 	template <typename String>
 	[[nodiscard]] static NFX_CORE_INLINE Splitter splitView( String&& str, char delimiter ) noexcept;
-}
+} // namespace nfx::string
 
 #include "nfx/detail/string/Splitter.inl"

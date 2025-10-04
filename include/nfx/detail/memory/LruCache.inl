@@ -384,4 +384,4 @@ namespace nfx::memory
 			}
 		}
 	}
-}
+} // namespace nfx::memory

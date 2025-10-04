@@ -1,5 +1,5 @@
 /**
- * @file Hash.h
+ * @file Hashing.h
  * @brief Common hash algorithm constants for containers
  * @details FNV hash constants and other hashing parameters
  *          used across multiple container implementations
@@ -64,20 +64,6 @@ namespace nfx::core::hashing
 	//=====================================================================
 	// Hash infrastructure
 	//=====================================================================
-
-	//----------------------------------------------
-	// CPU feature detection
-	//----------------------------------------------
-
-	/**
-	 * @brief Gets the cached SSE4.2 support status.
-	 * @details Checks CPU capabilities for SSE4.2 CRC32 instructions, which provide
-	 *          3-5x faster hashing compared to software fallback. Result is cached
-	 *          via static initialization for zero runtime overhead.
-	 * @return `true` if SSE4.2 is supported, `false` otherwise.
-	 * @note This function is marked [[nodiscard]] - the return value should not be ignored
-	 */
-	[[nodiscard]] NFX_CORE_INLINE bool hasSSE42Support() noexcept;
 
 	//----------------------------------------------
 	// Low-level hash building blocks
@@ -193,6 +179,6 @@ namespace nfx::core::hashing
 	 */
 	template <typename T>
 	[[nodiscard]] NFX_CORE_INLINE constexpr std::enable_if_t<std::is_integral_v<T>, size_t> hashInteger( T value ) noexcept;
-}
+} // namespace nfx::core::hashing
 
-#include "nfx/detail/core/hashing/Hash.inl"
+#include "nfx/detail/core/Hashing.inl"

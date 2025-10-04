@@ -72,10 +72,11 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 
-#include "nfx/core/hashing/Hash.h"
+#include "nfx/core/Hashing.h"
 #include "functors/StringFunctors.h"
 #include "functors/HashMapHashFunctor.h"
 #include "StringMap.h"
@@ -111,7 +112,33 @@ namespace nfx::containers
 		uint32_t FnvPrime = core::hashing::DEFAULT_FNV_PRIME>
 	class HashMap final
 	{
+		//----------------------------------------------
+		// Forward declarations for iterator support
+		//----------------------------------------------
+
+		class iterator;
+		class const_iterator;
+
 	public:
+		//----------------------------------------------
+		// STL-compatible type aliases
+		//----------------------------------------------
+
+		/** @brief Type alias for key type */
+		using key_type = TKey;
+
+		/** @brief Type alias for mapped value type */
+		using mapped_type = TValue;
+
+		/** @brief Type alias for key-value pair type */
+		using value_type = std::pair<const TKey, TValue>;
+
+		/** @brief Type alias for size type */
+		using size_type = size_t;
+
+		/** @brief Type alias for difference type */
+		using difference_type = std::ptrdiff_t;
+
 		//----------------------------------------------
 		// Construction
 		//----------------------------------------------
@@ -218,6 +245,41 @@ namespace nfx::containers
 		 */
 		[[nodiscard]] NFX_CORE_INLINE bool isEmpty() const noexcept;
 
+		//----------------------------------------------
+		// STL-compatible iteration support
+		//----------------------------------------------
+
+		/**
+		 * @brief Get iterator to beginning of occupied buckets
+		 * @return Iterator pointing to first key-value pair
+		 */
+		[[nodiscard]] iterator begin() noexcept;
+
+		/**
+		 * @brief Get const iterator to beginning of occupied buckets
+		 * @return Const iterator pointing to first key-value pair
+		 */
+		[[nodiscard]] const_iterator begin() const noexcept;
+
+		/**
+		 * @brief Get iterator to end (past last occupied bucket)
+		 * @return Iterator pointing past the last key-value pair
+		 */
+		[[nodiscard]] iterator end() noexcept;
+
+		/**
+		 * @brief Get const iterator to end (past last occupied bucket)
+		 * @return Const iterator pointing past the last key-value pair
+		 */
+		[[nodiscard]] const_iterator end() const noexcept;
+
+		/**
+		 * @brief Compare two HashMaps for equality
+		 * @param other The other HashMap to compare with
+		 * @return true if both maps contain the same key-value pairs
+		 */
+		[[nodiscard]] bool operator==( const HashMap& other ) const noexcept;
+
 	private:
 		//----------------------------------------------
 		// Robin Hood Hashing bucket structure
@@ -322,7 +384,238 @@ namespace nfx::containers
 		 */
 		template <typename KeyType1, typename KeyType2>
 		NFX_CORE_INLINE bool keysEqual( const KeyType1& k1, const KeyType2& k2 ) const noexcept;
+
+	private:
+		//----------------------------------------------
+		// Iterator class definitions
+		//----------------------------------------------
+
+		/**
+		 * @brief Iterator for HashMap that skips empty buckets
+		 */
+		class iterator
+		{
+		public:
+			/** @brief STL iterator category (forward iterator) */
+			using iterator_category = std::forward_iterator_tag;
+
+			/** @brief STL iterator value type (key-value pair) */
+			using value_type = std::pair<const TKey, TValue>;
+
+			/** @brief STL iterator difference type */
+			using difference_type = std::ptrdiff_t;
+
+			/** @brief STL iterator pointer type */
+			using pointer = value_type*;
+
+			/** @brief STL iterator reference type */
+			using reference = value_type&;
+
+			/**
+			 * @brief Default constructor creates an invalid iterator
+			 */
+			iterator() = default;
+
+			/**
+			 * @brief Construct iterator from bucket range
+			 * @param bucket Starting bucket pointer
+			 * @param end End bucket pointer (one past last bucket)
+			 */
+			iterator( Bucket* bucket, Bucket* end ) : m_bucket( bucket ), m_end( end )
+			{
+				skipToOccupied();
+			}
+
+			/**
+			 * @brief Dereference operator to access key-value pair
+			 * @return Reference to current key-value pair
+			 */
+			reference operator*() const
+			{
+				return reinterpret_cast<reference>( *m_bucket );
+			}
+
+			/**
+			 * @brief Arrow operator to access key-value pair members
+			 * @return Pointer to current key-value pair
+			 */
+			pointer operator->() const
+			{
+				return reinterpret_cast<pointer>( m_bucket );
+			}
+
+			/**
+			 * @brief Pre-increment operator to advance to next occupied bucket
+			 * @return Reference to this iterator after advancement
+			 */
+			iterator& operator++()
+			{
+				++m_bucket;
+				skipToOccupied();
+				return *this;
+			}
+
+			/**
+			 * @brief Post-increment operator to advance to next occupied bucket
+			 * @return Copy of iterator before advancement
+			 */
+			iterator operator++( int )
+			{
+				iterator tmp = *this;
+				++( *this );
+				return tmp;
+			}
+
+			/**
+			 * @brief Equality comparison operator
+			 * @param other Iterator to compare with
+			 * @return true if iterators point to the same bucket
+			 */
+			bool operator==( const iterator& other ) const { return m_bucket == other.m_bucket; }
+
+			/**
+			 * @brief Inequality comparison operator
+			 * @param other Iterator to compare with
+			 * @return true if iterators point to different buckets
+			 */
+			bool operator!=( const iterator& other ) const { return m_bucket != other.m_bucket; }
+
+		private:
+			/**
+			 * @brief Skip to next occupied bucket
+			 * @details Advances bucket pointer until an occupied bucket is found or end is reached
+			 */
+			void skipToOccupied()
+			{
+				while ( m_bucket != m_end && !m_bucket->occupied )
+				{
+					++m_bucket;
+				}
+			}
+
+			Bucket* m_bucket = nullptr;
+			Bucket* m_end = nullptr;
+			friend class HashMap;
+			friend class const_iterator;
+		};
+
+		/**
+		 * @brief Const iterator for HashMap that skips empty buckets
+		 */
+		class const_iterator
+		{
+		public:
+			/** @brief STL iterator category (forward iterator) */
+			using iterator_category = std::forward_iterator_tag;
+
+			/** @brief STL iterator value type (const key-value pair) */
+			using value_type = std::pair<const TKey, TValue>;
+
+			/** @brief STL iterator difference type */
+			using difference_type = std::ptrdiff_t;
+
+			/** @brief STL iterator pointer type */
+			using pointer = const value_type*;
+
+			/** @brief STL iterator reference type */
+			using reference = const value_type&;
+
+			/**
+			 * @brief Default constructor creates an invalid iterator
+			 */
+			const_iterator() = default;
+
+			/**
+			 * @brief Construct const iterator from bucket range
+			 * @param bucket Starting bucket pointer
+			 * @param end End bucket pointer (one past last bucket)
+			 */
+			const_iterator( const Bucket* bucket, const Bucket* end ) : m_bucket( bucket ), m_end( end )
+			{
+				skipToOccupied();
+			}
+
+			/**
+			 * @brief Convert from non-const iterator
+			 * @param it Non-const iterator to convert from
+			 */
+			const_iterator( const iterator& it ) : m_bucket( it.m_bucket ), m_end( it.m_end ) {}
+
+			// Allow conversion from non-const iterator
+			friend class iterator;
+
+			/**
+			 * @brief Dereference operator to access key-value pair
+			 * @return Const reference to current key-value pair
+			 */
+			reference operator*() const
+			{
+				return reinterpret_cast<reference>( *m_bucket );
+			}
+
+			/**
+			 * @brief Arrow operator to access key-value pair members
+			 * @return Const pointer to current key-value pair
+			 */
+			pointer operator->() const
+			{
+				return reinterpret_cast<pointer>( m_bucket );
+			}
+
+			/**
+			 * @brief Pre-increment operator to advance to next occupied bucket
+			 * @return Reference to this iterator after advancement
+			 */
+			const_iterator& operator++()
+			{
+				++m_bucket;
+				skipToOccupied();
+				return *this;
+			}
+
+			/**
+			 * @brief Post-increment operator to advance to next occupied bucket
+			 * @return Copy of iterator before advancement
+			 */
+			const_iterator operator++( int )
+			{
+				const_iterator tmp = *this;
+				++( *this );
+				return tmp;
+			}
+
+			/**
+			 * @brief Equality comparison operator
+			 * @param other Iterator to compare with
+			 * @return true if iterators point to the same bucket
+			 */
+			bool operator==( const const_iterator& other ) const { return m_bucket == other.m_bucket; }
+
+			/**
+			 * @brief Inequality comparison operator
+			 * @param other Iterator to compare with
+			 * @return true if iterators point to different buckets
+			 */
+			bool operator!=( const const_iterator& other ) const { return m_bucket != other.m_bucket; }
+
+		private:
+			/**
+			 * @brief Skip to next occupied bucket
+			 * @details Advances bucket pointer until an occupied bucket is found or end is reached
+			 */
+			void skipToOccupied()
+			{
+				while ( m_bucket != m_end && !m_bucket->occupied )
+				{
+					++m_bucket;
+				}
+			}
+
+			const Bucket* m_bucket = nullptr;
+			const Bucket* m_end = nullptr;
+			friend class HashMap;
+		};
 	};
-}
+} // namespace nfx::containers
 
 #include "nfx/detail/containers/HashMap.inl"

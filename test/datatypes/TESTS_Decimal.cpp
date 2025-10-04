@@ -1909,4 +1909,4 @@ namespace nfx::datatypes::test
 
 		EXPECT_TRUE( datatypes::Decimal::tryParse( tooLong, result ) );
 	}
-}
+} // namespace nfx::datatypes::test

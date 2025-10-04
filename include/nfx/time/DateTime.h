@@ -65,7 +65,7 @@ namespace nfx::time
 		~TimeSpan() = default;
 
 		//----------------------------------------------
-		// Assignment operators
+		// Assignment
 		//----------------------------------------------
 
 		/**
@@ -399,7 +399,7 @@ namespace nfx::time
 		~DateTime() = default;
 
 		//----------------------------------------------
-		// Assignment operators
+		// Assignment
 		//----------------------------------------------
 
 		/**
@@ -906,7 +906,7 @@ namespace nfx::time
 		~DateTimeOffset() = default;
 
 		//----------------------------------------------
-		// Assignment operators
+		// Assignment
 		//----------------------------------------------
 
 		/**
@@ -1511,6 +1511,6 @@ namespace nfx::time
 	 * @return Reference to the input stream for chaining
 	 */
 	std::istream& operator>>( std::istream& is, DateTimeOffset& dateTimeOffset );
-}
+} // namespace nfx::time
 
 #include "nfx/detail/time/DateTime.inl"

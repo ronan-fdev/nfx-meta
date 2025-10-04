@@ -1424,4 +1424,4 @@ namespace nfx::time
 
 		return is;
 	}
-}
+} // namespace nfx::time

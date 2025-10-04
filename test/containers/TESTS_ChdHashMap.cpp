@@ -557,4 +557,4 @@ namespace nfx::containers::test
 		// Error case
 		EXPECT_THROW( static_cast<void>( statusCodes["UNKNOWN_STATUS"] ), ChdHashMap<int>::KeyNotFoundException );
 	}
-}
+} // namespace nfx::containers::test

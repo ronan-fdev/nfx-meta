@@ -606,7 +606,7 @@ namespace nfx::string::benchmark
 			}
 		}
 	}
-}
+} // namespace nfx::string::benchmark
 
 //=====================================================================
 // Benchmarks registration

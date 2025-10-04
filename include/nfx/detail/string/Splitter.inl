@@ -111,4 +111,4 @@ namespace nfx::string
 	{
 		return Splitter{ std::string_view{ std::forward<String>( str ) }, delimiter };
 	}
-}
+} // namespace nfx::string

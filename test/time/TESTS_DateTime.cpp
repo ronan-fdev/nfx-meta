@@ -1671,4 +1671,4 @@ namespace nfx::time::test
 		EXPECT_EQ( utcTime.minute(), convertedBack.minute() );
 		EXPECT_EQ( utcTime.second(), convertedBack.second() );
 	}
-}
+} // namespace nfx::time::test

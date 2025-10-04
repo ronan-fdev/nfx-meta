@@ -210,6 +210,6 @@ namespace nfx::containers
 		 */
 		NFX_CORE_INLINE bool contains( std::string_view key ) const noexcept;
 	};
-}
+} // namespace nfx::containers
 
 #include "nfx/detail/containers/StringSet.inl"

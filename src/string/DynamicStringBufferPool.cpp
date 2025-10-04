@@ -205,4 +205,4 @@ namespace nfx::string
 	{
 		m_stats.reset();
 	}
-}
+} // namespace nfx::string

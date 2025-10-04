@@ -15,16 +15,31 @@ endif()
 # Benchmarks source files
 #----------------------------------------------
 
-set(BENCHMARK_SOURCES
-	containers/BM_ChdHashMap.cpp
-	containers/BM_HashMap.cpp
-	containers/BM_StringMap.cpp
-	containers/BM_StringSet.cpp
-	core/BM_Hashing.cpp
-	string/BM_Splitter.cpp
-	string/BM_StringBuilderPool.cpp
-	string/BM_StringUtilities.cpp
-)
+set(BENCHMARK_SOURCES)
+
+if(NFX_CORE_WITH_CONTAINERS)
+	list(APPEND BENCHMARK_SOURCES
+		containers/BM_ChdHashMap.cpp
+		containers/BM_HashMap.cpp
+		containers/BM_StringMap.cpp
+		containers/BM_StringSet.cpp
+	)
+endif()
+
+# Core hashing benchmarks (always included if any component is enabled)
+if(NFX_CORE_WITH_CONTAINERS OR NFX_CORE_WITH_STRING OR NFX_CORE_WITH_DATATYPES)
+	list(APPEND BENCHMARK_SOURCES
+		core/BM_Hashing.cpp
+	)
+endif()
+
+if(NFX_CORE_WITH_STRING)
+	list(APPEND BENCHMARK_SOURCES
+		string/BM_Splitter.cpp
+		string/BM_StringBuilderPool.cpp
+		string/BM_StringUtilities.cpp
+	)
+endif()
 
 #----------------------------------------------
 # Configure benchmark executables

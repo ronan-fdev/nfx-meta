@@ -266,4 +266,4 @@ namespace nfx::containers::test
 		auto found{ std::find( set.begin(), set.end(), "item2" ) };
 		EXPECT_NE( found, set.end() );
 	}
-}
+} // namespace nfx::containers::test

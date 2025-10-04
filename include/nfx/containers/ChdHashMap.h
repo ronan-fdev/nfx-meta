@@ -102,6 +102,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -111,23 +112,13 @@
 #include <vector>
 
 #include "nfx/config.h"
-#include "nfx/core/hashing/Hash.h"
+#include "nfx/core/Hashing.h"
 
 namespace nfx::containers
 {
 	//=====================================================================
 	// ChdHashMap class
 	//=====================================================================
-
-	namespace
-	{
-		//----------------------------------------------
-		// Configuration
-		//----------------------------------------------
-
-		/** @brief Maximum multiplier for seed search iterations in CHD construction. */
-		inline constexpr uint32_t MAX_SEED_SEARCH_MULTIPLIER = 100;
-	}
 
 	/**
 	 * @class ChdHashMap
@@ -168,12 +159,24 @@ namespace nfx::containers
 		/**
 		 * @brief Constructs the dictionary from a vector of key-value pairs.
 		 * @param[in] items A vector of key-value pairs. The keys must be unique.
+		 * @param[in] maxSeedSearchMultiplier Maximum multiplier for seed search iterations in CHD construction (default: 100).
 		 * @throws std::invalid_argument if duplicate keys are found.
 		 * @throws std::runtime_error if perfect hash construction fails.
+		 *
+		 * @todo Consider implementing auto-adaptive seed search multiplier:
+		 *       - Progressive approach: try multipliers [50, 100, 200, 500, 1000] until success
+		 *       - Key pattern analysis: analyze collision rate and key similarity to predict optimal multiplier
+		 *       - Would improve UX by eliminating need for manual tuning in edge cases
+		 *       - Could add overload: ChdHashMap(items) for auto-adaptive, ChdHashMap(items, multiplier) for explicit control
 		 */
-		inline explicit ChdHashMap( std::vector<std::pair<std::string, TValue>>&& items );
+		inline explicit ChdHashMap( std::vector<std::pair<std::string, TValue>>&& items, uint32_t maxSeedSearchMultiplier = 100 );
 
-		/** @brief Default constructor */
+		/**
+		 * @brief Default constructor - creates an empty ChdHashMap
+		 * @details Creates an empty dictionary with no elements. While ChdHashMap is immutable after
+		 *          construction with data, this default constructor is required for JSON deserialization
+		 *          (creates empty object then deserializes into it).
+		 */
 		ChdHashMap() = default;
 
 		/**
@@ -196,7 +199,7 @@ namespace nfx::containers
 		~ChdHashMap() = default;
 
 		//----------------------------------------------
-		// Assignment operators
+		// Assignment
 		//----------------------------------------------
 
 		/**
@@ -212,6 +215,26 @@ namespace nfx::containers
 		 * @return Reference to this ChdHashMap after assignment
 		 */
 		ChdHashMap& operator=( ChdHashMap&& other ) noexcept = default;
+
+		//----------------------------------------------
+		// Comparison operators
+		//----------------------------------------------
+
+		/**
+		 * @brief Equality comparison operator
+		 * @param[in] other The other ChdHashMap to compare against
+		 * @return `true` if both ChdHashMaps contain the same key-value pairs, `false` otherwise
+		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+		 */
+		[[nodiscard]] inline bool operator==( const ChdHashMap& other ) const noexcept;
+
+		/**
+		 * @brief Inequality comparison operator
+		 * @param[in] other The other ChdHashMap to compare against
+		 * @return `true` if the ChdHashMaps contain different key-value pairs, `false` otherwise
+		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+		 */
+		[[nodiscard]] inline bool operator!=( const ChdHashMap& other ) const noexcept;
 
 		//----------------------------------------------
 		// Lookup operators
@@ -252,6 +275,13 @@ namespace nfx::containers
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		[[nodiscard]] inline size_t size() const noexcept;
+
+		/**
+		 * @brief Returns the maximum seed search multiplier used during CHD construction.
+		 * @return The multiplier value that determines the seed search threshold (size × multiplier).
+		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
+		 */
+		[[nodiscard]] inline uint32_t maxSeedSearchMultiplier() const noexcept;
 
 		//----------------------------------------------
 		// State inspection methods
@@ -458,7 +488,7 @@ namespace nfx::containers
 			~Iterator() = default;
 
 			//----------------------------
-			// Assignment operators
+			// Assignment
 			//----------------------------
 
 			/**
@@ -602,7 +632,7 @@ namespace nfx::containers
 			~Enumerator() = default;
 
 			//----------------------------
-			// Assignment operators
+			// Assignment
 			//----------------------------
 
 			/**
@@ -703,12 +733,15 @@ namespace nfx::containers
 		// Private member variables
 		//----------------------------------------------
 
+		/** @brief Maximum multiplier for seed search iterations in CHD construction. */
+		uint32_t m_maxSeedSearchMultiplier;
+
 		/** @brief The primary storage table containing the key-value pairs. Order determined during construction. */
 		std::vector<std::pair<std::string, TValue>> m_table;
 
 		/** @brief The seed values used by the CHD perfect hash function to resolve hash collisions. Size matches `m_table`. */
 		std::vector<int> m_seeds;
 	};
-}
+} // namespace nfx::containers
 
 #include "nfx/detail/containers/ChdHashMap.inl"

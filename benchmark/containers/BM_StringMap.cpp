@@ -34,6 +34,7 @@ namespace nfx::containers::benchmark
 		std::chrono::system_clock::time_point hireDate;
 
 		Employee() = default;
+
 		Employee( std::string n, uint32_t i, double s, std::string dept )
 			: name{ std::move( n ) },
 			  id{ i },
@@ -52,6 +53,7 @@ namespace nfx::containers::benchmark
 		bool isDirty;
 
 		CacheEntry() = default;
+
 		CacheEntry( std::vector<uint8_t> d )
 			: data{ std::move( d ) },
 			  timestamp{ std::chrono::steady_clock::now() },
@@ -388,7 +390,7 @@ namespace nfx::containers::benchmark
 			::benchmark::DoNotOptimize( found_count );
 		}
 	}
-}
+} // namespace nfx::containers::benchmark
 
 //=====================================================================
 // Benchmarks registration

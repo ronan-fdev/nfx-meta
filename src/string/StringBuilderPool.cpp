@@ -37,8 +37,8 @@ namespace nfx::string
 
 	DynamicStringBuffer::DynamicStringBuffer( DynamicStringBuffer&& other ) noexcept
 		: m_impl{ std::move( other.m_impl ) }
-
 	{
+		other.m_impl = nullptr;
 	}
 
 	//----------------------------------------------
@@ -55,7 +55,7 @@ namespace nfx::string
 	}
 
 	//----------------------------------------------
-	// Assignment operators
+	// Assignment
 	//----------------------------------------------
 
 	DynamicStringBuffer& DynamicStringBuffer::operator=( const DynamicStringBuffer& other )
@@ -350,4 +350,4 @@ namespace nfx::string
 	{
 		return dynamicStringBufferPool().size();
 	}
-}
+} // namespace nfx::string

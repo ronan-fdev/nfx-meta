@@ -83,4 +83,4 @@ namespace nfx::containers
 	{
 		return lhs.size() == rhs.size() && lhs == rhs;
 	}
-}
+} // namespace nfx::containers

@@ -254,6 +254,6 @@ namespace nfx::containers
 		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> insert_or_assign( std::string_view key, M&& obj ) noexcept(
 			std::is_nothrow_assignable_v<T&, M> && std::is_nothrow_constructible_v<T, M> );
 	};
-}
+} // namespace nfx::containers
 
 #include "nfx/detail/containers/StringMap.inl"

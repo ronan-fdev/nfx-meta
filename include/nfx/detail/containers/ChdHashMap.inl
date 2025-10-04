@@ -38,8 +38,9 @@ namespace nfx::containers
 	//----------------------------------------------
 
 	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	inline ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::ChdHashMap( std::vector<std::pair<std::string, TValue>>&& items )
-		: m_table{},
+	inline ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::ChdHashMap( std::vector<std::pair<std::string, TValue>>&& items, uint32_t maxSeedSearchMultiplier )
+		: m_maxSeedSearchMultiplier{ maxSeedSearchMultiplier },
+		  m_table{},
 		  m_seeds{}
 	{
 		if ( items.empty() )
@@ -115,7 +116,7 @@ namespace nfx::containers
 					break;
 				}
 
-				if ( currentSeedValue > size * MAX_SEED_SEARCH_MULTIPLIER )
+				if ( currentSeedValue > size * m_maxSeedSearchMultiplier )
 				{
 					std::ostringstream oss;
 					oss << "Bucket " << currentBucketIdx << ": Seed search exceeded threshold (" << currentSeedValue << "), aborting construction!";
@@ -237,6 +238,12 @@ namespace nfx::containers
 		return m_table.size();
 	}
 
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline uint32_t ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::maxSeedSearchMultiplier() const noexcept
+	{
+		return m_maxSeedSearchMultiplier;
+	}
+
 	//----------------------------------------------
 	// State inspection methods
 	//----------------------------------------------
@@ -245,6 +252,47 @@ namespace nfx::containers
 	inline bool ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::isEmpty() const noexcept
 	{
 		return m_table.empty();
+	}
+
+	//----------------------------------------------
+	// Comparison operators
+	//----------------------------------------------
+
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline bool ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::operator==( const ChdHashMap& other ) const noexcept
+	{
+		if ( size() != other.size() )
+		{
+			return false;
+		}
+
+		if ( isEmpty() )
+		{
+			return true;
+		}
+
+		for ( const auto& [key, value] : *this )
+		{
+			// const_cast is safe because we're only reading, not modifying
+			TValue* otherValue = nullptr;
+			if ( !const_cast<ChdHashMap&>( other ).tryGetValue( key, otherValue ) || !otherValue )
+			{
+				return false;
+			}
+
+			if ( value != *otherValue )
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	inline bool ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::operator!=( const ChdHashMap& other ) const noexcept
+	{
+		return !( *this == other );
 	}
 
 	//----------------------------------------------
@@ -516,4 +564,4 @@ namespace nfx::containers
 	{
 		throw InvalidOperationException{};
 	}
-}
+} // namespace nfx::containers

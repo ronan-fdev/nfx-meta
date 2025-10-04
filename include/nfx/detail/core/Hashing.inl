@@ -1,52 +1,17 @@
 /**
- * @file Hash.inl
+ * @file Hashing.inl
  * @brief Implementation of core hash algorithms and infrastructure
  * @details Contains optimized hash functions with SSE4.2/FNV-1a for strings,
  *          multiplicative hashing for integers, and CPU feature detection
  */
 
-#include <array>
-
-#if defined( __GNUC__ )
-#	include <cpuid.h>
-#endif
-#if defined( _MSC_VER ) || defined( __SSE4_2__ )
-#	include <nmmintrin.h>
-#endif
+#include "nfx/core/CPU.h"
 
 namespace nfx::core::hashing
 {
 	//=====================================================================
 	// Hash infrastructure
 	//=====================================================================
-
-	namespace internal
-	{
-		//----------------------------
-		// CPU feature detection
-		//----------------------------
-
-		NFX_CORE_INLINE bool hasSSE42Support() noexcept
-		{
-			static const bool s_hasSSE42 = []() {
-				bool hasSupport = false;
-#if defined( _MSC_VER )
-				std::array<int, 4> cpuInfo{};
-				__cpuid( cpuInfo.data(), 1 );
-				hasSupport = ( cpuInfo[2] & ( 1 << 20 ) ) != 0;
-#elif defined( __GNUC__ )
-				unsigned int eax, ebx, ecx, edx;
-				if ( __get_cpuid( 1, &eax, &ebx, &ecx, &edx ) )
-				{
-					hasSupport = ( ecx & ( 1 << 20 ) ) != 0;
-				}
-#endif
-				return hasSupport;
-			}();
-
-			return s_hasSSE42;
-		}
-	}
 
 	//----------------------------------------------
 	// Low-level hash building blocks
@@ -146,7 +111,7 @@ namespace nfx::core::hashing
 
 		uint32_t hashValue = FnvOffsetBasis;
 
-		if ( internal::hasSSE42Support() )
+		if ( cpu::hasSSE42Support() )
 		{
 			for ( size_t i = 0; i < key.length(); ++i )
 			{
@@ -208,4 +173,4 @@ namespace nfx::core::hashing
 			return static_cast<size_t>( x );
 		}
 	}
-}
+} // namespace nfx::core::hashing

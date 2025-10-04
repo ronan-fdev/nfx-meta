@@ -965,4 +965,4 @@ namespace nfx::datatypes
 	}
 
 #endif
-}
+} // namespace nfx::datatypes

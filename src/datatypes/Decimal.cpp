@@ -159,7 +159,7 @@ namespace nfx::datatypes
 									  << constants::decimal::SCALE_SHIFT );
 			}
 		}
-	}
+	} // namespace internal
 
 	//=====================================================================
 	// Decimal class
@@ -1486,4 +1486,4 @@ namespace nfx::datatypes
 
 		return is;
 	}
-}
+} // namespace nfx::datatypes

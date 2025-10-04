@@ -17,6 +17,18 @@ set(FETCHCONTENT_QUIET OFF)
 # Dependency declarations
 #----------------------------
 
+# --- nlohmann/json ---
+if(NFX_CORE_WITH_JSON)
+	find_package(nlohmann_json 3.12.0 QUIET)
+	if(NOT nlohmann_json_FOUND)
+		FetchContent_Declare(nlohmann_json
+			URL https://github.com/nlohmann/json/releases/download/v3.12.0/include.zip
+			URL_HASH SHA256=b8cb0ef2dd7f57f18933997c9934bb1fa962594f701cd5a8d3c2c80541559372
+			DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+		)
+	endif()
+endif()
+
 # --- {fmt} ---
 if(NFX_CORE_WITH_STRING)
 	find_package(fmt QUIET)
@@ -105,6 +117,19 @@ endif()
 #----------------------------
 # Dependency fetching
 #----------------------------
+
+if(NFX_CORE_WITH_JSON)
+	if(NOT nlohmann_json_FOUND)
+		FetchContent_MakeAvailable(nlohmann_json)
+		
+		# Create interface library for header-only nlohmann_json
+		if(NOT TARGET nlohmann_json::nlohmann_json)
+			add_library(nlohmann_json INTERFACE)
+			target_include_directories(nlohmann_json INTERFACE ${nlohmann_json_SOURCE_DIR}/include)
+			add_library(nlohmann_json::nlohmann_json ALIAS nlohmann_json)
+		endif()
+	endif()
+endif()
 
 if(NFX_CORE_WITH_STRING)
 	if(NOT fmt_FOUND)

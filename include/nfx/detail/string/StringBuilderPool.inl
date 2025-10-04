@@ -158,6 +158,7 @@ namespace nfx::string
 		}
 		return false;
 	}
+
 	NFX_CORE_INLINE char StringBuilder::Enumerator::current() const
 	{
 		return *m_current;
@@ -189,7 +190,7 @@ namespace nfx::string
 	}
 
 	//----------------------------------------------
-	// Assignment operators
+	// Assignment
 	//----------------------------------------------
 
 	NFX_CORE_INLINE StringBuilderLease& StringBuilderLease::operator=( StringBuilderLease&& other ) noexcept
@@ -237,4 +238,4 @@ namespace nfx::string
 
 		return m_buffer->toString();
 	}
-}
+} // namespace nfx::string

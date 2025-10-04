@@ -203,4 +203,4 @@ namespace nfx::string
 
 		return pool;
 	}
-}
+} // namespace nfx::string

@@ -30,6 +30,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 - NIL
+  
+## [0.2.0] - 2025-10-04
+
+### Added
+
+- **JSON Serialization Framework:**
+  - **Document Processing:**
+    - `Document` class for JSON parsing, manipulation, and serialization with RFC 6901 JSON Pointer support
+    - `ArrayEnumerator` and `FieldEnumerator` for efficient JSON traversal and iteration
+    - Integrated [nlohmann/json](https://github.com/nlohmann/json) with automatic dependency resolution
+  - **Type System:**
+    - `Serializer<T>` templated serialization with compile-time reflection and automatic type detection
+    - `SerializationTraits<T>` extensible framework with specializations for nfx-core types (Int128, Decimal, DateTime, etc.)
+    - Built-in support for containers, POD types, and custom objects with reflection capabilities
+  - **Validation & Quality:**
+    - `SchemaValidator` with JSON Schema Draft 7 compliance and detailed error reporting
+    - `ValidationResult` and `ValidationError` classes for comprehensive validation feedback
+  - **Build Integration:**
+    - Conditional compilation via `NFX_CORE_WITH_JSON` CMake option
+    - Comprehensive samples and test coverage for all serialization components
+
+- **CPU Feature Detection (Breaking Change):**
+  - Added `nfx::core::cpu` module for runtime detection of CPU instruction set extensions.
+  - Provides `hasSSE42Support()`, `hasAVXSupport()`, and `hasAVX2Support()`.
+  - Enables optimized algorithm selection based on available CPU features.
+
+- **CMake & Build System Improvements:**
+  - Modular CMake sources for all major components (containers, datatypes, memory, string, time, serialization).
+  - Conditional inclusion of sources, tests, samples, and benchmarks based on feature flags.
+
+### Changed
+
+- **Hashing/Core Utilities:**
+  - Moved core hash utilities to `nfx/core/Hashing.h` (was `nfx/core/hashing/Hash.h`).
+  - CPU feature detection moved to dedicated `nfx/core/CPU.h` module.
+- **Header File Reorganization (Breaking Change):**
+  - `nfx/core/hashing/Hash.h` moved to `nfx/core/Hash.h` - update include paths accordingly
+  - This change affects any code that directly includes the hashing utilities header
+
+### Fixed
+
+- **Thread-related crash in `Thread Safety Demonstration section` of `Sample_LruCache.cpp` :) :**
+  - Fixed memory corruption caused by incorrect vector initialization in threading code
+  - Changed `std::vector<std::size_t> hits_per_thread{ num_threads, 0 };` to `std::vector<std::size_t> hits_per_thread(num_threads, 0);`
+
 
 ## [0.1.9] - 2025-10-01
 
@@ -119,9 +164,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configurable FNV Hash Constants**: ChdHashMap now supports custom FNV-1a hash parameters for external project customization
 
   - Template parameters `FnvOffsetBasis` and `FnvPrime` with academic naming and default values
-  - `DEFAULT_FNV_OFFSET_BASIS = 0x811C9DC5` and `DEFAULT_FNV_PRIME = 0x01000193` constants in Hash.h
+  - `DEFAULT_FNV_OFFSET_BASIS = 0x811C9DC5` and `DEFAULT_FNV_PRIME = 0x01000193` constants in Hashing.h
 
-- **Comprehensive Hash Constant Library**: Extended Hash.h with academically-named hashing constants
+- **Comprehensive Hash Constant Library**: Extended Hashing.h with academically-named hashing constants
 
   - **FNV-1a Constants**: `DEFAULT_FNV_OFFSET_BASIS`, `DEFAULT_FNV_PRIME` with Fowler-Noll-Vo algorithm attribution
   - **Integer Hashing Constants**: `DEFAULT_INTEGER_HASH_32` (Donald Knuth), `DEFAULT_INTEGER_HASH_64_C1/C2` (Thomas Wang)
@@ -318,7 +363,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Core Hashing Framework
 
-- **Centralized Hash Utilities**: New `nfx/core/hashing/Hash.h` module
+- **Centralized Hash Utilities**: New `nfx/core/hashing/Hashing.h` module
   - Unified hash function interface
   - Hardware-accelerated hashing (SSE4.2 CRC32)
   - Cross-platform hash compatibility

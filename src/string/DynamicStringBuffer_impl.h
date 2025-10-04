@@ -231,4 +231,4 @@ namespace nfx::string
 		/** @brief The underlying fmt::memory_buffer */
 		fmt::memory_buffer m_buffer;
 	};
-}
+} // namespace nfx::string
