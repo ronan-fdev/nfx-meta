@@ -228,6 +228,18 @@ namespace nfx::serialization::json
 		return std::nullopt;
 	}
 
+	std::optional<Document> Document::getDocument( std::string_view path ) const
+	{
+		const nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		if ( node )
+		{
+			Document result;
+			static_cast<Document_impl*>( result.m_impl )->setData( *node );
+			return result;
+		}
+		return std::nullopt;
+	}
+
 	//----------------------------------------------
 	// JSON Pointer access (RFC 6901)
 	//----------------------------------------------
@@ -428,6 +440,15 @@ namespace nfx::serialization::json
 		}
 	}
 
+	void Document::setDocument( std::string_view path, const Document& document )
+	{
+		nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		if ( node )
+		{
+			*node = static_cast<Document_impl*>( document.m_impl )->data();
+		}
+	}
+
 	//----------------------------------------------
 	// JSON Pointer value setting (RFC 6901)
 	//----------------------------------------------
@@ -574,6 +595,19 @@ namespace nfx::serialization::json
 				*node = nlohmann::json::array();
 			}
 			node->push_back( value );
+		}
+	}
+
+	void Document::addToArray( std::string_view path, const Document& document )
+	{
+		nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		if ( node )
+		{
+			if ( !node->is_array() )
+			{
+				*node = nlohmann::json::array();
+			}
+			node->push_back( static_cast<Document_impl*>( document.m_impl )->data() );
 		}
 	}
 
@@ -874,5 +908,108 @@ namespace nfx::serialization::json
 	std::string Document::lastError() const
 	{
 		return static_cast<Document_impl*>( m_impl )->lastError();
+	}
+
+	//----------------------------------------------
+	// Character utility methods
+	//----------------------------------------------
+
+	void Document::setChar( std::string_view path, char value )
+	{
+		nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		if ( node )
+		{
+			*node = std::string( 1, value );
+		}
+	}
+
+	std::optional<char> Document::getChar( std::string_view path ) const
+	{
+		const nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		if ( node && node->is_string() )
+		{
+			const auto& str = node->get<std::string>();
+			if ( str.length() == 1 )
+			{
+				return str[0];
+			}
+		}
+		return std::nullopt;
+	}
+
+	void Document::setCharByPointer( std::string_view pointer, char c )
+	{
+		nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer, true );
+		if ( node )
+		{
+			*node = std::string( 1, c );
+		}
+	}
+
+	std::optional<char> Document::getCharByPointer( std::string_view pointer ) const
+	{
+		const nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
+		if ( node && node->is_string() )
+		{
+			const auto& str = node->get<std::string>();
+			if ( str.length() == 1 )
+			{
+				return str[0];
+			}
+		}
+		return std::nullopt;
+	}
+
+	void Document::addCharToArray( std::string_view path, char c )
+	{
+		nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		if ( node )
+		{
+			if ( !node->is_array() )
+			{
+				*node = nlohmann::json::array();
+			}
+			node->push_back( std::string( 1, c ) );
+		}
+	}
+
+	std::optional<char> Document::getArrayElementChar( std::string_view path, size_t index ) const
+	{
+		const nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		if ( node && node->is_array() && index < node->size() )
+		{
+			const auto& element = ( *node )[index];
+			if ( element.is_string() )
+			{
+				const auto& str = element.get<std::string>();
+				if ( str.length() == 1 )
+				{
+					return str[0];
+				}
+			}
+		}
+		return std::nullopt;
+	}
+
+	bool Document::isChar( std::string_view path ) const
+	{
+		const nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		if ( node && node->is_string() )
+		{
+			const auto& str = node->get<std::string>();
+			return str.length() == 1;
+		}
+		return false;
+	}
+
+	bool Document::hasCharByPointer( std::string_view pointer ) const
+	{
+		const nlohmann::json* node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
+		if ( node && node->is_string() )
+		{
+			const auto& str = node->get<std::string>();
+			return str.length() == 1;
+		}
+		return false;
 	}
 } // namespace nfx::serialization::json

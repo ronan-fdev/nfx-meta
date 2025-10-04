@@ -31,6 +31,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
   
+## [0.2.1] - 2025-10-05
+
+### Added
+
+- **JSON Document API Enhancements:**
+  - **Generic Document Methods:** Type-agnostic operations for flexible JSON manipulation
+    - `getDocument(path)` - Generic getter that returns any JSON structure as a Document (primitives, objects, arrays)  
+    - `setDocument(path, document)` - Generic setter for Document objects with full dot notation support
+    - `addToArray(path, document)` - Generic array append method for Document objects with nested structure support
+  - **Character Utility Methods:** Complete convenience API for single-character JSON operations
+    - **Basic Operations:** `setChar(path, char)` and `getChar(path)` with `std::optional<char>` return type
+    - **JSON Pointer Support:** `setCharByPointer(pointer, char)` and `getCharByPointer(pointer)` for RFC 6901 compliance
+    - **Array Operations:** `addCharToArray(path, char)` and `getArrayElementChar(path, index)` for character arrays
+    - **Type Validation:** `isChar(path)` and `hasCharByPointer(pointer)` for character detection and validation
+    - **Implementation Details:** Characters stored as single-character JSON strings with proper type validation
+
+
 ## [0.2.0] - 2025-10-04
 
 ### Added

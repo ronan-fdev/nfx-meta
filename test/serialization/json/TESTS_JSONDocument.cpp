@@ -1627,4 +1627,469 @@ namespace nfx::serialization::json::test
 		EXPECT_EQ( deserializedPrefs->getBoolByPointer( "/emailNotifications" ), true );
 		EXPECT_EQ( deserializedPrefs->getStringByPointer( "/theme" ), "dark" );
 	}
+
+	//----------------------------------------------
+	// Generic Document operations tests
+	//----------------------------------------------
+
+	TEST( DocumentTest, GenericGetDocument )
+	{
+		Document doc = Document::createObject();
+
+		// Test getting primitive values as documents
+		doc.setString( "name", "Alice" );
+		doc.setInt( "age", 30 );
+		doc.setBool( "active", true );
+
+		auto nameDoc = doc.getDocument( "name" );
+		ASSERT_TRUE( nameDoc.has_value() );
+		EXPECT_EQ( nameDoc->getString( "" ), "Alice" );
+
+		auto ageDoc = doc.getDocument( "age" );
+		ASSERT_TRUE( ageDoc.has_value() );
+		EXPECT_EQ( ageDoc->getInt( "" ), 30 );
+
+		auto activeDoc = doc.getDocument( "active" );
+		ASSERT_TRUE( activeDoc.has_value() );
+		EXPECT_EQ( activeDoc->getBool( "" ), true );
+
+		// Test getting nested objects
+		doc.setString( "user.profile.firstName", "Bob" );
+		doc.setString( "user.profile.lastName", "Smith" );
+
+		auto userDoc = doc.getDocument( "user" );
+		ASSERT_TRUE( userDoc.has_value() );
+		EXPECT_EQ( userDoc->getString( "profile.firstName" ), "Bob" );
+		EXPECT_EQ( userDoc->getString( "profile.lastName" ), "Smith" );
+
+		auto profileDoc = doc.getDocument( "user.profile" );
+		ASSERT_TRUE( profileDoc.has_value() );
+		EXPECT_EQ( profileDoc->getString( "firstName" ), "Bob" );
+		EXPECT_EQ( profileDoc->getString( "lastName" ), "Smith" );
+
+		// Test getting arrays
+		doc.addToArray( "hobbies", "reading" );
+		doc.addToArray( "hobbies", "coding" );
+
+		auto hobbiesDoc = doc.getDocument( "hobbies" );
+		ASSERT_TRUE( hobbiesDoc.has_value() );
+		EXPECT_EQ( hobbiesDoc->size(), 2 );
+		EXPECT_EQ( hobbiesDoc->getArrayElementString( "", 0 ), "reading" );
+		EXPECT_EQ( hobbiesDoc->getArrayElementString( "", 1 ), "coding" );
+
+		// Test non-existent path
+		auto nonExistent = doc.getDocument( "doesnotexist" );
+		EXPECT_FALSE( nonExistent.has_value() );
+	}
+
+	TEST( DocumentTest, GenericSetDocument )
+	{
+		Document doc = Document::createObject();
+
+		// Test setting primitive documents
+		Document nameDoc = Document::createObject();
+		nameDoc.setString( "", "Alice" );
+		doc.setDocument( "name", nameDoc );
+		EXPECT_EQ( doc.getString( "name" ), "Alice" );
+
+		Document ageDoc = Document::createObject();
+		ageDoc.setInt( "", 25 );
+		doc.setDocument( "age", ageDoc );
+		EXPECT_EQ( doc.getInt( "age" ), 25 );
+
+		// Test setting complex objects
+		Document profileDoc = Document::createObject();
+		profileDoc.setString( "firstName", "Bob" );
+		profileDoc.setString( "lastName", "Smith" );
+		profileDoc.setInt( "experience", 5 );
+
+		doc.setDocument( "user.profile", profileDoc );
+		EXPECT_EQ( doc.getString( "user.profile.firstName" ), "Bob" );
+		EXPECT_EQ( doc.getString( "user.profile.lastName" ), "Smith" );
+		EXPECT_EQ( doc.getInt( "user.profile.experience" ), 5 );
+
+		// Test setting arrays
+		Document hobbiesDoc = Document::createArray();
+		hobbiesDoc.addToArray( "", "reading" );
+		hobbiesDoc.addToArray( "", "gaming" );
+		hobbiesDoc.addToArray( "", "traveling" );
+
+		doc.setDocument( "hobbies", hobbiesDoc );
+		EXPECT_EQ( doc.getArraySize( "hobbies" ), 3 );
+		EXPECT_EQ( doc.getArrayElementString( "hobbies", 0 ), "reading" );
+		EXPECT_EQ( doc.getArrayElementString( "hobbies", 1 ), "gaming" );
+		EXPECT_EQ( doc.getArrayElementString( "hobbies", 2 ), "traveling" );
+
+		// Test overwriting existing values
+		Document newNameDoc = Document::createObject();
+		newNameDoc.setString( "", "Charlie" );
+		doc.setDocument( "name", newNameDoc );
+		EXPECT_EQ( doc.getString( "name" ), "Charlie" );
+
+		// Verify JSON structure contains all expected elements (accounting for pretty-printing)
+		std::string jsonStr = doc.toJsonString( 0 );
+		EXPECT_TRUE( jsonStr.find( "\"age\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "25" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"name\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"Charlie\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"hobbies\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"reading\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"gaming\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"traveling\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"firstName\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"Bob\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"lastName\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"Smith\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "\"experience\"" ) != std::string::npos );
+		EXPECT_TRUE( jsonStr.find( "5" ) != std::string::npos );
+	}
+
+	TEST( DocumentTest, GenericAddToArrayWithDocument )
+	{
+		Document doc = Document::createObject();
+
+		// Test adding primitive documents to array
+		Document str1 = Document::createObject();
+		str1.setString( "", "first" );
+		doc.addToArray( "strings", str1 );
+
+		Document str2 = Document::createObject();
+		str2.setString( "", "second" );
+		doc.addToArray( "strings", str2 );
+
+		EXPECT_EQ( doc.getArraySize( "strings" ), 2 );
+		EXPECT_EQ( doc.getArrayElementString( "strings", 0 ), "first" );
+		EXPECT_EQ( doc.getArrayElementString( "strings", 1 ), "second" );
+
+		// Test adding complex objects to array
+		Document user1 = Document::createObject();
+		user1.setString( "name", "Alice" );
+		user1.setInt( "age", 30 );
+		user1.setBool( "active", true );
+
+		Document user2 = Document::createObject();
+		user2.setString( "name", "Bob" );
+		user2.setInt( "age", 25 );
+		user2.setBool( "active", false );
+
+		doc.addToArray( "users", user1 );
+		doc.addToArray( "users", user2 );
+
+		EXPECT_EQ( doc.getArraySize( "users" ), 2 );
+
+		// Verify first user
+		auto firstUser = doc.getArrayElement( "users", 0 );
+		EXPECT_EQ( firstUser.getString( "name" ), "Alice" );
+		EXPECT_EQ( firstUser.getInt( "age" ), 30 );
+		EXPECT_EQ( firstUser.getBool( "active" ), true );
+
+		// Verify second user
+		auto secondUser = doc.getArrayElement( "users", 1 );
+		EXPECT_EQ( secondUser.getString( "name" ), "Bob" );
+		EXPECT_EQ( secondUser.getInt( "age" ), 25 );
+		EXPECT_EQ( secondUser.getBool( "active" ), false );
+
+		// Test adding nested arrays
+		Document nestedArray = Document::createArray();
+		nestedArray.addToArray( "", "item1" );
+		nestedArray.addToArray( "", "item2" );
+
+		doc.addToArray( "nested", nestedArray );
+		EXPECT_EQ( doc.getArraySize( "nested" ), 1 );
+
+		auto retrievedNestedArray = doc.getArrayElement( "nested", 0 );
+		EXPECT_EQ( retrievedNestedArray.size(), 2 );
+		EXPECT_EQ( retrievedNestedArray.getArrayElementString( "", 0 ), "item1" );
+		EXPECT_EQ( retrievedNestedArray.getArrayElementString( "", 1 ), "item2" );
+
+		// Test adding to non-existent array (should create it)
+		Document newItem = Document::createObject();
+		newItem.setString( "id", "test123" );
+		doc.addToArray( "items", newItem );
+
+		EXPECT_EQ( doc.getArraySize( "items" ), 1 );
+		EXPECT_EQ( doc.getArrayElementString( "items", 0 ).value_or( "missing" ), "missing" ); // Not a string, it's an object
+
+		auto retrievedItem = doc.getArrayElement( "items", 0 );
+		EXPECT_EQ( retrievedItem.getString( "id" ), "test123" );
+	}
+
+	TEST( DocumentTest, GenericMethodsConsistency )
+	{
+		Document doc = Document::createObject();
+
+		// Test consistency between generic and specialized methods
+		Document complexDoc = Document::createObject();
+		complexDoc.setString( "type", "user" );
+		complexDoc.setInt( "id", 12345 );
+		complexDoc.setBool( "verified", true );
+
+		// Set using generic method
+		doc.setDocument( "profile", complexDoc );
+
+		// Retrieve using specialized methods
+		EXPECT_EQ( doc.getString( "profile.type" ), "user" );
+		EXPECT_EQ( doc.getInt( "profile.id" ), 12345 );
+		EXPECT_EQ( doc.getBool( "profile.verified" ), true );
+
+		// Retrieve using generic method and verify
+		auto retrievedProfile = doc.getDocument( "profile" );
+		ASSERT_TRUE( retrievedProfile.has_value() );
+		EXPECT_EQ( retrievedProfile->getString( "type" ), "user" );
+		EXPECT_EQ( retrievedProfile->getInt( "id" ), 12345 );
+		EXPECT_EQ( retrievedProfile->getBool( "verified" ), true );
+
+		// Test array consistency
+		Document arrayItem = Document::createObject();
+		arrayItem.setString( "value", "test" );
+
+		doc.addToArray( "items", arrayItem );
+
+		// Verify via specialized array methods
+		EXPECT_EQ( doc.getArraySize( "items" ), 1 );
+		auto item = doc.getArrayElement( "items", 0 );
+		EXPECT_EQ( item.getString( "value" ), "test" );
+
+		// Verify via generic methods
+		auto itemsArray = doc.getDocument( "items" );
+		ASSERT_TRUE( itemsArray.has_value() );
+		EXPECT_EQ( itemsArray->size(), 1 );
+		auto itemFromGeneric = itemsArray->getArrayElement( "", 0 );
+		EXPECT_EQ( itemFromGeneric.getString( "value" ), "test" );
+	}
+
+	//----------------------------------------------
+	// Character utility methods tests
+	//----------------------------------------------
+
+	TEST( DocumentTest, CharacterBasicOperations )
+	{
+		Document doc = Document::createObject();
+
+		// Test setChar and getChar
+		doc.setChar( "letter", 'A' );
+		auto charResult = doc.getChar( "letter" );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'A' );
+		EXPECT_TRUE( doc.isChar( "letter" ) );
+
+		// Test with special characters
+		doc.setChar( "special", '\n' );
+		charResult = doc.getChar( "special" );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), '\n' );
+		EXPECT_TRUE( doc.isChar( "special" ) );
+
+		// Test with null character
+		doc.setChar( "null_char", '\0' );
+		charResult = doc.getChar( "null_char" );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), '\0' );
+		EXPECT_TRUE( doc.isChar( "null_char" ) );
+
+		// Test nested path
+		doc.setChar( "nested.deep.char", 'Z' );
+		charResult = doc.getChar( "nested.deep.char" );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'Z' );
+		EXPECT_TRUE( doc.isChar( "nested.deep.char" ) );
+	}
+
+	TEST( DocumentTest, CharacterJsonPointerMethods )
+	{
+		Document doc = Document::createObject();
+
+		// Test setCharByPointer with JSON Pointer notation
+		doc.setCharByPointer( "/ptr_char", 'X' );
+		auto charResult = doc.getCharByPointer( "/ptr_char" );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'X' );
+		EXPECT_TRUE( doc.hasCharByPointer( "/ptr_char" ) );
+
+		// Test nested JSON Pointer paths
+		doc.setCharByPointer( "/user/initial", 'J' );
+		charResult = doc.getCharByPointer( "/user/initial" );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'J' );
+		EXPECT_TRUE( doc.hasCharByPointer( "/user/initial" ) );
+
+		// Test array index JSON Pointer
+		doc.setCharByPointer( "/grades/0", 'A' );
+		charResult = doc.getCharByPointer( "/grades/0" );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'A' );
+		EXPECT_TRUE( doc.hasCharByPointer( "/grades/0" ) );
+
+		// Test hasCharByPointer with non-existent paths
+		EXPECT_FALSE( doc.hasCharByPointer( "/nonexistent" ) );
+		EXPECT_FALSE( doc.hasCharByPointer( "/user/nonexistent" ) );
+	}
+
+	TEST( DocumentTest, CharacterJsonPointerVsDotNotation )
+	{
+		Document doc = Document::createObject();
+
+		// Test that JSON Pointer and dot notation access different paths
+		doc.setChar( "user.name", 'D' );  // Dot notation - creates nested object
+		doc.setCharByPointer( "/user.name", 'P' );  // JSON Pointer - creates field named "user.name"
+
+		// Verify they access different locations
+		auto dotResult = doc.getChar( "user.name" );
+		ASSERT_TRUE( dotResult.has_value() );
+		EXPECT_EQ( dotResult.value(), 'D' );
+
+		auto pointerResult = doc.getCharByPointer( "/user.name" );
+		ASSERT_TRUE( pointerResult.has_value() );
+		EXPECT_EQ( pointerResult.value(), 'P' );
+
+		// Verify type checking works correctly
+		EXPECT_TRUE( doc.isChar( "user.name" ) );
+		EXPECT_TRUE( doc.hasCharByPointer( "/user.name" ) );
+
+		// Test nested structure with JSON Pointers
+		doc.setCharByPointer( "/profile/data/grade", 'A' );
+		auto nestedResult = doc.getCharByPointer( "/profile/data/grade" );
+		ASSERT_TRUE( nestedResult.has_value() );
+		EXPECT_EQ( nestedResult.value(), 'A' );
+		EXPECT_TRUE( doc.hasCharByPointer( "/profile/data/grade" ) );
+	}
+
+	TEST( DocumentTest, CharacterArrayOperations )
+	{
+		Document doc = Document::createObject();
+
+		// Test addCharToArray
+		doc.addCharToArray( "char_array", 'A' );
+		doc.addCharToArray( "char_array", 'B' );
+		doc.addCharToArray( "char_array", 'C' );
+
+		// Test getArrayElementChar
+		auto charResult = doc.getArrayElementChar( "char_array", 0 );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'A' );
+
+		charResult = doc.getArrayElementChar( "char_array", 1 );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'B' );
+
+		charResult = doc.getArrayElementChar( "char_array", 2 );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'C' );
+
+		// Test array size
+		EXPECT_EQ( doc.getArraySize( "char_array" ), 3 );
+
+		// Test out of bounds access
+		charResult = doc.getArrayElementChar( "char_array", 10 );
+		EXPECT_FALSE( charResult.has_value() );
+
+		// Test adding to non-existent array (should create array)
+		doc.addCharToArray( "new_array", 'X' );
+		charResult = doc.getArrayElementChar( "new_array", 0 );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'X' );
+		EXPECT_EQ( doc.getArraySize( "new_array" ), 1 );
+	}
+
+	TEST( DocumentTest, CharacterValidationMethods )
+	{
+		Document doc = Document::createObject();
+
+		// Test isChar with valid single character
+		doc.setChar( "single", 'Q' );
+		EXPECT_TRUE( doc.isChar( "single" ) );
+
+		// Test isChar with multi-character string (should be false)
+		doc.setString( "multi", "Hello" );
+		EXPECT_FALSE( doc.isChar( "multi" ) );
+
+		// Test isChar with empty string (should be false)
+		doc.setString( "empty", "" );
+		EXPECT_FALSE( doc.isChar( "empty" ) );
+
+		// Test isChar with non-string types
+		doc.setInt( "number", 42 );
+		EXPECT_FALSE( doc.isChar( "number" ) );
+
+		doc.setBool( "boolean", true );
+		EXPECT_FALSE( doc.isChar( "boolean" ) );
+
+		// Test isChar with non-existent path
+		EXPECT_FALSE( doc.isChar( "nonexistent" ) );
+	}
+
+	TEST( DocumentTest, CharacterErrorHandling )
+	{
+		Document doc = Document::createObject();
+
+		// Test getChar on non-existent path
+		auto charResult = doc.getChar( "nonexistent" );
+		EXPECT_FALSE( charResult.has_value() );
+
+		// Test getChar on non-string value
+		doc.setInt( "number", 123 );
+		charResult = doc.getChar( "number" );
+		EXPECT_FALSE( charResult.has_value() );
+
+		// Test getChar on empty string
+		doc.setString( "empty", "" );
+		charResult = doc.getChar( "empty" );
+		EXPECT_FALSE( charResult.has_value() );
+
+		// Test array operations on non-existent array
+		charResult = doc.getArrayElementChar( "nonexistent_array", 0 );
+		EXPECT_FALSE( charResult.has_value() );
+
+		// Test array operations on non-array value
+		doc.setString( "not_array", "test" );
+		charResult = doc.getArrayElementChar( "not_array", 0 );
+		EXPECT_FALSE( charResult.has_value() );
+	}
+
+	TEST( DocumentTest, CharacterIntegrationWithOtherTypes )
+	{
+		Document doc = Document::createObject();
+
+		// Create a mixed document with characters and other types
+		doc.setChar( "initial", 'A' );
+		doc.setString( "name", "John" );
+		doc.setInt( "age", 30 );
+		doc.setBool( "active", true );
+
+		// Verify character operations don't interfere with other types
+		auto charResult = doc.getChar( "initial" );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'A' );
+		EXPECT_EQ( doc.getString( "name" ), "John" );
+		EXPECT_EQ( doc.getInt( "age" ), 30 );
+		EXPECT_EQ( doc.getBool( "active" ), true );
+
+		// Test overwriting different types with characters
+		doc.setChar( "age", 'X' ); // Overwrite int with char
+		charResult = doc.getChar( "age" );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'X' );
+		EXPECT_TRUE( doc.isChar( "age" ) );
+		
+		// After overwriting with char, getInt should return nullopt since it's no longer an int
+		auto intResult = doc.getInt( "age" );
+		EXPECT_FALSE( intResult.has_value() );
+
+		// Test character arrays mixed with regular arrays
+		doc.addCharToArray( "mixed_array", 'Z' );
+		doc.addToArray( "mixed_array", static_cast<int64_t>( 42 ) ); // Explicit cast to avoid ambiguity
+		doc.addCharToArray( "mixed_array", 'Y' );
+
+		EXPECT_EQ( doc.getArraySize( "mixed_array" ), 3 );
+
+		charResult = doc.getArrayElementChar( "mixed_array", 0 );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'Z' );
+
+		EXPECT_EQ( doc.getArrayElementInt( "mixed_array", 1 ), 42 );
+
+		charResult = doc.getArrayElementChar( "mixed_array", 2 );
+		ASSERT_TRUE( charResult.has_value() );
+		EXPECT_EQ( charResult.value(), 'Y' );
+	}
 } // namespace nfx::serialization::json::test
