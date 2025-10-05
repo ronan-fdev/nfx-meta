@@ -72,8 +72,8 @@ Originally developed as foundational infrastructure for the C++ port of the [DNV
 
 - C++20 compatible compiler:
   - **MSVC 2022+** (19.44+ tested)
-  - **GCC 10+** (14.2.0 tested)
-  - **Clang 12+** (19.1.5 tested)
+  - **GCC 12+** (12.2.0 tested)
+  - **Clang 14+** (14.0.6 tested)
 - CMake 3.20 or higher
 - **Multi-compiler builds supported** across x64/x86 architectures
 
@@ -83,25 +83,40 @@ The library supports modular compilation through CMake options:
 
 ```cmake
 # Library build types
-option(NFX_CORE_BUILD_STATIC         "Build static library"               ON   )
-option(NFX_CORE_BUILD_SHARED         "Build shared library"               OFF  )
+option(NFX_CORE_BUILD_STATIC         "Build static library"                ON  )
+option(NFX_CORE_BUILD_SHARED         "Build shared library"                OFF )
+
+# Build optimization
+option(NFX_CORE_USE_CACHE            "Enable compiler cache"               ON  )
 
 # Components
-option(NFX_CORE_WITH_CONTAINERS      "Enable container utilities"         ON   )
-option(NFX_CORE_WITH_DATATYPES       "Enable mathematical datatypes"      ON   )
-option(NFX_CORE_WITH_JSON            "Enable JSON serialization support"  ON   )
-option(NFX_CORE_WITH_MEMORY          "Enable memory management utilities" ON   )
-option(NFX_CORE_WITH_STRING          "Enable string utilities"            ON   )
-option(NFX_CORE_WITH_TIME            "Enable temporal classes"            ON   )
+option(NFX_CORE_WITH_CONTAINERS      "Enable container utilities"          ON  )
+option(NFX_CORE_WITH_DATATYPES       "Enable mathematical datatypes"       ON  )
+option(NFX_CORE_WITH_MEMORY          "Enable memory management utilities"  ON  )
+option(NFX_CORE_WITH_JSON            "Enable JSON serialization support"   ON  )
+option(NFX_CORE_WITH_STRING          "Enable string utilities"             ON  )
+option(NFX_CORE_WITH_TIME            "Enable temporal classes"             ON  )
 
-# Development
-option(NFX_CORE_BUILD_TESTS          "Build tests"                        OFF  )
-option(NFX_CORE_BUILD_SAMPLES        "Build samples"                      OFF  )
-option(NFX_CORE_BUILD_BENCHMARKS     "Build benchmarks"                   OFF  )
-option(NFX_CORE_BUILD_DOCUMENTATION  "Build Doxygen documentation"        OFF  )
+# Development (automatically enabled for standalone builds, disabled for submodule usage)
+option(NFX_CORE_BUILD_TESTS          "Build tests"                         AUTO )
+option(NFX_CORE_BUILD_SAMPLES        "Build samples"                       AUTO )
+option(NFX_CORE_BUILD_BENCHMARKS     "Build benchmarks"                    AUTO )
+option(NFX_CORE_BUILD_DOCUMENTATION  "Build Doxygen documentation"         AUTO )
+
+# Installation (automatically enabled for standalone builds)
+option(NFX_CORE_INSTALL_PROJECT      "Install project"                     AUTO )
+
+# Packaging (automatically enabled for standalone builds)
+option(NFX_CORE_PACKAGE_SOURCE       "Enable source package generation"    AUTO )
+option(NFX_CORE_PACKAGE_ARCHIVE      "Enable TGZ/ZIP package generation"   AUTO )
+option(NFX_CORE_PACKAGE_DEB          "Enable DEB package generation"       AUTO )
+option(NFX_CORE_PACKAGE_RPM          "Enable RPM package generation"       AUTO )
+option(NFX_CORE_PACKAGE_NSIS         "Enable NSIS Windows installer"       AUTO )
 ```
 
 ### Using in Your Project
+
+#### Option 1: Using FetchContent (Build from source)
 
 ```cmake
 include(FetchContent)
@@ -111,8 +126,85 @@ FetchContent_Declare(
   GIT_TAG        main
 )
 FetchContent_MakeAvailable(nfx-core)
-target_link_libraries(your_target nfx-core-static)
+
+# Link with static library (recommended for most use cases)
+target_link_libraries(your_target nfx-core::static)
+
+# Or link with shared library
+# target_link_libraries(your_target nfx-core::nfx-core)
 ```
+
+#### Option 2: As a Git Submodule
+
+**Setup Steps (one-time):**
+```bash
+# From your project root directory
+git submodule add https://github.com/ronan-fdev/nfx-core.git third-party/nfx-core
+git commit -m "Add nfx-core as submodule"
+```
+
+**CMakeLists.txt:**
+```cmake
+# Add NFX-Core as a subdirectory
+# Note: Development features (tests, samples, benchmarks, docs, packaging) 
+# are automatically disabled when used as a submodule
+add_subdirectory(third-party/nfx-core)
+
+# Link with the library
+target_link_libraries(your_target nfx-core::static)
+```
+
+**Clone/Update Commands:**
+```bash
+# When cloning your project (for new developers)
+# Replace with your actual project URL:
+git clone --recursive https://github.com/YOUR-USERNAME/YOUR-PROJECT.git
+
+# Or if already cloned without --recursive
+git submodule update --init --recursive
+
+# To update the submodule to latest version
+cd third-party/nfx-core
+git pull origin main
+cd ../..
+git add third-party/nfx-core
+git commit -m "Update nfx-core submodule"
+```
+
+**Automatic Development Feature Disabling:**
+
+NFX-Core automatically detects when it's used as a submodule and disables development features:
+
+NFX-Core automatically detects its usage context and adjusts build behavior accordingly:
+
+- **Standalone builds**: When building NFX-Core directly, all development features are enabled by default (tests, samples, benchmarks, documentation, packaging)
+- **Submodule/FetchContent usage**: When used as a dependency, only the core library is built to avoid cluttering the parent project
+
+When used as a submodule, these features are **automatically disabled**:
+- Tests, samples, benchmarks, documentation generation
+- Installation targets and package generation
+- Only the core library targets (`nfx-core::static`, `nfx-core::nfx-core`) are built
+
+#### Option 3: Using find_package (for installed libraries)
+
+```cmake
+# Find the installed NFX-Core library
+find_package(nfx-core REQUIRED)
+
+# Link with static library (recommended for most use cases) 
+target_link_libraries(your_target nfx-core::static)
+
+# Or link with shared library
+# target_link_libraries(your_target nfx-core::nfx-core)
+```
+
+#### Integration Method Comparison
+
+| Method | Best For | Pros | Cons |
+|--------|----------|------|------|
+| **find_package** | Production builds, system packages | Fast builds, version control, clean separation | Requires pre-installation |
+| **FetchContent** | CI/CD, development, specific versions | Always available, version pinning, no pre-install | Longer build times, downloads on each clean build |
+| **Submodule** | Long-term projects, offline builds | Full source control, offline capability | Manual updates, Git complexity |
 
 ### Building
 
@@ -134,9 +226,142 @@ cmake --build . --config Release
 ctest -C Release
 ```
 
-### CMake Integration
+### Documentation
 
-### Usage Example
+NFX-Core includes comprehensive API documentation generated with Doxygen.
+
+#### Building Documentation
+
+```bash
+# Configure with documentation enabled
+cmake .. -DCMAKE_BUILD_TYPE=Release -DNFX_CORE_BUILD_DOCUMENTATION=ON
+
+# Build the documentation
+cmake --build . --target documentation
+
+# Documentation will be generated in build/nfx-core-{version}/{compiler}/Release/doc/html/
+```
+
+#### Requirements
+
+- **Doxygen** - Documentation generation tool
+- **Graphviz Dot** (optional) - For generating class diagrams and dependency graphs
+
+#### Accessing Documentation
+
+After building, open the documentation in your browser:
+
+```bash
+# Linux
+xdg-open build/nfx-core-*/*/Release/doc/html/index.html     # Most Linux systems
+firefox build/nfx-core-*/*/Release/doc/html/index.html      # If Firefox is installed
+
+# Windows
+start build/nfx-core-*/*/Release/doc/html/index.html
+```
+
+## Installation & Packaging
+
+NFX-Core provides comprehensive packaging options for distribution across multiple platforms and package managers.
+
+### Package Generation
+
+The library supports generating packages in multiple formats:
+
+```bash
+# Configure with packaging options (including both static and shared libraries)
+cmake .. -DCMAKE_BUILD_TYPE=Release \
+         -DNFX_CORE_BUILD_STATIC=ON \
+         -DNFX_CORE_BUILD_SHARED=ON \
+         -DNFX_CORE_PACKAGE_ARCHIVE=ON \
+         -DNFX_CORE_PACKAGE_DEB=ON \
+         -DNFX_CORE_PACKAGE_RPM=ON \
+         -DNFX_CORE_PACKAGE_NSIS=ON \
+         -DNFX_CORE_PACKAGE_SOURCE=ON
+
+# Generate binary packages
+cmake --build . --target package
+
+# Generate source packages
+cmake --build . --target package_source
+# or
+cpack --config CPackSourceConfig.cmake
+```
+
+### Supported Package Formats
+
+| Format | Platform | Description | Requirements |
+|--------|----------|-------------|--------------|
+| **TGZ/ZIP** | Cross-platform | Compressed archive packages | None |
+| **DEB** | Debian/Ubuntu | Native Debian packages with dependencies | `dpkg-dev` |
+| **RPM** | RedHat/SUSE | Native RPM packages with dependencies | `rpm-build` |
+| **NSIS** | Windows | Professional Windows installer (.exe) | `NSIS 3.03+` |
+| **Source** | Cross-platform | Source code distribution | None |
+
+### Package Options
+
+Control which packages are generated with CMake options:
+
+```cmake
+# Package generation control
+option(NFX_CORE_PACKAGE_ARCHIVE      "Generate TGZ/ZIP packages"          ON   )
+option(NFX_CORE_PACKAGE_DEB          "Generate DEB packages (Linux)"      ON   )
+option(NFX_CORE_PACKAGE_RPM          "Generate RPM packages (Linux)"      ON   )
+option(NFX_CORE_PACKAGE_NSIS         "Generate NSIS installer (Windows)"  ON   )
+option(NFX_CORE_PACKAGE_SOURCE       "Generate source packages"           ON   )
+```
+### Linux Package Dependencies
+
+**DEB packages** automatically include runtime dependencies:
+- `libc6`, `libstdc++6`, `libgcc-s1` (core runtime)
+- `nlohmann-json3-dev` (if JSON support enabled)
+- `libfmt-dev` (if string formatting enabled)
+
+**RPM packages** automatically include runtime dependencies:
+- `glibc`, `libstdc++` (core runtime)
+- `nlohmann-json-devel` (if JSON support enabled)
+- `fmt-devel` (if string formatting enabled)
+
+### Windows Installer Features
+
+The NSIS installer provides:
+
+- **64-bit Program Files installation**
+- **Automatic PATH modification** for easy command-line access
+- **Proper uninstaller registration** in Windows Add/Remove Programs
+- **DPI-aware installation** for modern displays
+
+### Cross-Platform Installation
+
+```bash
+# Linux (DEB-based systems)
+sudo dpkg -i nfx-core-*.deb
+sudo apt-get install -f  # Fix dependencies if needed
+
+# Linux (RPM-based systems) 
+sudo rpm -ivh nfx-core-*.rpm
+
+# Windows
+# Run the .exe installer with administrator privileges
+nfx-core-*-win64.exe
+
+# Manual installation (all platforms)
+# Extract TGZ/ZIP to desired location
+tar -xzf nfx-core-*.tar.gz -C /usr/local/
+# or
+unzip nfx-core-*.zip -d "C:\Program Files\"
+```
+
+### Package Contents
+
+All packages include:
+- **Headers** (`include/nfx/`) - Public API headers
+- **Libraries** (`lib/`) - Static/shared libraries  
+- **Documentation** (`doc/`) - API documentation (if built)
+- **Licenses** (`doc/licenses/`) - All license files
+- **Examples** (`samples/`) - Usage examples (if built)
+
+## Usage Example
 
 ```cpp
 #include <iostream>
@@ -294,16 +519,6 @@ NFX-Core is designed with performance as a primary concern. For detailed perform
 - CHD perfect hashing for static datasets
 - Cache-friendly data layouts and access patterns
 
-## Compatibility
-
-- **Platforms**: Windows, Linux
-- **Compilers**:
-  - **MSVC 2022+** (tested with Visual Studio 19.44.35214.0)
-  - **GCC 10+** (tested with GCC 14.2.0)
-  - **Clang 12+** (tested with Clang 19.1.5 with GNU/MSVC CLI)
-- **Architectures**: x64, x86 (multi-architecture build matrix)
-- **Standards**: C++20 required
-
 ## CPU Architecture Detection
 
 NFX-Core includes CPU feature detection to optimize performance across different hardware generations.
@@ -352,4 +567,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-_Updated on October 4, 2025_
+_Updated on October 5, 2025_

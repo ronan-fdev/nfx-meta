@@ -1,0 +1,69 @@
+#==============================================================================
+# NFX-Core CMake Package Configuration
+#==============================================================================
+
+@PACKAGE_INIT@
+
+# Check for required components
+set(_nfx_core_supported_components
+    containers
+    datatypes
+    json
+    memory
+    string
+    time
+)
+
+foreach(_comp ${nfx-core_FIND_COMPONENTS})
+    if(NOT _comp IN_LIST _nfx_core_supported_components)
+        set(nfx-core_FOUND False)
+        set(nfx-core_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
+        return()
+    endif()
+endforeach()
+
+# Find dependencies
+include(CMakeFindDependencyMacro)
+
+# JSON support dependency
+if("json" IN_LIST nfx-core_FIND_COMPONENTS OR NOT nfx-core_FIND_COMPONENTS)
+    find_dependency(nlohmann_json @NFX_CORE_NLOHMANN_JSON_MIN_VERSION@)
+endif()
+
+# String support dependency  
+if("string" IN_LIST nfx-core_FIND_COMPONENTS OR NOT nfx-core_FIND_COMPONENTS)
+    find_dependency(fmt @NFX_CORE_FMT_MIN_VERSION@)
+endif()
+
+# Include the exported targets
+include(${CMAKE_CURRENT_LIST_DIR}/nfx-core-targets.cmake)
+
+# Set component-found variables
+foreach(_comp ${_nfx_core_supported_components})
+    set(nfx-core_${_comp}_FOUND TRUE)
+endforeach()
+
+# Verify targets exist
+set(_nfx_core_targets_available)
+
+if(TARGET nfx-core::nfx-core)
+    list(APPEND _nfx_core_targets_available "nfx-core::nfx-core")
+endif()
+
+if(TARGET nfx-core::static)  
+    list(APPEND _nfx_core_targets_available "nfx-core::static")
+endif()
+
+if(NOT _nfx_core_targets_available)
+    set(nfx-core_FOUND False)
+    set(nfx-core_NOT_FOUND_MESSAGE "No nfx-core targets found")
+    return()
+endif()
+
+# Success message
+if(NOT nfx-core_FIND_QUIETLY)
+    message(STATUS "Found nfx-core ${nfx-core_VERSION}")
+    message(STATUS "Available targets: ${_nfx_core_targets_available}")
+endif()
+
+check_required_components(nfx-core)

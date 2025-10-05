@@ -31,6 +31,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
   
+## [0.3.0] - 2025-10-05
+
+### Added
+
+- **Cross-Platform Packaging**: CPack configuration for TGZ, ZIP, DEB, RPM, and NSIS packages
+  - Linux packages include automatic dependency resolution
+  - Windows NSIS installer
+  - Component-based installation (Runtime, Development, Documentation)
+  - CMake package configuration with `find_package()` support
+
+- **Build System Enhancements**:
+  - Standalone vs submodule detection with automatic feature control
+  - Git submodule integration with workflow documentation
+  - New `NFX_CORE_DEVELOPER_MODE` option for library-focused development
+
+### Changed
+
+- **CMake Module Reorganization** (Breaking):
+  - `nfxCoreConfig.cmake` renamed to `nfxCoreBuildConfig.cmake`
+  - Added `nfxCoreInstall.cmake` and `nfxCorePackaging.cmake`
+  - Unified target naming across all build modes
+
+- **Integration Methods**: Updated FetchContent, find_package, and new submodule integration documentation
+- **Documentation**: Updated README with integration examples
+
+### Fixed
+
+- Enhanced dependency handling for nlohmann/json and fmt libraries
+
 ## [0.2.1] - 2025-10-05
 
 ### Added
@@ -46,7 +75,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - **Array Operations:** `addCharToArray(path, char)` and `getArrayElementChar(path, index)` for character arrays
     - **Type Validation:** `isChar(path)` and `hasCharByPointer(pointer)` for character detection and validation
     - **Implementation Details:** Characters stored as single-character JSON strings with proper type validation
-
 
 ## [0.2.0] - 2025-10-04
 
@@ -91,7 +119,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Thread-related crash in `Thread Safety Demonstration section` of `Sample_LruCache.cpp` :) :**
   - Fixed memory corruption caused by incorrect vector initialization in threading code
   - Changed `std::vector<std::size_t> hits_per_thread{ num_threads, 0 };` to `std::vector<std::size_t> hits_per_thread(num_threads, 0);`
-
 
 ## [0.1.9] - 2025-10-01
 

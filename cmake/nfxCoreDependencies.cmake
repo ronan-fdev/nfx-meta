@@ -1,6 +1,18 @@
 #==============================================================================
-# NFX_CORE - C++ Library dependencies configuration
+# NFX_CORE - Dependencies configuration
 #==============================================================================
+
+#----------------------------
+# Output configuration
+#----------------------------
+
+set(_SAVED_CMAKE_REQUIRED_QUIET     ${CMAKE_REQUIRED_QUIET})
+set(_SAVED_CMAKE_MESSAGE_LOG_LEVEL  ${CMAKE_MESSAGE_LOG_LEVEL})
+set(_SAVED_CMAKE_FIND_QUIETLY       ${CMAKE_FIND_QUIETLY})
+
+set(CMAKE_REQUIRED_QUIET    ON         )
+set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE    ) # [ERROR, WARNING, NOTICE, STATUS, VERBOSE, DEBUG]
+set(CMAKE_FIND_QUIETLY      ON         )
 
 #----------------------------------------------
 # FetchContent dependencies
@@ -11,7 +23,16 @@ include(FetchContent)
 set(FETCHCONTENT_BASE_DIR "${NFX_CORE_ROOT_DIR}/.deps/${COMPILER_DIR_NAME}")
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-set(FETCHCONTENT_QUIET OFF)
+set(FETCHCONTENT_QUIET ON)
+
+#----------------------------
+# Dependency version requirements
+#----------------------------
+
+set(NFX_CORE_NLOHMANN_JSON_MIN_VERSION "3.11.0")
+set(NFX_CORE_FMT_MIN_VERSION           "9.1.0")
+set(NFX_CORE_GTEST_MIN_VERSION         "1.12.1")
+set(NFX_CORE_BENCHMARK_MIN_VERSION     "1.9.1")
 
 #----------------------------
 # Dependency declarations
@@ -19,19 +40,24 @@ set(FETCHCONTENT_QUIET OFF)
 
 # --- nlohmann/json ---
 if(NFX_CORE_WITH_JSON)
-	find_package(nlohmann_json 3.12.0 QUIET)
+	find_package(nlohmann_json ${NFX_CORE_NLOHMANN_JSON_MIN_VERSION} QUIET)
 	if(NOT nlohmann_json_FOUND)
+		message(STATUS "nlohmann/json not found on system, using FetchContent")
+	
 		FetchContent_Declare(nlohmann_json
 			URL https://github.com/nlohmann/json/releases/download/v3.12.0/include.zip
 			URL_HASH SHA256=b8cb0ef2dd7f57f18933997c9934bb1fa962594f701cd5a8d3c2c80541559372
 			DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 		)
+	else()
+		message(STATUS "Using system-installed nlohmann/json version ${nlohmann_json_VERSION}")
 	endif()
 endif()
 
+
 # --- {fmt} ---
 if(NFX_CORE_WITH_STRING)
-	find_package(fmt QUIET)
+	find_package(fmt ${NFX_CORE_FMT_MIN_VERSION} QUIET)
 	
 	if(NOT fmt_FOUND)
 		message(STATUS "fmt not found on system, using FetchContent")
@@ -54,13 +80,13 @@ if(NFX_CORE_WITH_STRING)
 			GIT_SHALLOW    TRUE
 		)
 	else()
-		message(STATUS "Using system-installed fmt")
+		message(STATUS "Using system-installed fmt version ${fmt_VERSION}")
 	endif()
 endif()
 
 # --- Google test ---
 if(NFX_CORE_BUILD_TESTS)
-	find_package(GTest QUIET)
+	find_package(GTest ${NFX_CORE_GTEST_MIN_VERSION} QUIET)
 	
 	if(NOT GTest_FOUND)
 		message(STATUS "GoogleTest not found on system, using FetchContent")
@@ -76,13 +102,13 @@ if(NFX_CORE_BUILD_TESTS)
 			GIT_SHALLOW    TRUE
 		)
 	else()
-		message(STATUS "Using system-installed GoogleTest")
+		message(STATUS "Using system-installed GoogleTest version ${GTest_VERSION}")
 	endif()
 endif()
 
 # --- Google benchmark ---
 if(NFX_CORE_BUILD_BENCHMARKS)
-	find_package(benchmark QUIET)
+	find_package(benchmark ${NFX_CORE_BENCHMARK_MIN_VERSION} QUIET)
 	
 	if(NOT benchmark_FOUND)
 		message(STATUS "Google Benchmark not found on system, using FetchContent")
@@ -110,7 +136,7 @@ if(NFX_CORE_BUILD_BENCHMARKS)
 			GIT_SHALLOW    TRUE
 		)
 	else()
-		message(STATUS "Using system-installed Google Benchmark")
+		message(STATUS "Using system-installed Google Benchmark version ${benchmark_VERSION}")
 	endif()
 endif()
 
@@ -121,13 +147,6 @@ endif()
 if(NFX_CORE_WITH_JSON)
 	if(NOT nlohmann_json_FOUND)
 		FetchContent_MakeAvailable(nlohmann_json)
-		
-		# Create interface library for header-only nlohmann_json
-		if(NOT TARGET nlohmann_json::nlohmann_json)
-			add_library(nlohmann_json INTERFACE)
-			target_include_directories(nlohmann_json INTERFACE ${nlohmann_json_SOURCE_DIR}/include)
-			add_library(nlohmann_json::nlohmann_json ALIAS nlohmann_json)
-		endif()
 	endif()
 endif()
 
@@ -154,3 +173,11 @@ if(NFX_CORE_BUILD_BENCHMARKS)
 		)
 	endif()
 endif()
+
+#----------------------------
+# Cleanup
+#----------------------------
+
+set(CMAKE_REQUIRED_QUIET ${_SAVED_CMAKE_REQUIRED_QUIET})
+set(CMAKE_MESSAGE_LOG_LEVEL ${_SAVED_CMAKE_MESSAGE_LOG_LEVEL})
+set(CMAKE_FIND_QUIETLY ${_SAVED_CMAKE_FIND_QUIETLY})

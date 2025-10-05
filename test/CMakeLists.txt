@@ -106,6 +106,7 @@ foreach(test_source ${TEST_SOURCES})
 
 			# --- Settings ---
 			$<$<CXX_COMPILER_ID:MSVC>:/std:c++20>                              # C++20 standard
+			$<$<CXX_COMPILER_ID:MSVC>:/utf-8>                                  # UTF-8 encoding
 			$<$<CXX_COMPILER_ID:MSVC>:/MP>                                     # Multi-processor compilation
 			$<$<CXX_COMPILER_ID:MSVC>:/W4>                                     # High warning level
 			$<$<CXX_COMPILER_ID:MSVC>:/Wall>                                   # All warnings
@@ -246,19 +247,6 @@ foreach(test_source ${TEST_SOURCES})
 		)
 
 		#----------------------------------------------
-		# Windows: Copy DLL if building shared libs
-		#----------------------------------------------
-
-		if(WIN32 AND NFX_CORE_BUILD_SHARED)
-			add_custom_command(TARGET ${test_target_name} POST_BUILD
-				COMMAND ${CMAKE_COMMAND} -E copy_if_different
-					$<TARGET_FILE:nfx-core>
-					$<TARGET_FILE_DIR:${test_target_name}>
-				COMMENT "Copying nfx-core DLL to test directory"
-			)
-		endif()
-
-		#----------------------------------------------
 		# Test discovery and registration
 		#----------------------------------------------
 
@@ -271,3 +259,25 @@ foreach(test_source ${TEST_SOURCES})
 		)
 	endif()
 endforeach()
+
+#----------------------------------------------
+# Windows: Copy DLL if building shared libs
+#----------------------------------------------
+
+if(WIN32 AND NFX_CORE_BUILD_SHARED)
+	add_custom_target(copy_nfx_core_dll_to_tests
+		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests"
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:nfx-core>
+			"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests/"
+		COMMENT "Copying nfx-core DLL to test directory"
+		DEPENDS nfx-core
+	)
+	
+	foreach(test_source ${TEST_SOURCES})
+		get_filename_component(test_target_name ${test_source} NAME_WE)
+		if(TARGET ${test_target_name})
+			add_dependencies(${test_target_name} copy_nfx_core_dll_to_tests)
+		endif()
+	endforeach()
+endif()

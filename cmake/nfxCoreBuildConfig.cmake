@@ -1,5 +1,5 @@
 #==============================================================================
-# NFX_CORE - C++ library CMake configuration
+# NFX_CORE - CMake build configuration
 #==============================================================================
 
 #----------------------------------------------
@@ -96,13 +96,32 @@ set(NFX_CORE_BUILD_DIR ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}/${
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${NFX_CORE_BUILD_DIR}/bin)
 
 #----------------------------------------------
+# Compiler cache support
+#----------------------------------------------
+
+if(NFX_CORE_USE_CCACHE)
+	find_program(CCACHE_PROGRAM ccache)
+	if(CCACHE_PROGRAM)
+		message(STATUS "Using compiler cache: ${CCACHE_PROGRAM}")
+		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
+		set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_PROGRAM})
+	else()
+		message(STATUS "ccache not found - install for faster builds")
+	endif()
+endif()
+
+
+#----------------------------------------------
 # CPU feature detection
 #----------------------------------------------
 
-# Detect CPU capabilities at configure time
-# Sandy Bridge: i7-2xxx series (2011-2012) - supports AVX but not AVX2
-# Haswell: i7-4xxx series (2013+) - supports AVX2
+# Detect CPU cores
+include(ProcessorCount)
+ProcessorCount(NFX_CORE_CPU_COUNT)
+math(EXPR NFX_CORE_THREADS "(${NFX_CORE_CPU_COUNT} * 3 + 3) / 4") 
+message(STATUS "CPU cores detected: ${NFX_CORE_CPU_COUNT}, using ${NFX_CORE_THREADS} threads for parallel builds")
 
+# Detect CPU capabilities at configure time
 include(CheckCXXSourceRuns)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

@@ -1,5 +1,5 @@
 #==============================================================================
-# NFX_CORE - C++ Library CMake Sources
+# NFX_CORE - CMake Sources
 #==============================================================================
 
 #----------------------------------------------
@@ -188,9 +188,8 @@ endif()
 if(NFX_CORE_BUILD_SHARED)
 	add_library(${PROJECT_NAME} SHARED)
 	target_sources(${PROJECT_NAME}
-		PUBLIC
-			${PUBLIC_HEADERS}
 		PRIVATE
+			${PUBLIC_HEADERS}
 			${PRIVATE_HEADERS}
 			${PRIVATE_SOURCES}
 	)
@@ -207,15 +206,14 @@ endif()
 if(NFX_CORE_BUILD_STATIC)
 	add_library(${PROJECT_NAME}-static STATIC)
 	target_sources(${PROJECT_NAME}-static
-		PUBLIC
-			${PUBLIC_HEADERS}
 		PRIVATE
+			${PUBLIC_HEADERS}
 			${PRIVATE_HEADERS}
 			${PRIVATE_SOURCES}
 	)
 
 	set_target_properties(${PROJECT_NAME}-static PROPERTIES
-		OUTPUT_NAME ${PROJECT_NAME}-static
+		OUTPUT_NAME ${PROJECT_NAME}-static-${PROJECT_VERSION}
 		ARCHIVE_OUTPUT_DIRECTORY ${NFX_CORE_BUILD_DIR}/lib
 	)
 
@@ -238,16 +236,28 @@ function(configure_target target_name)
 
 	# --- External dependencies ---
 	if(NFX_CORE_WITH_STRING)
-		target_link_libraries(${target_name} PRIVATE
-			fmt::fmt-header-only
-		)
+		get_target_property(FMT_INCLUDE_DIRS fmt::fmt-header-only INTERFACE_INCLUDE_DIRECTORIES)
+		if(FMT_INCLUDE_DIRS AND NOT FMT_INCLUDE_DIRS STREQUAL "FMT_INCLUDE_DIRS-NOTFOUND")
+			target_include_directories(${target_name} PRIVATE ${FMT_INCLUDE_DIRS})
+		endif()
+		
+		get_target_property(FMT_COMPILE_DEFS fmt::fmt-header-only INTERFACE_COMPILE_DEFINITIONS)
+		if(FMT_COMPILE_DEFS AND NOT FMT_COMPILE_DEFS STREQUAL "FMT_COMPILE_DEFS-NOTFOUND")
+			target_compile_definitions(${target_name} PRIVATE ${FMT_COMPILE_DEFS})
+		endif()
 	endif()
 
 	if(NFX_CORE_WITH_JSON)
-		target_link_libraries(${target_name} PRIVATE
-			nlohmann_json::nlohmann_json
-		)
+		if(DEFINED nlohmann_json_SOURCE_DIR)
+			target_include_directories(${target_name} PRIVATE ${nlohmann_json_SOURCE_DIR}/include)
+		endif()
 	endif()
+
+	# --- Compiler-specific options ---
+	target_compile_options(${target_name} PRIVATE
+		$<$<CXX_COMPILER_ID:MSVC>:/utf-8>
+		$<$<CXX_COMPILER_ID:MSVC>:/permissive->
+	)
 
 	# --- Properties ---
 	set_target_properties(${target_name} PROPERTIES

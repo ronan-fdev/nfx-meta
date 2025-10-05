@@ -63,6 +63,7 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 
 			# --- Settings ---
 			$<$<CXX_COMPILER_ID:MSVC>:/std:c++20>                              # C++20 standard
+			$<$<CXX_COMPILER_ID:MSVC>:/utf-8>                                  # UTF-8 encoding
 			$<$<CXX_COMPILER_ID:MSVC>:/MP>                                     # Multi-processor compilation
 			$<$<CXX_COMPILER_ID:MSVC>:/W4>                                     # High warning level
 			$<$<CXX_COMPILER_ID:MSVC>:/Wall>                                   # All warnings
@@ -203,17 +204,27 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 			RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks"
 		)
 
-		#----------------------------------------------
-		# Windows: Copy DLL if building shared libs
-		#----------------------------------------------
-
-		if(WIN32 AND NFX_CORE_BUILD_SHARED)
-			add_custom_command(TARGET ${benchmark_target_name} POST_BUILD
-				COMMAND ${CMAKE_COMMAND} -E copy_if_different
-					$<TARGET_FILE:nfx-core>
-					$<TARGET_FILE_DIR:${benchmark_target_name}>
-				COMMENT "Copying nfx-core DLL to test directory"
-			)
-		endif()
 	endif()
 endforeach()
+
+#----------------------------------------------
+# Windows: Copy DLL if building shared libs
+#----------------------------------------------
+
+if(WIN32 AND NFX_CORE_BUILD_SHARED)
+	add_custom_target(copy_nfx_core_dll_to_benchmarks
+		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks"
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:nfx-core>
+			"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks/"
+		COMMENT "Copying nfx-core DLL to benchmarks directory"
+		DEPENDS nfx-core
+	)
+	
+	foreach(benchmark_source ${BENCHMARK_SOURCES})
+		get_filename_component(benchmark_target_name ${benchmark_source} NAME_WE)
+		if(TARGET ${benchmark_target_name})
+			add_dependencies(${benchmark_target_name} copy_nfx_core_dll_to_benchmarks)
+		endif()
+	endforeach()
+endif()
