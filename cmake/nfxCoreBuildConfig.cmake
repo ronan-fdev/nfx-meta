@@ -22,15 +22,38 @@ if(NOT NFX_CORE_BUILD_STATIC AND NOT NFX_CORE_BUILD_SHARED)
 	
 	if(DEFINED CACHE{NFX_CORE_BUILD_STATIC} AND DEFINED CACHE{NFX_CORE_BUILD_SHARED})
 		message(STATUS "Both library types were explicitly disabled.")
-		message(STATUS "Applying fallback: Enabling shared library build")
-		set(NFX_CORE_BUILD_SHARED ON CACHE BOOL "Build shared library (fallback)" FORCE)
+		message(STATUS "Applying fallback: Enabling static library build")
+		set(NFX_CORE_BUILD_STATIC ON CACHE BOOL "Build static library (fallback)" FORCE)
 	else()
-		message(STATUS "Defaulting to shared library build")
-		set(NFX_CORE_BUILD_SHARED ON)
+		message(STATUS "Defaulting to static library build")
+		set(NFX_CORE_BUILD_STATIC ON)
 	endif()
-	
-	message(STATUS "Final configuration: STATIC=${NFX_CORE_BUILD_STATIC}, SHARED=${NFX_CORE_BUILD_SHARED}")
 endif()
+
+#----------------------------------------------
+# Multi-config generator setup
+#----------------------------------------------
+
+# --- For multi-config generators (Visual Studio, Xcode), set available configurations ---
+if(CMAKE_CONFIGURATION_TYPES)
+	set(CMAKE_CONFIGURATION_TYPES "Release;Debug;RelWithDebInfo;MinSizeRel" CACHE STRING "Available build configurations" FORCE)
+	message(STATUS "Multi-config generator detected. Available configurations: ${CMAKE_CONFIGURATION_TYPES}")
+else()
+	# --- For single-config generators (Makefiles, Ninja), set default build type ---
+	if(NOT CMAKE_BUILD_TYPE)
+		set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build" FORCE)
+		message(STATUS "Single-config generator detected. Defaulting to optimized build type: ${CMAKE_BUILD_TYPE}")
+	else()
+		message(STATUS "Single-config generator detected. Using specified build type: ${CMAKE_BUILD_TYPE}")
+	endif()
+	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
+endif()
+
+#----------------------------------------------
+# Install prefix configuration
+#----------------------------------------------
+
+include(GNUInstallDirs)
 
 #----------------------------------------------
 # Directory configuration
@@ -110,18 +133,17 @@ if(NFX_CORE_USE_CCACHE)
 	endif()
 endif()
 
-
 #----------------------------------------------
 # CPU feature detection
 #----------------------------------------------
 
-# Detect CPU cores
+# --- Detect CPU cores ---
 include(ProcessorCount)
 ProcessorCount(NFX_CORE_CPU_COUNT)
 math(EXPR NFX_CORE_THREADS "(${NFX_CORE_CPU_COUNT} * 3 + 3) / 4") 
 message(STATUS "CPU cores detected: ${NFX_CORE_CPU_COUNT}, using ${NFX_CORE_THREADS} threads for parallel builds")
 
-# Detect CPU capabilities at configure time
+# --- Detect CPU capabilities ---
 include(CheckCXXSourceRuns)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

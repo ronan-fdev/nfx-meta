@@ -200,8 +200,8 @@ namespace nfx::serialization::json::test
 		ArrayEnumerator enumerator( document );
 		ASSERT_TRUE( enumerator.setPath( "scores" ) );
 
-		std::vector<int> expectedScores = { 100, 95, 87, 92, 78 };
-		std::vector<int> actualScores;
+		std::vector<int64_t> expectedScores = { 100, 95, 87, 92, 78 };
+		std::vector<int64_t> actualScores;
 
 		// enumeratorate through all elements
 		while ( !enumerator.isEnd() )

@@ -30,12 +30,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 - NIL
-  
+
+## [0.3.1] - 2025-10-07
+
+### Changed
+
+- **CMake Build System**: Changed fallback preference from shared to static libraries for simpler deployment
+- **Build Configuration**: Enhanced multi-config generator support with Release mode default for optimal performance
+
 ## [0.3.0] - 2025-10-05
 
 ### Added
 
 - **Cross-Platform Packaging**: CPack configuration for TGZ, ZIP, DEB, RPM, and NSIS packages
+
   - Linux packages include automatic dependency resolution
   - Windows NSIS installer
   - Component-based installation (Runtime, Development, Documentation)
@@ -49,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **CMake Module Reorganization** (Breaking):
+
   - `nfxCoreConfig.cmake` renamed to `nfxCoreBuildConfig.cmake`
   - Added `nfxCoreInstall.cmake` and `nfxCorePackaging.cmake`
   - Unified target naming across all build modes
@@ -66,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **JSON Document API Enhancements:**
   - **Generic Document Methods:** Type-agnostic operations for flexible JSON manipulation
-    - `getDocument(path)` - Generic getter that returns any JSON structure as a Document (primitives, objects, arrays)  
+    - `getDocument(path)` - Generic getter that returns any JSON structure as a Document (primitives, objects, arrays)
     - `setDocument(path, document)` - Generic setter for Document objects with full dot notation support
     - `addToArray(path, document)` - Generic array append method for Document objects with nested structure support
   - **Character Utility Methods:** Complete convenience API for single-character JSON operations
@@ -81,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **JSON Serialization Framework:**
+
   - **Document Processing:**
     - `Document` class for JSON parsing, manipulation, and serialization with RFC 6901 JSON Pointer support
     - `ArrayEnumerator` and `FieldEnumerator` for efficient JSON traversal and iteration
@@ -97,6 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Comprehensive samples and test coverage for all serialization components
 
 - **CPU Feature Detection (Breaking Change):**
+
   - Added `nfx::core::cpu` module for runtime detection of CPU instruction set extensions.
   - Provides `hasSSE42Support()`, `hasAVXSupport()`, and `hasAVX2Support()`.
   - Enables optimized algorithm selection based on available CPU features.

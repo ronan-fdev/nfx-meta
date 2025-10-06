@@ -1,6 +1,15 @@
 #==============================================================================
-# NFX_CORE - C++ Library packaging configuration (CPack)
+# NFX_CORE - Library packaging configuration (CPack)
 #==============================================================================
+
+#----------------------------------------------
+# Packaging condition check
+#----------------------------------------------
+
+if(NOT NFX_CORE_STANDALONE_PROJECT)
+	message(STATUS "Packaging disabled, skipping...")
+	return()
+endif()
 
 #----------------------------------------------
 # CPack configuration

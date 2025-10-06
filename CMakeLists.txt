@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(nfx-core
-	VERSION 0.3.0
+	VERSION 0.3.1
 	DESCRIPTION "A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, high-precision temporal calculations, and JSON serialization."
 	HOMEPAGE_URL "https://github.com/ronan-fdev/nfx-core"
 	LANGUAGES CXX
@@ -112,44 +112,19 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(nfxCoreBuildConfig)
 include(nfxCoreDependencies)
 include(nfxCoreSources)
+
+#----------------------------------------------
+# Installation and packaging
+#----------------------------------------------
+
 include(nfxCoreInstall)
+include(nfxCorePackaging)
 
 #----------------------------------------------
-# Package generation (CPack)
+# Targets
 #----------------------------------------------
 
-if(NFX_CORE_STANDALONE_PROJECT)
-	include(nfxCorePackaging)
-endif()
-
-#----------------------------------------------
-# Tests target
-#----------------------------------------------
-
-if(NFX_CORE_BUILD_TESTS)
-	add_subdirectory(test)
-endif()
-
-#----------------------------------------------
-# Samples target
-#----------------------------------------------
-
-if(NFX_CORE_BUILD_SAMPLES)
-	add_subdirectory(samples)
-endif()
-
-#----------------------------------------------
-# Benchmarks target
-#----------------------------------------------
-
-if(NFX_CORE_BUILD_BENCHMARKS)
-	add_subdirectory(benchmark)
-endif()
-
-#----------------------------------------------
-# Documentation target
-#----------------------------------------------
-
-if(NFX_CORE_BUILD_DOCUMENTATION)
-	add_subdirectory(doc)
-endif()
+add_subdirectory(test)
+add_subdirectory(samples)
+add_subdirectory(benchmark)
+add_subdirectory(doc)

@@ -137,6 +137,7 @@ target_link_libraries(your_target nfx-core::static)
 #### Option 2: As a Git Submodule
 
 **Setup Steps (one-time):**
+
 ```bash
 # From your project root directory
 git submodule add https://github.com/ronan-fdev/nfx-core.git third-party/nfx-core
@@ -144,9 +145,10 @@ git commit -m "Add nfx-core as submodule"
 ```
 
 **CMakeLists.txt:**
+
 ```cmake
 # Add NFX-Core as a subdirectory
-# Note: Development features (tests, samples, benchmarks, docs, packaging) 
+# Note: Development features (tests, samples, benchmarks, docs, packaging)
 # are automatically disabled when used as a submodule
 add_subdirectory(third-party/nfx-core)
 
@@ -155,6 +157,7 @@ target_link_libraries(your_target nfx-core::static)
 ```
 
 **Clone/Update Commands:**
+
 ```bash
 # When cloning your project (for new developers)
 # Replace with your actual project URL:
@@ -181,6 +184,7 @@ NFX-Core automatically detects its usage context and adjusts build behavior acco
 - **Submodule/FetchContent usage**: When used as a dependency, only the core library is built to avoid cluttering the parent project
 
 When used as a submodule, these features are **automatically disabled**:
+
 - Tests, samples, benchmarks, documentation generation
 - Installation targets and package generation
 - Only the core library targets (`nfx-core::static`, `nfx-core::nfx-core`) are built
@@ -191,7 +195,7 @@ When used as a submodule, these features are **automatically disabled**:
 # Find the installed NFX-Core library
 find_package(nfx-core REQUIRED)
 
-# Link with static library (recommended for most use cases) 
+# Link with static library (recommended for most use cases)
 target_link_libraries(your_target nfx-core::static)
 
 # Or link with shared library
@@ -200,11 +204,11 @@ target_link_libraries(your_target nfx-core::static)
 
 #### Integration Method Comparison
 
-| Method | Best For | Pros | Cons |
-|--------|----------|------|------|
-| **find_package** | Production builds, system packages | Fast builds, version control, clean separation | Requires pre-installation |
+| Method           | Best For                              | Pros                                              | Cons                                              |
+| ---------------- | ------------------------------------- | ------------------------------------------------- | ------------------------------------------------- |
+| **find_package** | Production builds, system packages    | Fast builds, version control, clean separation    | Requires pre-installation                         |
 | **FetchContent** | CI/CD, development, specific versions | Always available, version pinning, no pre-install | Longer build times, downloads on each clean build |
-| **Submodule** | Long-term projects, offline builds | Full source control, offline capability | Manual updates, Git complexity |
+| **Submodule**    | Long-term projects, offline builds    | Full source control, offline capability           | Manual updates, Git complexity                    |
 
 ### Building
 
@@ -290,13 +294,13 @@ cpack --config CPackSourceConfig.cmake
 
 ### Supported Package Formats
 
-| Format | Platform | Description | Requirements |
-|--------|----------|-------------|--------------|
-| **TGZ/ZIP** | Cross-platform | Compressed archive packages | None |
-| **DEB** | Debian/Ubuntu | Native Debian packages with dependencies | `dpkg-dev` |
-| **RPM** | RedHat/SUSE | Native RPM packages with dependencies | `rpm-build` |
-| **NSIS** | Windows | Professional Windows installer (.exe) | `NSIS 3.03+` |
-| **Source** | Cross-platform | Source code distribution | None |
+| Format      | Platform       | Description                              | Requirements |
+| ----------- | -------------- | ---------------------------------------- | ------------ |
+| **TGZ/ZIP** | Cross-platform | Compressed archive packages              | None         |
+| **DEB**     | Debian/Ubuntu  | Native Debian packages with dependencies | `dpkg-dev`   |
+| **RPM**     | RedHat/SUSE    | Native RPM packages with dependencies    | `rpm-build`  |
+| **NSIS**    | Windows        | Professional Windows installer (.exe)    | `NSIS 3.03+` |
+| **Source**  | Cross-platform | Source code distribution                 | None         |
 
 ### Package Options
 
@@ -310,14 +314,17 @@ option(NFX_CORE_PACKAGE_RPM          "Generate RPM packages (Linux)"      ON   )
 option(NFX_CORE_PACKAGE_NSIS         "Generate NSIS installer (Windows)"  ON   )
 option(NFX_CORE_PACKAGE_SOURCE       "Generate source packages"           ON   )
 ```
+
 ### Linux Package Dependencies
 
 **DEB packages** automatically include runtime dependencies:
+
 - `libc6`, `libstdc++6`, `libgcc-s1` (core runtime)
 - `nlohmann-json3-dev` (if JSON support enabled)
 - `libfmt-dev` (if string formatting enabled)
 
 **RPM packages** automatically include runtime dependencies:
+
 - `glibc`, `libstdc++` (core runtime)
 - `nlohmann-json-devel` (if JSON support enabled)
 - `fmt-devel` (if string formatting enabled)
@@ -338,7 +345,7 @@ The NSIS installer provides:
 sudo dpkg -i nfx-core-*.deb
 sudo apt-get install -f  # Fix dependencies if needed
 
-# Linux (RPM-based systems) 
+# Linux (RPM-based systems)
 sudo rpm -ivh nfx-core-*.rpm
 
 # Windows
@@ -355,8 +362,9 @@ unzip nfx-core-*.zip -d "C:\Program Files\"
 ### Package Contents
 
 All packages include:
+
 - **Headers** (`include/nfx/`) - Public API headers
-- **Libraries** (`lib/`) - Static/shared libraries  
+- **Libraries** (`lib/`) - Static/shared libraries
 - **Documentation** (`doc/`) - API documentation (if built)
 - **Licenses** (`doc/licenses/`) - All license files
 - **Examples** (`samples/`) - Usage examples (if built)
@@ -447,6 +455,7 @@ int main()
 ```
 
 **Sample Output:**
+
 ```
 	Int128 arithmetic: 1234567890123456789 * 42 = 51851851385185185138
 	Decimal arithmetic: 123.456789 * 987.654321 = 121932.631112635269

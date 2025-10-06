@@ -11,6 +11,10 @@ if(NOT NFX_CORE_INSTALL_PROJECT)
 	return()
 endif()
 
+#----------------------------------------------
+# Installation paths configuration
+#----------------------------------------------
+
 include(GNUInstallDirs)
 
 message(STATUS "System installation paths:")

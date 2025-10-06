@@ -22,17 +22,21 @@ include(FetchContent)
 
 set(FETCHCONTENT_BASE_DIR "${NFX_CORE_ROOT_DIR}/.deps/${COMPILER_DIR_NAME}")
 
-set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-set(FETCHCONTENT_QUIET ON)
+if(DEFINED ENV{CI})
+	set(FETCHCONTENT_UPDATES_DISCONNECTED OFF)
+else()
+	set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+endif()
+set(FETCHCONTENT_QUIET OFF)
 
 #----------------------------
 # Dependency version requirements
 #----------------------------
 
-set(NFX_CORE_NLOHMANN_JSON_MIN_VERSION "3.11.0")
-set(NFX_CORE_FMT_MIN_VERSION           "9.1.0")
-set(NFX_CORE_GTEST_MIN_VERSION         "1.12.1")
-set(NFX_CORE_BENCHMARK_MIN_VERSION     "1.9.1")
+set(NFX_CORE_NLOHMANN_JSON_MIN_VERSION  "3.11.0")
+set(NFX_CORE_FMT_MIN_VERSION            "9.1.0" )
+set(NFX_CORE_GTEST_MIN_VERSION          "1.12.1")
+set(NFX_CORE_BENCHMARK_MIN_VERSION      "1.9.1" )
 
 #----------------------------
 # Dependency declarations
