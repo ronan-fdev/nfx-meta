@@ -4,6 +4,12 @@
 
 @PACKAGE_INIT@
 
+# Version information
+set(nfx-core_VERSION_MAJOR @NFX_CORE_VERSION_MAJOR@)
+set(nfx-core_VERSION_MINOR @NFX_CORE_VERSION_MINOR@)
+set(nfx-core_VERSION_PATCH @NFX_CORE_VERSION_PATCH@)
+set(nfx-core_VERSION       @NFX_CORE_VERSION@)
+
 # Check for required components
 set(_nfx_core_supported_components
     containers

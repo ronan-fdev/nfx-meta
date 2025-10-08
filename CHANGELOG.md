@@ -31,6 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.3.2] - 2025-10-09
+
+### Changed
+
+- **CMake Integration Improvements**: Enhanced CMake variable caching and dependency management
+  - Version variables now use `CACHE INTERNAL` for better CMake subproject integration
+  - Package config template now exports version information for downstream projects
+  - FetchContent base directory relocated from project root to build directory for improved build isolation
+
 ## [0.3.1] - 2025-10-07
 
 ### Changed

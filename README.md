@@ -8,8 +8,7 @@
 
 <!-- CI/CD Status -->
 
-[![Linux GCC](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-linux-gcc.yml?branch=main&label=Linux%20GCC&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-linux-gcc.yml) [![Linux Clang](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-linux-clang.yml?branch=main&label=Linux%20Clang&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-linux-clang.yml)<br/>
-[![Windows MinGW](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-windows-mingw.yml?branch=main&label=Windows%20MinGW&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-windows-mingw.yml) [![Windows MSVC](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-windows-msvc.yml?branch=main&label=Windows%20MSVC&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-windows-msvc.yml)
+[![Linux GCC](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-linux-gcc.yml?branch=main&label=Linux%20GCC&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-linux-gcc.yml) [![Linux Clang](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-linux-clang.yml?branch=main&label=Linux%20Clang&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-linux-clang.yml) [![Windows MinGW](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-windows-mingw.yml?branch=main&label=Windows%20MinGW&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-windows-mingw.yml) [![Windows MSVC](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-windows-msvc.yml?branch=main&label=Windows%20MSVC&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-windows-msvc.yml)
 
 > A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, and high-precision temporal calculations
 
@@ -75,7 +74,7 @@ Originally developed as foundational infrastructure for the C++ port of the [DNV
   - **GCC 12+** (12.2.0 tested)
   - **Clang 14+** (14.0.6 tested)
 - CMake 3.20 or higher
-- **Multi-compiler builds supported** across x64/x86 architectures
+- Multi-compiler builds supported
 
 ### CMake Integration
 
@@ -286,9 +285,8 @@ cmake .. -DCMAKE_BUILD_TYPE=Release \
 # Generate binary packages
 cmake --build . --target package
 
-# Generate source packages
-cmake --build . --target package_source
-# or
+# Generate source packages (recommended method)
+cd build
 cpack --config CPackSourceConfig.cmake
 ```
 
@@ -440,7 +438,7 @@ int main()
 
 	// Thread-safe LRU cache with expiration
 	auto expensiveObject = ExpensiveObject{};
-	nfx::memory::LruCache<std::string, ::ExpensiveObject> cache{
+	nfx::memory::LruCache<std::string, ExpensiveObject> cache{
 		nfx::memory::LruCacheOptions{ 1000, std::chrono::minutes{ 30 } } };
 	cache.getOrCreate( "cache_key", [&expensiveObject]() { return expensiveObject; } );
 	std::cout << "LruCache: Added entry, cache size = " << cache.size() << std::endl;
@@ -576,4 +574,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-_Updated on October 5, 2025_
+_Updated on October 9, 2025_

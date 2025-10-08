@@ -113,7 +113,7 @@ install(
 )
 
 #----------------------------------------------
-# Install documentation (if built)
+# Install documentation
 #----------------------------------------------
 
 if(NFX_CORE_BUILD_DOCUMENTATION)

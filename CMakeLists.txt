@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(nfx-core
-	VERSION 0.3.1
+	VERSION 0.3.2
 	DESCRIPTION "A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, high-precision temporal calculations, and JSON serialization."
 	HOMEPAGE_URL "https://github.com/ronan-fdev/nfx-core"
 	LANGUAGES CXX
@@ -19,10 +19,10 @@ project(nfx-core
 # Version configuration
 #----------------------------------------------
 
-set(NFX_CORE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-set(NFX_CORE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-set(NFX_CORE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
-set(NFX_CORE_VERSION       ${PROJECT_VERSION})
+set(NFX_CORE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR} CACHE INTERNAL "nfx-core major version")
+set(NFX_CORE_VERSION_MINOR ${PROJECT_VERSION_MINOR} CACHE INTERNAL "nfx-core minor version")
+set(NFX_CORE_VERSION_PATCH ${PROJECT_VERSION_PATCH} CACHE INTERNAL "nfx-core patch version")
+set(NFX_CORE_VERSION       ${PROJECT_VERSION}       CACHE INTERNAL "nfx-core version")
 
 #----------------------------------------------
 # Project metadata
