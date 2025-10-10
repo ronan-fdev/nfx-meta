@@ -22,10 +22,10 @@
 
 | Platform    | Benchmark Framework     | C++ Compiler         | NFX Core Version |
 | ----------- | ----------------------- | -------------------- | ---------------- |
-| **Windows** | Google Benchmark v1.9.4 | VC++ 19.44.35214-x64 | v0.1.3           |
-| **Windows** | Google Benchmark v1.9.4 | MinGW GCC 14.2.0-x64 | v0.1.3           |
 | **Linux**   | Google Benchmark v1.9.4 | GCC 12.0-x64         | v0.1.7           |
 | **Linux**   | Google Benchmark v1.9.4 | Clang 16.0.6         | v0.1.7           |
+| **Windows** | Google Benchmark v1.9.4 | VC++ 19.44.35217-x64 | v0.3.3           |
+| **Windows** | Google Benchmark v1.9.4 | MinGW GCC 14.2.0-x64 | v0.3.3           |
 
 ---
 
@@ -325,37 +325,37 @@
 
 | String Size Category   | Linux GCC | Linux Clang | Windows GCC | Windows MSVC |
 | ---------------------- | --------- | ----------- | ----------- | ------------ |
-| **Small Strings (5)**  | 42.5 ns   | 36.3 ns     | 115 ns      | 67.7 ns      |
-| **Medium Strings (4)** | 61.3 ns   | 54.1 ns     | 121 ns      | 90.6 ns      |
-| **Large Strings (3)**  | 70.3 ns   | 53.4 ns     | 116 ns      | 83.0 ns      |
-| **Mixed Operations**   | 164 ns    | 162 ns      | 234 ns      | 260 ns       |
+| **Small Strings (5)**  | 42.5 ns   | 36.3 ns     | 94.4 ns     | 74.7 ns      |
+| **Medium Strings (4)** | 61.3 ns   | 54.1 ns     | 120 ns      | 105 ns       |
+| **Large Strings (3)**  | 70.3 ns   | 53.4 ns     | 117 ns      | 92.4 ns      |
+| **Mixed Operations**   | 164 ns    | 162 ns      | 285 ns      | 273 ns       |
 
 #### std::string Performance
 
 | String Size Category   | Linux GCC | Linux Clang | Windows GCC | Windows MSVC |
 | ---------------------- | --------- | ----------- | ----------- | ------------ |
-| **Small Strings (5)**  | 27.9 ns   | 27.0 ns     | 48.7 ns     | 49.4 ns      |
-| **Medium Strings (4)** | 64.0 ns   | 59.9 ns     | 138 ns      | 154 ns       |
-| **Large Strings (3)**  | 60.8 ns   | 58.9 ns     | 114 ns      | 119 ns       |
-| **Mixed Operations**   | 73.8 ns   | 77.6 ns     | 133 ns      | 200 ns       |
+| **Small Strings (5)**  | 27.9 ns   | 27.0 ns     | 55.8 ns     | 60.4 ns      |
+| **Medium Strings (4)** | 64.0 ns   | 59.9 ns     | 156 ns      | 172 ns       |
+| **Large Strings (3)**  | 60.8 ns   | 58.9 ns     | 127 ns      | 141 ns       |
+| **Mixed Operations**   | 73.8 ns   | 77.6 ns     | 147 ns      | 233 ns       |
 
 #### std::ostringstream Performance
 
 | String Size Category   | Linux GCC | Linux Clang | Windows GCC | Windows MSVC |
 | ---------------------- | --------- | ----------- | ----------- | ------------ |
-| **Small Strings (5)**  | 239 ns    | 228 ns      | 192 ns      | 376 ns       |
-| **Medium Strings (4)** | 268 ns    | 258 ns      | 218 ns      | 657 ns       |
-| **Large Strings (3)**  | 290 ns    | 283 ns      | 293 ns      | 684 ns       |
-| **Mixed Operations**   | 483 ns    | 470 ns      | 434 ns      | 1,496 ns     |
+| **Small Strings (5)**  | 239 ns    | 228 ns      | 214 ns      | 451 ns       |
+| **Medium Strings (4)** | 268 ns    | 258 ns      | 246 ns      | 742 ns       |
+| **Large Strings (3)**  | 290 ns    | 283 ns      | 323 ns      | 770 ns       |
+| **Mixed Operations**   | 483 ns    | 470 ns      | 442 ns      | 1686 ns      |
 
 #### Pool-Specific Features
 
 | Feature             | Linux GCC | Linux Clang | Windows GCC | Windows MSVC | Description                          |
 | ------------------- | --------- | ----------- | ----------- | ------------ | ------------------------------------ |
-| **Zero-Allocation** | 49.6 ns   | 44.3 ns     | 114 ns      | 70.0 ns      | string_view access without copy      |
-| **Pool Efficiency** | 377 ns    | 370 ns      | 970 ns      | 769 ns       | Rapid lease/return cycles (10x)      |
-| **Buffer Reuse**    | 548 ns    | 570 ns      | 905 ns      | 970 ns       | Multiple consecutive operations (5x) |
-| **Rapid Cycles**    | 150 ns    | 136 ns      | 339 ns      | 430 ns       | std::string equivalent comparison    |
+| **Zero-Allocation** | 49.6 ns   | 44.3 ns     | 96.6 ns     | 68.3 ns      | string_view access without copy      |
+| **Pool Efficiency** | 377 ns    | 370 ns      | 1017 ns     | 805 ns       | Rapid lease/return cycles (10x)      |
+| **Buffer Reuse**    | 548 ns    | 570 ns      | 1089 ns     | 1012 ns      | Multiple consecutive operations (5x) |
+| **Rapid Cycles**    | 150 ns    | 136 ns      | 369 ns      | 479 ns       | std::string equivalent comparison    |
 
 ### StringUtilities - Fast String Operations
 
@@ -469,4 +469,4 @@
 
 ---
 
-_Benchmarked on September 28, 2025_
+_Updated on October 10, 2025_

@@ -36,11 +36,6 @@ if("json" IN_LIST nfx-core_FIND_COMPONENTS OR NOT nfx-core_FIND_COMPONENTS)
     find_dependency(nlohmann_json @NFX_CORE_NLOHMANN_JSON_MIN_VERSION@)
 endif()
 
-# String support dependency  
-if("string" IN_LIST nfx-core_FIND_COMPONENTS OR NOT nfx-core_FIND_COMPONENTS)
-    find_dependency(fmt @NFX_CORE_FMT_MIN_VERSION@)
-endif()
-
 # Include the exported targets
 include(${CMAKE_CURRENT_LIST_DIR}/nfx-core-targets.cmake)
 

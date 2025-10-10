@@ -64,27 +64,27 @@ int main()
 	const std::string segment{ "Performance test segment " };
 
 	// StringBuilder performance test
-	auto start_sb{ std::chrono::high_resolution_clock::now() };
+	auto startSb{ std::chrono::high_resolution_clock::now() };
 	{
-		auto perf_lease{ StringBuilderPool::lease() };
-		auto perf_builder{ perf_lease.builder() };
+		auto perfLease{ StringBuilderPool::lease() };
+		auto perfBuilder{ perfLease.builder() };
 
 		// Reserve capacity for better performance
-		perf_lease.buffer().reserve( iterations * segment.size() );
+		perfLease.buffer().reserve( iterations * segment.size() );
 
 		for ( int i{ 0 }; i < iterations; ++i )
 		{
-			perf_builder << segment << std::to_string( i ) << " ";
+			perfBuilder << segment << std::to_string( i ) << " ";
 		}
 
-		auto result{ perf_lease.toString() };
+		auto result{ perfLease.toString() };
 		std::cout << "StringBuilder result length: " << result.size() << " characters" << std::endl;
 	}
-	auto end_sb{ std::chrono::high_resolution_clock::now() };
-	auto duration_sb{ std::chrono::duration_cast<std::chrono::microseconds>( end_sb - start_sb ) };
+	auto endSb{ std::chrono::high_resolution_clock::now() };
+	auto durationSb{ std::chrono::duration_cast<std::chrono::microseconds>( endSb - startSb ) };
 
 	// std::string performance test
-	auto start_str{ std::chrono::high_resolution_clock::now() };
+	auto startStr{ std::chrono::high_resolution_clock::now() };
 	{
 		std::string result;
 		result.reserve( iterations * ( segment.size() + 10 ) );
@@ -96,11 +96,11 @@ int main()
 
 		std::cout << "std::string result length: " << result.size() << " characters" << std::endl;
 	}
-	auto end_str{ std::chrono::high_resolution_clock::now() };
-	auto duration_str{ std::chrono::duration_cast<std::chrono::microseconds>( end_str - start_str ) };
+	auto endStr{ std::chrono::high_resolution_clock::now() };
+	auto durationStr{ std::chrono::duration_cast<std::chrono::microseconds>( endStr - startStr ) };
 
 	// std::ostringstream performance test
-	auto start_oss{ std::chrono::high_resolution_clock::now() };
+	auto startOss{ std::chrono::high_resolution_clock::now() };
 	{
 		std::ostringstream oss;
 
@@ -112,23 +112,23 @@ int main()
 		auto result{ oss.str() };
 		std::cout << "std::ostringstream result length: " << result.size() << " characters" << std::endl;
 	}
-	auto end_oss{ std::chrono::high_resolution_clock::now() };
-	auto duration_oss{ std::chrono::duration_cast<std::chrono::microseconds>( end_oss - start_oss ) };
+	auto endOss{ std::chrono::high_resolution_clock::now() };
+	auto durationOss{ std::chrono::duration_cast<std::chrono::microseconds>( endOss - startOss ) };
 
 	std::cout << std::endl
 			  << "Performance Results (" << iterations << " iterations):" << std::endl;
-	std::cout << "  StringBuilder:     " << std::setw( 6 ) << duration_sb.count() << " μs" << std::endl;
-	std::cout << "  std::string:       " << std::setw( 6 ) << duration_str.count() << " μs" << std::endl;
-	std::cout << "  std::ostringstream:" << std::setw( 6 ) << duration_oss.count() << " μs" << std::endl;
+	std::cout << "  StringBuilder:     " << std::setw( 6 ) << durationSb.count() << " μs" << std::endl;
+	std::cout << "  std::string:       " << std::setw( 6 ) << durationStr.count() << " μs" << std::endl;
+	std::cout << "  std::ostringstream:" << std::setw( 6 ) << durationOss.count() << " μs" << std::endl;
 
-	if ( duration_sb.count() > 0 )
+	if ( durationSb.count() > 0 )
 	{
 		std::cout << "  StringBuilder speedup vs std::string: "
 				  << std::fixed << std::setprecision( 1 )
-				  << ( static_cast<double>( duration_str.count() ) / static_cast<double>( duration_sb.count() ) ) << "x" << std::endl;
+				  << ( static_cast<double>( durationStr.count() ) / static_cast<double>( durationSb.count() ) ) << "x" << std::endl;
 		std::cout << "  StringBuilder speedup vs ostringstream: "
 				  << std::fixed << std::setprecision( 1 )
-				  << ( static_cast<double>( duration_oss.count() ) / static_cast<double>( duration_sb.count() ) ) << "x" << std::endl;
+				  << ( static_cast<double>( durationOss.count() ) / static_cast<double>( durationSb.count() ) ) << "x" << std::endl;
 	}
 	std::cout << std::endl;
 
@@ -180,66 +180,66 @@ int main()
 
 	// JSON-like object construction
 	{
-		auto json_lease{ StringBuilderPool::lease() };
-		auto json_builder{ json_lease.builder() };
+		auto jsonLease{ StringBuilderPool::lease() };
+		auto jsonBuilder{ jsonLease.builder() };
 
-		json_builder << "{\n";
-		json_builder << "  \"name\": \"StringBuilderPool\",\n";
-		json_builder << "  \"version\": \"1.0\",\n";
-		json_builder << "  \"performance\": {\n";
-		json_builder << "    \"fast\": true,\n";
-		json_builder << "    \"memory_efficient\": true\n";
-		json_builder << "  },\n";
-		json_builder << "  \"features\": [\"pooling\", \"streaming\", \"zero-copy\"]\n";
-		json_builder << "}";
+		jsonBuilder << "{\n";
+		jsonBuilder << "  \"name\": \"StringBuilderPool\",\n";
+		jsonBuilder << "  \"version\": \"1.0\",\n";
+		jsonBuilder << "  \"performance\": {\n";
+		jsonBuilder << "    \"fast\": true,\n";
+		jsonBuilder << "    \"memory_efficient\": true\n";
+		jsonBuilder << "  },\n";
+		jsonBuilder << "  \"features\": [\"pooling\", \"streaming\", \"zero-copy\"]\n";
+		jsonBuilder << "}";
 
 		std::cout << "JSON construction:" << std::endl;
-		std::cout << json_lease.toString() << std::endl;
+		std::cout << jsonLease.toString() << std::endl;
 	}
 	std::cout << std::endl;
 
 	// SQL query building
 	{
-		auto sql_lease{ StringBuilderPool::lease() };
-		auto sql_builder{ sql_lease.builder() };
+		auto sqlLease{ StringBuilderPool::lease() };
+		auto sqlBuilder{ sqlLease.builder() };
 
 		std::vector<std::string> columns{ "id", "name", "email", "created_at" };
 		std::vector<std::string> conditions{ "active = 1", "age > 18", "country = 'US'" };
 
-		sql_builder << "SELECT ";
+		sqlBuilder << "SELECT ";
 		for ( size_t i{ 0 }; i < columns.size(); ++i )
 		{
 			if ( i > 0 )
-				sql_builder << ", ";
-			sql_builder << columns[i];
+				sqlBuilder << ", ";
+			sqlBuilder << columns[i];
 		}
 
-		sql_builder << " FROM users WHERE ";
+		sqlBuilder << " FROM users WHERE ";
 		for ( size_t i{ 0 }; i < conditions.size(); ++i )
 		{
 			if ( i > 0 )
-				sql_builder << " AND ";
-			sql_builder << conditions[i];
+				sqlBuilder << " AND ";
+			sqlBuilder << conditions[i];
 		}
 
-		sql_builder << " ORDER BY created_at DESC LIMIT 100";
+		sqlBuilder << " ORDER BY created_at DESC LIMIT 100";
 
 		std::cout << "SQL query building:" << std::endl;
-		std::cout << sql_lease.toString() << std::endl;
+		std::cout << sqlLease.toString() << std::endl;
 	}
 	std::cout << std::endl;
 
 	// Log message formatting
 	{
-		auto log_lease{ StringBuilderPool::lease() };
-		auto log_builder{ log_lease.builder() };
+		auto logLease{ StringBuilderPool::lease() };
+		auto logBuilder{ logLease.builder() };
 
-		log_builder << "[2025-08-31 14:30:00 UTC] ";
-		log_builder << "INFO: StringBuilderPool sample running successfully. ";
-		log_builder << "Memory usage optimized, performance enhanced.";
+		logBuilder << "[2025-08-31 14:30:00 UTC] ";
+		logBuilder << "INFO: StringBuilderPool sample running successfully. ";
+		logBuilder << "Memory usage optimized, performance enhanced.";
 
 		std::cout << "Log message formatting:" << std::endl;
-		std::cout << log_lease.toString() << std::endl;
+		std::cout << logLease.toString() << std::endl;
 	}
 	std::cout << std::endl;
 
@@ -250,14 +250,14 @@ int main()
 	std::cout << "--- Iterator and Enumeration Examples ---" << std::endl;
 
 	{
-		auto iter_lease{ StringBuilderPool::lease() };
-		auto iterBuilder{ iter_lease.builder() };
+		auto iterLease{ StringBuilderPool::lease() };
+		auto iterBuilder{ iterLease.builder() };
 		iterBuilder.append( "Iterator Demo" );
 
-		std::cout << "Original content: " << iter_lease.toString() << std::endl;
+		std::cout << "Original content: " << iterLease.toString() << std::endl;
 
 		// Range-based for loop
-		std::cout << "Characters via range-based for: ";
+		std::cout << "Characters via range-based for : ";
 		for ( char c : iterBuilder )
 		{
 			std::cout << c << " ";
@@ -271,7 +271,7 @@ int main()
 		std::cout << std::endl;
 
 		// Enumerator pattern
-		std::cout << "Characters via enumerator: ";
+		std::cout << "Characters via enumerator      : ";
 		StringBuilder::Enumerator enumerator{ iterBuilder };
 		while ( enumerator.next() )
 		{
@@ -288,39 +288,39 @@ int main()
 	std::cout << "--- Memory Management and Capacity ---" << std::endl;
 
 	{
-		auto mem_lease{ StringBuilderPool::lease() };
-		auto& mem_buffer{ mem_lease.buffer() };
-		auto mem_builder{ mem_lease.builder() };
+		auto memLease{ StringBuilderPool::lease() };
+		auto& memBuffer{ memLease.buffer() };
+		auto memBuilder{ memLease.builder() };
 
-		std::cout << "Initial capacity: " << mem_buffer.capacity() << std::endl;
+		std::cout << "Initial capacity: " << memBuffer.capacity() << std::endl;
 
 		// Reserve larger capacity
-		mem_buffer.reserve( 2048 );
-		std::cout << "After reserve(2048): " << mem_buffer.capacity() << std::endl;
+		memBuffer.reserve( 2048 );
+		std::cout << "After reserve(2048): " << memBuffer.capacity() << std::endl;
 
 		// Add content
 		for ( int i{ 0 }; i < 10; ++i )
 		{
-			mem_builder << "Content block " << std::to_string( i ) << " - ";
+			memBuilder << "Content block " << std::to_string( i ) << " - ";
 		}
 
-		std::cout << "Content size: " << mem_buffer.size() << std::endl;
-		std::cout << "Capacity after content: " << mem_buffer.capacity() << std::endl;
-		std::cout << "Content preview: " << mem_lease.toString().substr( 0, 50 ) << "..." << std::endl;
+		std::cout << "Content size: " << memBuffer.size() << std::endl;
+		std::cout << "Capacity after content: " << memBuffer.capacity() << std::endl;
+		std::cout << "Content preview: " << memLease.toString().substr( 0, 50 ) << "..." << std::endl;
 
 		// Array access
-		if ( mem_buffer.size() > 10 )
+		if ( memBuffer.size() > 10 )
 		{
-			std::cout << "Character at position 8: '" << mem_builder[8] << "'" << std::endl;
+			std::cout << "Character at position 8: '" << memBuilder[8] << "'" << std::endl;
 		}
 
 		// Resize operations
-		size_t original_size{ mem_buffer.size() };
-		mem_builder.resize( 20 );
-		std::cout << "After resize to 20: \"" << mem_lease.toString() << "\"" << std::endl;
+		size_t original_size{ memBuffer.size() };
+		memBuilder.resize( 20 );
+		std::cout << "After resize to 20: \"" << memLease.toString() << "\"" << std::endl;
 
-		mem_builder.resize( original_size );
-		std::cout << "After resize back to original: size = " << mem_buffer.size() << std::endl;
+		memBuilder.resize( original_size );
+		std::cout << "After resize back to original: size = " << memBuffer.size() << std::endl;
 	}
 	std::cout << std::endl;
 
@@ -339,16 +339,16 @@ int main()
 	for ( size_t t{ 0 }; t < 4; ++t )
 	{
 		threads.emplace_back( [t, &results]() {
-			auto thread_lease{ StringBuilderPool::lease() };
-			auto thread_builder{ thread_lease.builder() };
+			auto threadLease{ StringBuilderPool::lease() };
+			auto threadBuilder{ threadLease.builder() };
 
-			thread_builder << "Thread " << std::to_string( t ) << " processing: ";
+			threadBuilder << "Thread " << std::to_string( t ) << " processing: ";
 			for ( int i{ 0 }; i < 10; ++i )
 			{
-				thread_builder << "[" << std::to_string( i ) << "]";
+				threadBuilder << "[" << std::to_string( i ) << "]";
 			}
 
-			results[t] = thread_lease.toString();
+			results[t] = threadLease.toString();
 		} );
 	}
 
@@ -364,11 +364,11 @@ int main()
 		std::cout << "  " << results[i] << std::endl;
 	}
 
-	auto thread_stats{ StringBuilderPool::stats() };
+	auto threadStats{ StringBuilderPool::stats() };
 	std::cout << std::endl
 			  << "Multi-threaded statistics:" << std::endl;
-	std::cout << "  Total requests: " << thread_stats.totalRequests << std::endl;
-	std::cout << "  Hit rate: " << std::fixed << std::setprecision( 1 ) << ( thread_stats.hitRate * 100.0 ) << "%" << std::endl;
+	std::cout << "  Total requests: " << threadStats.totalRequests << std::endl;
+	std::cout << "  Hit rate: " << std::fixed << std::setprecision( 1 ) << ( threadStats.hitRate * 100.0 ) << "%" << std::endl;
 	std::cout << std::endl;
 
 	//=========================================================================
@@ -392,31 +392,31 @@ int main()
 		{ "Monitor", 299.99, 75, "Electronics" },
 		{ "Desk Chair", 199.99, 25, "Furniture" } };
 
-	auto csv_lease{ StringBuilderPool::lease() };
-	auto csv_builder{ csv_lease.builder() };
+	auto csvLease{ StringBuilderPool::lease() };
+	auto csvBuilder{ csvLease.builder() };
 
 	// CSV header
-	csv_builder << "Name,Price,Quantity,Category,Total Value\n";
+	csvBuilder << "Name,Price,Quantity,Category,Total Value\n";
 
 	// CSV data rows
-	double grand_total{ 0.0 };
+	double grandTotal{ 0.0 };
 	for ( const auto& product : products )
 	{
-		double total_value{ product.price * product.quantity };
-		grand_total += total_value;
+		double totalValue{ product.price * product.quantity };
+		grandTotal += totalValue;
 
-		csv_builder << product.name << ",";
-		csv_builder << std::to_string( product.price ) << ",";
-		csv_builder << std::to_string( product.quantity ) << ",";
-		csv_builder << product.category << ",";
-		csv_builder << std::to_string( total_value ) << "\n";
+		csvBuilder << product.name << ",";
+		csvBuilder << std::to_string( product.price ) << ",";
+		csvBuilder << std::to_string( product.quantity ) << ",";
+		csvBuilder << product.category << ",";
+		csvBuilder << std::to_string( totalValue ) << "\n";
 	}
 
 	// Summary row
-	csv_builder << "TOTAL,,,," << std::to_string( grand_total );
+	csvBuilder << "TOTAL,,,," << std::to_string( grandTotal );
 
 	std::cout << "Generated CSV:" << std::endl;
-	std::cout << csv_lease.toString() << std::endl;
+	std::cout << csvLease.toString() << std::endl;
 	std::cout << std::endl;
 
 	//=========================================================================
@@ -425,10 +425,10 @@ int main()
 
 	std::cout << "--- Final Pool Statistics ---" << std::endl;
 
-	auto final_stats{ StringBuilderPool::stats() };
+	auto finalStats{ StringBuilderPool::stats() };
 	std::cout << "Session summary:" << std::endl;
-	std::cout << "  Total pool requests: " << final_stats.totalRequests << std::endl;
-	std::cout << "  Cache efficiency: " << std::fixed << std::setprecision( 1 ) << ( final_stats.hitRate * 100.0 ) << "%" << std::endl;
+	std::cout << "  Total pool requests: " << finalStats.totalRequests << std::endl;
+	std::cout << "  Cache efficiency: " << std::fixed << std::setprecision( 1 ) << ( finalStats.hitRate * 100.0 ) << "%" << std::endl;
 	std::cout << "  Current pool size: " << StringBuilderPool::size() << std::endl;
 
 	// Clear the pool

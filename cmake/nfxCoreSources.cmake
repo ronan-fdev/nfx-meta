@@ -132,11 +132,10 @@ if(NFX_CORE_WITH_STRING)
 	)
 	list(APPEND PRIVATE_HEADERS
 		# --- String processing private headers ---
-		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBuffer_impl.h
+		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBufferPool.h
 	)
 	list(APPEND PRIVATE_SOURCES
 		# --- String processing source files ---
-		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBuffer_impl.cpp
 		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBufferPool.cpp
 		${NFX_CORE_SOURCE_DIR}/string/StringBuilderPool.cpp
 	)
@@ -235,29 +234,11 @@ function(configure_target target_name)
 	)
 
 	# --- External dependencies ---
-	if(NFX_CORE_WITH_STRING)
-		get_target_property(FMT_INCLUDE_DIRS fmt::fmt-header-only INTERFACE_INCLUDE_DIRECTORIES)
-		if(FMT_INCLUDE_DIRS AND NOT FMT_INCLUDE_DIRS STREQUAL "FMT_INCLUDE_DIRS-NOTFOUND")
-			target_include_directories(${target_name} PRIVATE ${FMT_INCLUDE_DIRS})
-		endif()
-		
-		get_target_property(FMT_COMPILE_DEFS fmt::fmt-header-only INTERFACE_COMPILE_DEFINITIONS)
-		if(FMT_COMPILE_DEFS AND NOT FMT_COMPILE_DEFS STREQUAL "FMT_COMPILE_DEFS-NOTFOUND")
-			target_compile_definitions(${target_name} PRIVATE ${FMT_COMPILE_DEFS})
-		endif()
-	endif()
-
 	if(NFX_CORE_WITH_JSON)
 		if(DEFINED nlohmann_json_SOURCE_DIR)
 			target_include_directories(${target_name} PRIVATE ${nlohmann_json_SOURCE_DIR}/include)
 		endif()
 	endif()
-
-	# --- Compiler-specific options ---
-	target_compile_options(${target_name} PRIVATE
-		$<$<CXX_COMPILER_ID:MSVC>:/utf-8>
-		$<$<CXX_COMPILER_ID:MSVC>:/permissive->
-	)
 
 	# --- Properties ---
 	set_target_properties(${target_name} PROPERTIES

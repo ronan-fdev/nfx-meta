@@ -34,7 +34,6 @@ set(FETCHCONTENT_QUIET OFF)
 #----------------------------
 
 set(NFX_CORE_NLOHMANN_JSON_MIN_VERSION  "3.11.0")
-set(NFX_CORE_FMT_MIN_VERSION            "9.1.0" )
 set(NFX_CORE_GTEST_MIN_VERSION          "1.12.1")
 set(NFX_CORE_BENCHMARK_MIN_VERSION      "1.9.1" )
 
@@ -55,36 +54,6 @@ if(NFX_CORE_WITH_JSON)
 		)
 	else()
 		message(STATUS "Using system-installed nlohmann/json version ${nlohmann_json_VERSION}")
-	endif()
-endif()
-
-
-# --- {fmt} ---
-if(NFX_CORE_WITH_STRING)
-	find_package(fmt ${NFX_CORE_FMT_MIN_VERSION} QUIET)
-	
-	if(NOT fmt_FOUND)
-		message(STATUS "fmt not found on system, using FetchContent")
-		
-		set(FMT_FUZZ            OFF  CACHE BOOL  "Build fmt fuzzing tests"               FORCE)
-		set(FMT_TEST            OFF  CACHE BOOL  "Build fmt unit tests"                  FORCE)
-		set(FMT_CUDA_TEST       OFF  CACHE BOOL  "Build fmt cuda tests"                  FORCE)
-		set(FMT_DOC             OFF  CACHE BOOL  "Build fmt documentation"               FORCE)
-		set(FMT_INSTALL         OFF  CACHE BOOL  "Install fmt targets"                   FORCE)
-		set(FMT_HEADER_ONLY     ON   CACHE BOOL  "Build fmt as header-only library"      FORCE)
-		set(FMT_MODULE          OFF  CACHE BOOL  "Enable fmt C++20 module support"       FORCE)
-		set(FMT_OS              OFF  CACHE BOOL  "Enable fmt OS-specific features"       FORCE)
-		set(FMT_SYSTEM_HEADERS  OFF  CACHE BOOL  "Use system headers for fmt"            FORCE)
-		set(FMT_UNICODE         ON   CACHE BOOL  "Enable Unicode support in fmt"         FORCE)
-
-		FetchContent_Declare(
-			fmt
-			GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-			GIT_TAG        12.0.0
-			GIT_SHALLOW    TRUE
-		)
-	else()
-		message(STATUS "Using system-installed fmt version ${fmt_VERSION}")
 	endif()
 endif()
 
@@ -151,14 +120,6 @@ endif()
 if(NFX_CORE_WITH_JSON)
 	if(NOT nlohmann_json_FOUND)
 		FetchContent_MakeAvailable(nlohmann_json)
-	endif()
-endif()
-
-if(NFX_CORE_WITH_STRING)
-	if(NOT fmt_FOUND)
-		FetchContent_MakeAvailable(
-			fmt
-		)
 	endif()
 endif()
 

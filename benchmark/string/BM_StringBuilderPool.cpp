@@ -429,15 +429,15 @@ BENCHMARK( nfx::string::benchmark::BM_StringBuilderPool_MediumStrings )
 // Large strings
 //----------------------------
 
-BENCHMARK( nfx::string::benchmark::BM_StringBuilderPool_LargeStrings )
-	->MinTime( 1.0 )
-	->Unit( benchmark::kNanosecond );
-
 BENCHMARK( nfx::string::benchmark::BM_StdString_LargeStrings )
 	->MinTime( 1.0 )
 	->Unit( benchmark::kNanosecond );
 
 BENCHMARK( nfx::string::benchmark::BM_StringStream_LargeStrings )
+	->MinTime( 1.0 )
+	->Unit( benchmark::kNanosecond );
+
+BENCHMARK( nfx::string::benchmark::BM_StringBuilderPool_LargeStrings )
 	->MinTime( 1.0 )
 	->Unit( benchmark::kNanosecond );
 

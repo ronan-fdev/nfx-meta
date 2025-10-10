@@ -319,13 +319,11 @@ option(NFX_CORE_PACKAGE_SOURCE       "Generate source packages"           ON   )
 
 - `libc6`, `libstdc++6`, `libgcc-s1` (core runtime)
 - `nlohmann-json3-dev` (if JSON support enabled)
-- `libfmt-dev` (if string formatting enabled)
 
 **RPM packages** automatically include runtime dependencies:
 
 - `glibc`, `libstdc++` (core runtime)
 - `nlohmann-json-devel` (if JSON support enabled)
-- `fmt-devel` (if string formatting enabled)
 
 ### Windows Installer Features
 
@@ -563,7 +561,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Dependencies & Third-Party Attributions
 
 - **ChdHashMap algorithm**: Derived from [DNV Vista SDK](https://github.com/dnv-opensource/vista-sdk) (MIT License)
-- **[{fmt}](https://github.com/fmtlib/fmt)**: Modern formatting library (MIT License)
 - **[nlohmann/json](https://github.com/nlohmann/json)**: JSON for Modern C++ (MIT License)
 - **[GoogleTest](https://github.com/google/googletest)**: Testing framework (BSD 3-Clause License)
 - **[Google Benchmark](https://github.com/google/benchmark)**: Performance benchmarking framework (Apache 2.0 License)

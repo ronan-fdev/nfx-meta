@@ -2,6 +2,54 @@
  * @file StringBuilderPool.h
  * @brief String pooling implementation for high-performance string building
  * @details Thread-safe shared pool with RAII lease management and statistics
+ *
+ * ## StringBuilderPool High-Level Architecture:
+ *
+ * ```
+ * StringBuilderPool Public API Structure:
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │            StringBuilderPool (Static Interface)             │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │                lease() → StringBuilderLease                 │ ← Primary factory method
+ * │                            ↓                                │
+ * │  ┌─────────────────────────────────────────────────────┐    │
+ * │  │            StringBuilderLease (RAII)                │    │ ← Automatic cleanup
+ * │  │  ┌─────────────────────────────────────────────┐    │    │
+ * │  │  │  builder() → StringBuilder                  │    │    │ ← Fluent interface
+ * │  │  │  buffer()  → DynamicStringBuffer            │    │    │ ← Direct access
+ * │  │  │  toString() → std::string                   │    │    │ ← Conversion
+ * │  │  └─────────────────────────────────────────────┘    │    │
+ * │  └─────────────────────────────────────────────────────┘    │
+ * │                                                             │
+ * │  StringBuilder: Fluent string building interface            │ ← Stream operators
+ * │  DynamicStringBuffer: High-performance buffer (SBO)         │ ← Zero-copy operations
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
+ *
+ * ## Typical Usage Pattern:
+ *
+ * ```
+ * StringBuilderPool Usage Flow:
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │                  User Code Example                          │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  // 1. Acquire lease (automatic pooling)                    │
+ * │  auto lease = StringBuilderPool::lease();                   │
+ * │                            ↓                                │
+ * │  // 2. Get builder for fluent operations                    │
+ * │  auto builder = lease.builder();                            │
+ * │                            ↓                                │
+ * │  // 3. Build string with zero allocations                   │
+ * │  builder << "Hello" << ", " << "World" << "!";              │
+ * │  builder.append(" Additional text");                        │
+ * │                            ↓                                │
+ * │  // 4. Extract result                                       │
+ * │  std::string result = lease.toString();                     │
+ * │                            ↓                                │
+ * │  // 5. Automatic cleanup (lease destructor)                 │
+ * │  // Buffer returned to pool for reuse                       │
+ * └─────────────────────────────────────────────────────────────┘
+ * ```
  */
 
 /*
@@ -11,6 +59,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <string_view>
 
@@ -27,9 +76,6 @@ namespace nfx::string
 	 * @details Provides a growable character buffer optimized for string building operations.
 	 *          Features automatic capacity management, iterator support, and zero-copy
 	 *          string_view access. Designed for internal use by StringBuilderPool.
-	 *
-	 * @note This class uses PIMPL idiom for ABI stability and reduced compilation dependencies.
-	 *       Direct instantiation is restricted - use StringBuilderPool::lease() instead.
 	 *
 	 * @warning Not thread-safe - external synchronization required for concurrent access.
 	 *
@@ -73,7 +119,7 @@ namespace nfx::string
 		//----------------------------------------------
 
 		/** @brief Destructor */
-		~DynamicStringBuffer();
+		~DynamicStringBuffer() = default;
 
 		//----------------------------------------------
 		// Assignment
@@ -284,10 +330,55 @@ namespace nfx::string
 
 	private:
 		//----------------------------------------------
-		// Pimpl
+		// Small buffer optimization constants
 		//----------------------------------------------
 
-		void* m_impl;
+		/** @brief Stack buffer size optimized for typical string operations */
+		static constexpr size_t STACK_BUFFER_SIZE = 256;
+
+		/** @brief Growth factor for heap allocation */
+		static constexpr auto GROWTH_FACTOR = 1.5;
+
+		//----------------------------------------------
+		// Private members
+		//----------------------------------------------
+
+		/** @brief Stack-allocated buffer for small strings */
+		alignas( char ) char m_stackBuffer[STACK_BUFFER_SIZE];
+
+		/** @brief Heap-allocated buffer for large strings */
+		std::unique_ptr<char[]> m_heapBuffer;
+
+		/** @brief Current size of data in buffer */
+		size_t m_size;
+
+		/** @brief Current capacity of buffer */
+		size_t m_capacity;
+
+		/** @brief True if using heap buffer, false if using stack buffer */
+		bool m_onHeap;
+
+		//----------------------------------------------
+		// Private methods
+		//----------------------------------------------
+
+		/**
+		 * @brief Ensures buffer has at least the specified capacity
+		 * @param neededCapacity Minimum required capacity
+		 */
+		void ensureCapacity( size_t needed_capacity );
+
+		/**
+		 * @brief Returns pointer to current buffer (stack or heap)
+		 * @return Pointer to active buffer
+		 */
+		char* currentBuffer() noexcept;
+
+		/**
+		 * @brief Returns const pointer to current buffer (stack or heap)
+		 * @return Const pointer to active buffer
+		 */
+		const char* currentBuffer() const noexcept;
 	};
 
 	//=====================================================================
@@ -681,10 +772,59 @@ namespace nfx::string
 
 	/**
 	 * @brief Thread-safe memory pool for high-performance StringBuilder instances with optimized allocation strategy
-	 * @details Implements a sophisticated three-tier pooling system for DynamicStringBuffer instances
+	 * @details Implements a three-tier pooling system for DynamicStringBuffer instances
 	 *          to minimize allocation overhead in high-frequency string building scenarios. Features
 	 *          thread-local caching, shared cross-thread pooling, and comprehensive statistics tracking.
 	 *          Designed as a singleton with static factory methods for global access.
+	 *
+	 * ## Three-Tier Pooling Architecture:
+	 *
+	 * ```
+	 * StringBuilderPool::lease() Buffer Acquisition Strategy:
+	 * ┌─────────────────────────────────────────────────────────────┐
+	 * │                      Client Request                         │
+	 * │               StringBuilderPool::lease()                    │
+	 * └─────────────────────────────────────────────────────────────┘
+	 *                              ↓ (try first)
+	 * ┌─────────────────────────────────────────────────────────────┐
+	 * │               Tier 1: Thread-Local Cache                    │ ← Fastest (no locks)
+	 * │  ┌─────────────────────────────────────────────────────┐    │
+	 * │  │     thread_local DynamicStringBuffer* cache         │    │
+	 * │  │       - Zero synchronization overhead               │    │
+	 * │  │       - Immediate buffer availability               │    │
+	 * │  │       - Perfect for single-threaded hotpaths        │    │
+	 * │  └─────────────────────────────────────────────────────┘    │
+	 * └─────────────────────────────────────────────────────────────┘
+	 *                              ↓ (on miss - cache empty)
+	 * ┌─────────────────────────────────────────────────────────────┐
+	 * │            Tier 2: Shared Cross-Thread Pool                 │ ← Fast (mutex-protected)
+	 * │  ┌─────────────────────────────────────────────────────┐    │
+	 * │  │   DynamicStringBufferPool (singleton)               │    │
+	 * │  │       - Mutex-protected buffer queue                │    │
+	 * │  │       - Cross-thread buffer sharing                 │    │
+	 * │  │       - Size-limited to prevent bloat               │    │
+	 * │  └─────────────────────────────────────────────────────┘    │
+	 * └─────────────────────────────────────────────────────────────┘
+	 *                              ↓ (on miss - pool empty)
+	 * ┌─────────────────────────────────────────────────────────────┐
+	 * │                Tier 3: New Allocation                       │ ← Fallback (heap allocation)
+	 * │  ┌─────────────────────────────────────────────────────┐    │
+	 * │  │   new DynamicStringBuffer(optimal_size)             │    │
+	 * │  │       - Pre-sized for typical usage patterns        │    │
+	 * │  │       - Small Buffer Optimization (256-byte stack)  │    │
+	 * │  │       - 1.5x growth factor for cache efficiency     │    │
+	 * │  └─────────────────────────────────────────────────────┘    │
+	 * └─────────────────────────────────────────────────────────────┘
+	 *
+	 * Buffer Return Process (via StringBuilderLease destructor):
+	 * ┌─────────────────────────────────────────────────────────────┐
+	 * │  1. Clear buffer content (zero-cost operation)              │
+	 * │  2. Check size limits (prevent memory bloat)                │
+	 * │  3. Return to thread-local cache (if space available)       │
+	 * │  4. Return to shared pool (if thread-local full)            │
+	 * │  5. Deallocate (if both pools full or buffer too large)     │
+	 * └─────────────────────────────────────────────────────────────┘
+	 * ```
 	 *
 	 * @note This class uses a singleton pattern with static methods - no instantiation required.
 	 *       All pool operations are thread-safe and optimized for concurrent access patterns.

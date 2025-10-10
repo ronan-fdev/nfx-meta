@@ -1,8 +1,14 @@
 /**
  * @file DynamicStringBufferPool.h
  * @brief Thread-safe shared pool for memory buffer management
- * @details Provides optimized memory buffer pooling with thread-local caching for high-performance string operations.
- *          Uses a two-tier architecture: thread-local cache for immediate reuse and shared pool for cross-thread sharing.
+ * @details Internal implementation of the three-tier pooling system for DynamicStringBuffer instances.
+ *          Thread-local cache → shared pool → new allocation fallback pattern.
+ *
+ * Implementation Notes:
+ * - Thread-local cache: Zero synchronization overhead for single-threaded hotpaths
+ * - Shared pool: Mutex-protected cross-thread buffer sharing with size limits
+ * - Statistics tracking: Atomic counters for performance monitoring
+ * - Memory management: Size-based retention limits prevent unbounded growth
  */
 
 #pragma once
@@ -60,9 +66,30 @@ namespace nfx::string
 			 */
 		}
 
+		/**
+		 * @brief Copy constructor
+		 * @details Copying is disabled to maintain singleton behavior and prevent resource duplication
+		 */
 		DynamicStringBufferPool( const DynamicStringBufferPool& ) = delete;
+
+		/**
+		 * @brief Move constructor
+		 * @details Moving is disabled to maintain singleton behavior and prevent resource transfer
+		 */
 		DynamicStringBufferPool( DynamicStringBufferPool&& ) = delete;
+
+		/**
+		 * @brief Copy assignment operator
+		 * @return Reference to this instance
+		 * @details Assignment is disabled to maintain singleton behavior and prevent resource duplication
+		 */
 		DynamicStringBufferPool& operator=( const DynamicStringBufferPool& ) = delete;
+
+		/**
+		 * @brief Move assignment operator
+		 * @return Reference to this instance
+		 * @details Assignment is disabled to maintain singleton behavior and prevent resource transfer
+		 */
 		DynamicStringBufferPool& operator=( DynamicStringBufferPool&& ) = delete;
 
 		//----------------------------------------------
@@ -101,10 +128,36 @@ namespace nfx::string
 		/** @brief Statistics structure containing pool performance metrics */
 		struct PoolStatistics
 		{
+			/**
+			 * @brief Default constructor
+			 * @details Initializes all atomic counters to zero
+			 */
 			PoolStatistics() = default;
+
+			/**
+			 * @brief Copy constructor
+			 * @details Copying is disabled due to atomic member variables that cannot be copied safely
+			 */
 			PoolStatistics( const PoolStatistics& ) = delete;
+
+			/**
+			 * @brief Move constructor
+			 * @details Moving is disabled due to atomic member variables that cannot be moved safely
+			 */
 			PoolStatistics( PoolStatistics&& ) noexcept = delete;
+
+			/**
+			 * @brief Copy assignment operator
+			 * @return Reference to this instance
+			 * @details Assignment is disabled due to atomic member variables that cannot be copied safely
+			 */
 			PoolStatistics& operator=( const PoolStatistics& ) = delete;
+
+			/**
+			 * @brief Move assignment operator
+			 * @return Reference to this instance
+			 * @details Assignment is disabled due to atomic member variables that cannot be moved safely
+			 */
 			PoolStatistics& operator=( PoolStatistics&& ) noexcept = delete;
 
 			/**
@@ -199,8 +252,16 @@ namespace nfx::string
 		 * TODO: Make DynamicStringBufferPool class configurable
 		 */
 
+		/**
+		 * @brief Static singleton instance with optimized default parameters
+		 * @details Parameters: 256-byte initial capacity, 2048-byte max retained, 24 buffer pool size
+		 */
 		static DynamicStringBufferPool pool{ 256, 2048, 24 };
 
+		/**
+		 * @brief Return reference to the singleton instance
+		 * @return Reference to the shared pool for global string buffer management
+		 */
 		return pool;
 	}
 } // namespace nfx::string

@@ -31,6 +31,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.3.3] - 2025-10-10
+
+### Changed
+
+- **StringBuilderPool Architecture Modernization**: Complete removal of PIMPL pattern
+
+### Removed
+
+- **fmt Library Dependency**: Removed fmt library dependency from StringBuilderPool implementation
+
 ## [0.3.2] - 2025-10-09
 
 ### Changed

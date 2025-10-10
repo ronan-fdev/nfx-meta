@@ -181,10 +181,6 @@ if("DEB" IN_LIST CPACK_GENERATOR AND UNIX AND NOT APPLE)
 		set(DEB_DEPENDS "${DEB_DEPENDS}, nlohmann-json3-dev")
 	endif()
 	
-	if(NFX_CORE_WITH_STRING)
-		set(DEB_DEPENDS "${DEB_DEPENDS}, libfmt-dev")
-	endif()
-	
 	set(CPACK_DEBIAN_PACKAGE_DEPENDS "${DEB_DEPENDS}")
 	message(STATUS "DEB dependencies: ${CPACK_DEBIAN_PACKAGE_DEPENDS}")
 endif()
@@ -209,10 +205,6 @@ if("RPM" IN_LIST CPACK_GENERATOR AND UNIX AND NOT APPLE)
 	
 	if(NFX_CORE_WITH_JSON)
 		set(RPM_REQUIRES "${RPM_REQUIRES}, nlohmann-json-devel")
-	endif()
-	
-	if(NFX_CORE_WITH_STRING)
-		set(RPM_REQUIRES "${RPM_REQUIRES}, fmt-devel")
 	endif()
 	
 	set(CPACK_RPM_PACKAGE_REQUIRES "${RPM_REQUIRES}")

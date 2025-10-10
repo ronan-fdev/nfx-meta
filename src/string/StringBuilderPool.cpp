@@ -3,9 +3,11 @@
  * @brief Implementation file for StringBuilderPool methods
  */
 
+#include <algorithm>
+#include <cstring>
+
 #include "nfx/string/StringBuilderPool.h"
 #include "DynamicStringBufferPool.h"
-#include "DynamicStringBuffer_impl.h"
 
 namespace nfx::string
 {
@@ -18,40 +20,57 @@ namespace nfx::string
 	//----------------------------------------------
 
 	DynamicStringBuffer::DynamicStringBuffer()
-		: m_impl{ new DynamicStringBuffer_impl{} }
+		: m_heapBuffer{ nullptr },
+		  m_size{ 0 },
+		  m_capacity{ STACK_BUFFER_SIZE },
+		  m_onHeap{ false }
 	{
 	}
 
 	DynamicStringBuffer::DynamicStringBuffer( size_t initialCapacity )
-		: m_impl{ new DynamicStringBuffer_impl{ initialCapacity } }
-
+		: m_heapBuffer{ nullptr },
+		  m_size{ 0 }, m_capacity{ STACK_BUFFER_SIZE },
+		  m_onHeap{ false }
 	{
+		if ( initialCapacity > STACK_BUFFER_SIZE )
+		{
+			m_heapBuffer = std::make_unique<char[]>( initialCapacity );
+			m_capacity = initialCapacity;
+			m_onHeap = true;
+		}
 	}
 
 	DynamicStringBuffer::DynamicStringBuffer( const DynamicStringBuffer& other )
-		: m_impl{ other.m_impl
-					  ? new DynamicStringBuffer_impl{ *static_cast<DynamicStringBuffer_impl*>( other.m_impl ) }
-					  : nullptr }
+		: m_heapBuffer{ nullptr },
+		  m_size{ other.m_size },
+		  m_capacity{ other.m_capacity },
+		  m_onHeap{ other.m_onHeap }
 	{
+		if ( m_onHeap )
+		{
+			m_heapBuffer = std::make_unique<char[]>( m_capacity );
+			std::memcpy( m_heapBuffer.get(), other.m_heapBuffer.get(), m_size );
+		}
+		else
+		{
+			std::memcpy( m_stackBuffer, other.m_stackBuffer, m_size );
+		}
 	}
 
 	DynamicStringBuffer::DynamicStringBuffer( DynamicStringBuffer&& other ) noexcept
-		: m_impl{ std::move( other.m_impl ) }
+		: m_heapBuffer{ std::move( other.m_heapBuffer ) },
+		  m_size{ other.m_size },
+		  m_capacity{ other.m_capacity },
+		  m_onHeap{ other.m_onHeap }
 	{
-		other.m_impl = nullptr;
-	}
-
-	//----------------------------------------------
-	// Destruction
-	//----------------------------------------------
-
-	DynamicStringBuffer::~DynamicStringBuffer()
-	{
-		if ( m_impl )
+		if ( !m_onHeap )
 		{
-			delete static_cast<DynamicStringBuffer_impl*>( m_impl );
-			m_impl = nullptr;
+			std::memcpy( m_stackBuffer, other.m_stackBuffer, m_size );
 		}
+
+		other.m_size = 0;
+		other.m_capacity = STACK_BUFFER_SIZE;
+		other.m_onHeap = false;
 	}
 
 	//----------------------------------------------
@@ -62,22 +81,29 @@ namespace nfx::string
 	{
 		if ( this != &other )
 		{
-			if ( other.m_impl )
+			if ( other.m_onHeap )
 			{
-				if ( m_impl )
+				// Other uses heap, we need heap too
+				if ( !m_onHeap || m_capacity < other.m_capacity )
 				{
-					*static_cast<DynamicStringBuffer_impl*>( m_impl ) = *static_cast<DynamicStringBuffer_impl*>( other.m_impl );
+					m_heapBuffer = std::make_unique<char[]>( other.m_capacity );
+					m_capacity = other.m_capacity;
+					m_onHeap = true;
 				}
-				else
-				{
-					m_impl = new DynamicStringBuffer_impl{ *static_cast<DynamicStringBuffer_impl*>( other.m_impl ) };
-				}
+				std::memcpy( m_heapBuffer.get(), other.m_heapBuffer.get(), other.m_size );
 			}
 			else
 			{
-				delete static_cast<DynamicStringBuffer_impl*>( m_impl );
-				m_impl = nullptr;
+				// Other uses stack, we can use stack too
+				if ( m_onHeap )
+				{
+					m_heapBuffer.reset();
+					m_capacity = STACK_BUFFER_SIZE;
+					m_onHeap = false;
+				}
+				std::memcpy( m_stackBuffer, other.m_stackBuffer, other.m_size );
 			}
+			m_size = other.m_size;
 		}
 		return *this;
 	}
@@ -86,11 +112,20 @@ namespace nfx::string
 	{
 		if ( this != &other )
 		{
-			delete static_cast<DynamicStringBuffer_impl*>( m_impl );
-			m_impl = other.m_impl;
-			other.m_impl = nullptr;
-		}
+			m_heapBuffer = std::move( other.m_heapBuffer );
+			m_size = other.m_size;
+			m_capacity = other.m_capacity;
+			m_onHeap = other.m_onHeap;
 
+			if ( !m_onHeap )
+			{
+				std::memcpy( m_stackBuffer, other.m_stackBuffer, m_size );
+			}
+
+			other.m_size = 0;
+			other.m_capacity = STACK_BUFFER_SIZE;
+			other.m_onHeap = false;
+		}
 		return *this;
 	}
 
@@ -100,23 +135,17 @@ namespace nfx::string
 
 	size_t DynamicStringBuffer::size() const noexcept
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->size()
-				   : 0;
+		return m_size;
 	}
 
 	size_t DynamicStringBuffer::capacity() const noexcept
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->capacity()
-				   : 0;
+		return m_capacity;
 	}
 
 	bool DynamicStringBuffer::isEmpty() const noexcept
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->empty()
-				   : true;
+		return m_size == 0;
 	}
 
 	//----------------------------------------------
@@ -125,31 +154,21 @@ namespace nfx::string
 
 	void DynamicStringBuffer::clear() noexcept
 	{
-		if ( m_impl )
-		{
-			static_cast<DynamicStringBuffer_impl*>( m_impl )->clear();
-		}
+		m_size = 0;
 	}
 
 	void DynamicStringBuffer::reserve( size_t newCapacity )
 	{
-		if ( !m_impl )
+		if ( newCapacity > m_capacity )
 		{
-			m_impl = new DynamicStringBuffer_impl{ newCapacity };
-		}
-		else
-		{
-			static_cast<DynamicStringBuffer_impl*>( m_impl )->reserve( newCapacity );
+			ensureCapacity( newCapacity );
 		}
 	}
 
 	void DynamicStringBuffer::resize( size_t newSize )
 	{
-		if ( !m_impl )
-		{
-			m_impl = new DynamicStringBuffer_impl{ newSize };
-		}
-		static_cast<DynamicStringBuffer_impl*>( m_impl )->resize( newSize );
+		ensureCapacity( newSize );
+		m_size = newSize;
 	}
 
 	//----------------------------------------------
@@ -158,26 +177,22 @@ namespace nfx::string
 
 	char* DynamicStringBuffer::data() noexcept
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->data()
-				   : nullptr;
+		return currentBuffer();
 	}
 
 	const char* DynamicStringBuffer::data() const noexcept
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->data()
-				   : nullptr;
+		return currentBuffer();
 	}
 
 	char& DynamicStringBuffer::operator[]( size_t index )
 	{
-		return ( *static_cast<DynamicStringBuffer_impl*>( m_impl ) )[index];
+		return currentBuffer()[index];
 	}
 
 	const char& DynamicStringBuffer::operator[]( size_t index ) const
 	{
-		return ( *static_cast<DynamicStringBuffer_impl*>( m_impl ) )[index];
+		return currentBuffer()[index];
 	}
 
 	//----------------------------------------------
@@ -186,38 +201,33 @@ namespace nfx::string
 
 	void DynamicStringBuffer::append( std::string_view str )
 	{
-		if ( !m_impl )
+		if ( !str.empty() )
 		{
-			m_impl = new DynamicStringBuffer_impl{};
+			const size_t new_size = m_size + str.size();
+			ensureCapacity( new_size );
+			std::memcpy( currentBuffer() + m_size, str.data(), str.size() );
+			m_size = new_size;
 		}
-		static_cast<DynamicStringBuffer_impl*>( m_impl )->append( str );
 	}
 
 	void DynamicStringBuffer::append( const std::string& str )
 	{
-		if ( !m_impl )
-		{
-			m_impl = new DynamicStringBuffer_impl{};
-		}
-		static_cast<DynamicStringBuffer_impl*>( m_impl )->append( str );
+		append( std::string_view{ str } );
 	}
 
 	void DynamicStringBuffer::append( const char* str )
 	{
-		if ( !m_impl )
+		if ( str )
 		{
-			m_impl = new DynamicStringBuffer_impl{};
+			append( std::string_view{ str, std::strlen( str ) } );
 		}
-		static_cast<DynamicStringBuffer_impl*>( m_impl )->append( str );
 	}
 
 	void DynamicStringBuffer::push_back( char c )
 	{
-		if ( !m_impl )
-		{
-			m_impl = new DynamicStringBuffer_impl{};
-		}
-		static_cast<DynamicStringBuffer_impl*>( m_impl )->push_back( c );
+		ensureCapacity( m_size + 1 );
+		currentBuffer()[m_size] = c;
+		++m_size;
 	}
 
 	//----------------------------------------------
@@ -226,16 +236,12 @@ namespace nfx::string
 
 	std::string DynamicStringBuffer::toString() const
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->toString()
-				   : std::string{};
+		return std::string( currentBuffer(), m_size );
 	}
 
 	std::string_view DynamicStringBuffer::toStringView() const noexcept
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->toStringView()
-				   : std::string_view{};
+		return std::string_view{ currentBuffer(), m_size };
 	}
 
 	//----------------------------------------------
@@ -244,30 +250,76 @@ namespace nfx::string
 
 	DynamicStringBuffer::iterator DynamicStringBuffer::begin() noexcept
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->begin()
-				   : nullptr;
+		return currentBuffer();
 	}
 
 	DynamicStringBuffer::const_iterator DynamicStringBuffer::begin() const noexcept
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->begin()
-				   : nullptr;
+		return currentBuffer();
 	}
 
 	DynamicStringBuffer::iterator DynamicStringBuffer::end() noexcept
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->end()
-				   : nullptr;
+		return currentBuffer() + m_size;
 	}
 
 	DynamicStringBuffer::const_iterator DynamicStringBuffer::end() const noexcept
 	{
-		return m_impl
-				   ? static_cast<DynamicStringBuffer_impl*>( m_impl )->end()
-				   : nullptr;
+		return currentBuffer() + m_size;
+	}
+
+	//----------------------------------------------
+	// Private methods
+	//----------------------------------------------
+
+	void DynamicStringBuffer::ensureCapacity( size_t needed_capacity )
+	{
+		if ( needed_capacity <= m_capacity )
+		{
+			return;
+		}
+
+		// Calculate new capacity with growth factor
+		size_t new_capacity = std::max( needed_capacity,
+			static_cast<size_t>( m_capacity * GROWTH_FACTOR ) );
+
+		if ( !m_onHeap && new_capacity <= STACK_BUFFER_SIZE )
+		{
+			return;
+		}
+
+		if ( !m_onHeap )
+		{
+			// Transition from stack to heap
+			m_heapBuffer = std::make_unique<char[]>( new_capacity );
+			if ( m_size > 0 )
+			{
+				std::memcpy( m_heapBuffer.get(), m_stackBuffer, m_size );
+			}
+			m_onHeap = true;
+			m_capacity = new_capacity;
+		}
+		else
+		{
+			// Expand existing heap buffer
+			auto new_buffer = std::make_unique<char[]>( new_capacity );
+			if ( m_size > 0 )
+			{
+				std::memcpy( new_buffer.get(), m_heapBuffer.get(), m_size );
+			}
+			m_heapBuffer = std::move( new_buffer );
+			m_capacity = new_capacity;
+		}
+	}
+
+	char* DynamicStringBuffer::currentBuffer() noexcept
+	{
+		return m_onHeap ? m_heapBuffer.get() : m_stackBuffer;
+	}
+
+	const char* DynamicStringBuffer::currentBuffer() const noexcept
+	{
+		return m_onHeap ? m_heapBuffer.get() : m_stackBuffer;
 	}
 
 	//=====================================================================
