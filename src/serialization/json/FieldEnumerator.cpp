@@ -141,7 +141,7 @@ namespace nfx::serialization::json
 		try
 		{
 			FieldEnumerator_impl* impl = static_cast<FieldEnumerator_impl*>( m_impl );
-			const nlohmann::json& value = impl->currentValue();
+			const nlohmann::ordered_json& value = impl->currentValue();
 
 			if ( value.is_string() )
 			{
@@ -160,8 +160,8 @@ namespace nfx::serialization::json
 	{
 		try
 		{
-			FieldEnumerator_impl* impl = static_cast<FieldEnumerator_impl*>( m_impl );
-			const nlohmann::json& value = impl->currentValue();
+			auto impl = static_cast<FieldEnumerator_impl*>( m_impl );
+			auto& value = impl->currentValue();
 
 			if ( value.is_number_integer() )
 			{
@@ -180,8 +180,8 @@ namespace nfx::serialization::json
 	{
 		try
 		{
-			FieldEnumerator_impl* impl = static_cast<FieldEnumerator_impl*>( m_impl );
-			const nlohmann::json& value = impl->currentValue();
+			auto impl = static_cast<FieldEnumerator_impl*>( m_impl );
+			auto& value = impl->currentValue();
 
 			if ( value.is_number_float() )
 			{
@@ -200,8 +200,8 @@ namespace nfx::serialization::json
 	{
 		try
 		{
-			FieldEnumerator_impl* impl = static_cast<FieldEnumerator_impl*>( m_impl );
-			const nlohmann::json& value = impl->currentValue();
+			auto impl = static_cast<FieldEnumerator_impl*>( m_impl );
+			auto& value = impl->currentValue();
 
 			if ( value.is_boolean() )
 			{
@@ -222,25 +222,25 @@ namespace nfx::serialization::json
 
 	bool FieldEnumerator::next()
 	{
-		FieldEnumerator_impl* impl = static_cast<FieldEnumerator_impl*>( m_impl );
+		auto impl = static_cast<FieldEnumerator_impl*>( m_impl );
 		return impl->advance();
 	}
 
 	bool FieldEnumerator::previous()
 	{
-		FieldEnumerator_impl* impl = static_cast<FieldEnumerator_impl*>( m_impl );
+		auto impl = static_cast<FieldEnumerator_impl*>( m_impl );
 		return impl->movePrevious();
 	}
 
 	bool FieldEnumerator::moveTo( size_t index )
 	{
-		FieldEnumerator_impl* impl = static_cast<FieldEnumerator_impl*>( m_impl );
+		auto impl = static_cast<FieldEnumerator_impl*>( m_impl );
 		return impl->moveToIndex( index );
 	}
 
 	bool FieldEnumerator::moveToKey( std::string_view key )
 	{
-		FieldEnumerator_impl* impl = static_cast<FieldEnumerator_impl*>( m_impl );
+		auto impl = static_cast<FieldEnumerator_impl*>( m_impl );
 		return impl->moveToFieldKey( key );
 	}
 } // namespace nfx::serialization::json

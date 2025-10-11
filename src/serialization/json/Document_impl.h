@@ -1,6 +1,6 @@
 /**
  * @file Document_impl.h
- * @brief Pimpl implementation for Document, wrapping nlohmann::json
+ * @brief Pimpl implementation for Document, wrapping nlohmann::ordered_json
  */
 
 #pragma once
@@ -21,7 +21,7 @@ namespace nfx::serialization::json
 
 		Document_impl();
 
-		explicit Document_impl( nlohmann::json jsonData );
+		explicit Document_impl( nlohmann::ordered_json jsonData );
 
 	public:
 		//----------------------------------------------
@@ -36,7 +36,7 @@ namespace nfx::serialization::json
 		 * @details Supports both object field access ("user.name") and array indexing ("items[0]").
 		 *          When createPath is true, missing intermediate nodes are created as objects.
 		 */
-		nlohmann::json* navigateToPath( std::string_view path, bool createPath = false );
+		nlohmann::ordered_json* navigateToPath( std::string_view path, bool createPath = false );
 
 		/**
 		 * @brief Navigate to a JSON node at the specified dot-separated path (const version)
@@ -45,7 +45,7 @@ namespace nfx::serialization::json
 		 * @details Read-only version that never creates new nodes. Supports both object field
 		 *          access ("user.name") and array indexing ("items[0]").
 		 */
-		const nlohmann::json* navigateToPath( std::string_view path ) const;
+		const nlohmann::ordered_json* navigateToPath( std::string_view path ) const;
 
 		/**
 		 * @brief Navigate to a JSON node using RFC 6901 JSON Pointer syntax
@@ -60,7 +60,7 @@ namespace nfx::serialization::json
 		 *          When createPath is true, missing intermediate nodes are created as objects
 		 *          or arrays based on context (numeric tokens create arrays).
 		 */
-		nlohmann::json* navigateToJsonPointer( std::string_view pointer, bool createPath = false );
+		nlohmann::ordered_json* navigateToJsonPointer( std::string_view pointer, bool createPath = false );
 
 		/**
 		 * @brief Navigate to a JSON node using RFC 6901 JSON Pointer syntax (const version)
@@ -70,7 +70,7 @@ namespace nfx::serialization::json
 		 *          Supports object property access, array indexing, and escaped characters.
 		 *          Never creates new nodes.
 		 */
-		const nlohmann::json* navigateToJsonPointer( std::string_view pointer ) const;
+		const nlohmann::ordered_json* navigateToJsonPointer( std::string_view pointer ) const;
 
 		//----------------------------------------------
 		// Helper methods
@@ -97,24 +97,24 @@ namespace nfx::serialization::json
 
 		/**
 		 * @brief Get reference to internal JSON data
-		 * @return Reference to nlohmann::json data
+		 * @return Reference to nlohmann::ordered_json data
 		 * @note For friend class access only
 		 */
-		nlohmann::json& data() noexcept { return m_data; }
+		nlohmann::ordered_json& data() noexcept { return m_data; }
 
 		/**
 		 * @brief Get const reference to internal JSON data
-		 * @return Const reference to nlohmann::json data
+		 * @return Const reference to nlohmann::ordered_json data
 		 * @note For friend class access only
 		 */
-		const nlohmann::json& data() const noexcept { return m_data; }
+		const nlohmann::ordered_json& data() const noexcept { return m_data; }
 
 		/**
 		 * @brief Set internal JSON data
 		 * @param data New JSON data to set
 		 * @note For friend class access only
 		 */
-		void setData( const nlohmann::json& data ) noexcept { m_data = data; }
+		void setData( const nlohmann::ordered_json& data ) noexcept { m_data = data; }
 
 		/**
 		 * @brief Set last error message
@@ -135,7 +135,7 @@ namespace nfx::serialization::json
 		// Private members
 		//----------------------------------------------
 
-		nlohmann::json m_data;	 ///< JSON document data
-		std::string m_lastError; ///< Last error message from operations
+		nlohmann::ordered_json m_data; ///< JSON document data
+		std::string m_lastError;	   ///< Last error message from operations
 	};
 } // namespace nfx::serialization::json

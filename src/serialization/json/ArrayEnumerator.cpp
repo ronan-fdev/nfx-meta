@@ -120,7 +120,7 @@ namespace nfx::serialization::json
 
 	Document ArrayEnumerator::currentElement() const
 	{
-		ArrayEnumerator_impl* impl = static_cast<ArrayEnumerator_impl*>( m_impl );
+		auto impl = static_cast<ArrayEnumerator_impl*>( m_impl );
 
 		auto docPtr = impl->currentElementAsDocument();
 		if ( !docPtr )
@@ -135,8 +135,8 @@ namespace nfx::serialization::json
 	{
 		try
 		{
-			ArrayEnumerator_impl* impl = static_cast<ArrayEnumerator_impl*>( m_impl );
-			const nlohmann::json& element = impl->currentElement();
+			auto impl = static_cast<ArrayEnumerator_impl*>( m_impl );
+			auto& element = impl->currentElement();
 
 			if ( element.is_string() )
 			{
@@ -155,8 +155,8 @@ namespace nfx::serialization::json
 	{
 		try
 		{
-			ArrayEnumerator_impl* impl = static_cast<ArrayEnumerator_impl*>( m_impl );
-			const nlohmann::json& element = impl->currentElement();
+			auto impl = static_cast<ArrayEnumerator_impl*>( m_impl );
+			auto& element = impl->currentElement();
 
 			if ( element.is_number_integer() )
 			{
@@ -175,8 +175,8 @@ namespace nfx::serialization::json
 	{
 		try
 		{
-			ArrayEnumerator_impl* impl = static_cast<ArrayEnumerator_impl*>( m_impl );
-			const nlohmann::json& element = impl->currentElement();
+			auto impl = static_cast<ArrayEnumerator_impl*>( m_impl );
+			auto& element = impl->currentElement();
 
 			if ( element.is_number_float() )
 			{
@@ -195,8 +195,8 @@ namespace nfx::serialization::json
 	{
 		try
 		{
-			ArrayEnumerator_impl* impl = static_cast<ArrayEnumerator_impl*>( m_impl );
-			const nlohmann::json& element = impl->currentElement();
+			auto impl = static_cast<ArrayEnumerator_impl*>( m_impl );
+			auto& element = impl->currentElement();
 
 			if ( element.is_boolean() )
 			{
@@ -217,19 +217,19 @@ namespace nfx::serialization::json
 
 	bool ArrayEnumerator::next()
 	{
-		ArrayEnumerator_impl* impl = static_cast<ArrayEnumerator_impl*>( m_impl );
+		auto impl = static_cast<ArrayEnumerator_impl*>( m_impl );
 		return impl->advance();
 	}
 
 	bool ArrayEnumerator::previous()
 	{
-		ArrayEnumerator_impl* impl = static_cast<ArrayEnumerator_impl*>( m_impl );
+		auto impl = static_cast<ArrayEnumerator_impl*>( m_impl );
 		return impl->movePrevious();
 	}
 
 	bool ArrayEnumerator::moveTo( size_t index )
 	{
-		ArrayEnumerator_impl* impl = static_cast<ArrayEnumerator_impl*>( m_impl );
+		auto impl = static_cast<ArrayEnumerator_impl*>( m_impl );
 		return impl->moveToIndex( index );
 	}
 } // namespace nfx::serialization::json

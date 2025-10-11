@@ -134,7 +134,7 @@ namespace nfx::serialization::json
 		 * @return Reference to current JSON element
 		 * @throws std::runtime_error if invalid position
 		 */
-		const nlohmann::json& currentElement() const;
+		const nlohmann::ordered_json& currentElement() const;
 
 		/**
 		 * @brief Create Document wrapper for current element
@@ -167,7 +167,7 @@ namespace nfx::serialization::json
 
 		const Document& m_document;							   ///< Reference to source document
 		std::string m_currentPath;							   ///< Current path to array
-		const nlohmann::json* m_currentArray;				   ///< Pointer to current JSON array
+		const nlohmann::ordered_json* m_currentArray;		   ///< Pointer to current JSON array
 		size_t m_currentIndex;								   ///< Current position in array
 		mutable std::unique_ptr<Document> m_currentElementDoc; ///< Cache for current element Document
 	};

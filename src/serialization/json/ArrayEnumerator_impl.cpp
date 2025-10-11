@@ -1,7 +1,7 @@
 /**
  * @file ArrayEnumerator_impl.cpp
  * @brief Implementation of ArrayEnumerator_impl class
- * @details Provides JSON array iteration functionality using nlohmann::json backend.
+ * @details Provides JSON array iteration functionality using nlohmann::ordered_json backend.
  */
 
 #include <stdexcept>
@@ -97,14 +97,14 @@ namespace nfx::serialization::json
 			m_currentPath = std::string( path );
 
 			// Get document implementation
-			Document_impl* docImpl = static_cast<Document_impl*>( m_document.m_impl );
+			auto docImpl = static_cast<Document_impl*>( m_document.m_impl );
 			if ( !docImpl )
 			{
 				return false;
 			}
 
 			// Navigate to the specified path
-			const nlohmann::json* targetNode = docImpl->navigateToPath( path );
+			auto targetNode = docImpl->navigateToPath( path );
 			if ( !targetNode || !targetNode->is_array() )
 			{
 				return false;
@@ -131,14 +131,14 @@ namespace nfx::serialization::json
 			m_currentPath = std::string( pointer );
 
 			// Get document implementation
-			Document_impl* docImpl = static_cast<Document_impl*>( m_document.m_impl );
+			auto docImpl = static_cast<Document_impl*>( m_document.m_impl );
 			if ( !docImpl )
 			{
 				return false;
 			}
 
 			// Navigate using JSON Pointer
-			const nlohmann::json* targetNode = docImpl->navigateToJsonPointer( pointer );
+			auto targetNode = docImpl->navigateToJsonPointer( pointer );
 			if ( !targetNode || !targetNode->is_array() )
 			{
 				return false;
@@ -204,7 +204,7 @@ namespace nfx::serialization::json
 		return true;
 	}
 
-	const nlohmann::json& ArrayEnumerator_impl::currentElement() const
+	const nlohmann::ordered_json& ArrayEnumerator_impl::currentElement() const
 	{
 		if ( !isValidArray() )
 		{
@@ -222,7 +222,7 @@ namespace nfx::serialization::json
 	std::unique_ptr<Document> ArrayEnumerator_impl::currentElementAsDocument() const
 	{
 		// Get current element JSON
-		const nlohmann::json& element = currentElement();
+		auto& element = currentElement();
 
 		// Create new Document from this element using factory method
 		auto docOpt = Document::fromJsonString( element.dump() );

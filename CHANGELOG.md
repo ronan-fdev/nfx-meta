@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.3.4] - 2025-10-11
+
+### Changed
+
+- **JSON Document Field Ordering**: Switched from `nlohmann::json` to `nlohmann::ordered_json` for deterministic field ordering
+
 ## [0.3.3] - 2025-10-10
 
 ### Changed

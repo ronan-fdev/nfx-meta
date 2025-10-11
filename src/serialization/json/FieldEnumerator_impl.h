@@ -142,7 +142,7 @@ namespace nfx::serialization::json
 		 * @return Reference to current JSON field value
 		 * @throws std::runtime_error if invalid position
 		 */
-		const nlohmann::json& currentValue() const;
+		const nlohmann::ordered_json& currentValue() const;
 
 		/**
 		 * @brief Create Document wrapper for current field value
@@ -187,7 +187,7 @@ namespace nfx::serialization::json
 
 		const Document& m_document;							 ///< Reference to source document
 		std::string m_currentPath;							 ///< Current path to object
-		const nlohmann::json* m_currentObject;				 ///< Pointer to current JSON object
+		const nlohmann::ordered_json* m_currentObject;		 ///< Pointer to current JSON object
 		std::vector<std::string> m_fieldKeys;				 ///< Cached field keys for indexed access
 		size_t m_currentIndex;								 ///< Current position in field list
 		mutable std::unique_ptr<Document> m_currentValueDoc; ///< Cache for current field value Document

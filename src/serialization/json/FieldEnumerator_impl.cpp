@@ -1,7 +1,7 @@
 /**
  * @file FieldEnumerator_impl.cpp
  * @brief Implementation of FieldEnumerator_impl class
- * @details Provides JSON object field iteration functionality using nlohmann::json backend.
+ * @details Provides JSON object field iteration functionality using nlohmann::ordered_json backend.
  */
 
 #include <algorithm>
@@ -104,14 +104,14 @@ namespace nfx::serialization::json
 			m_currentPath = std::string( path );
 
 			// Get Document implementation
-			Document_impl* docImpl = static_cast<Document_impl*>( m_document.m_impl );
+			auto docImpl = static_cast<Document_impl*>( m_document.m_impl );
 			if ( !docImpl )
 			{
 				return false;
 			}
 
 			// Navigate to the specified path
-			const nlohmann::json* targetNode = docImpl->navigateToPath( path );
+			auto targetNode = docImpl->navigateToPath( path );
 			if ( !targetNode || !targetNode->is_object() )
 			{
 				return false;
@@ -147,7 +147,7 @@ namespace nfx::serialization::json
 			}
 
 			// Navigate using JSON Pointer
-			const nlohmann::json* targetNode = docImpl->navigateToJsonPointer( pointer );
+			auto targetNode = docImpl->navigateToJsonPointer( pointer );
 			if ( !targetNode || !targetNode->is_object() )
 			{
 				return false;
@@ -229,7 +229,7 @@ namespace nfx::serialization::json
 		return m_fieldKeys[m_currentIndex];
 	}
 
-	const nlohmann::json& FieldEnumerator_impl::currentValue() const
+	const nlohmann::ordered_json& FieldEnumerator_impl::currentValue() const
 	{
 		if ( !isValidObject() )
 		{
@@ -248,7 +248,7 @@ namespace nfx::serialization::json
 	std::unique_ptr<Document> FieldEnumerator_impl::currentValueAsDocument() const
 	{
 		// Get current field value JSON
-		const nlohmann::json& value = currentValue();
+		const nlohmann::ordered_json& value = currentValue();
 
 		// Create new Document from this value using factory method
 		auto docOpt = Document::fromJsonString( value.dump() );

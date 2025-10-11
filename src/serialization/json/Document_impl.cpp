@@ -1,7 +1,7 @@
 /**
  * @file Document_impl.cpp
  * @brief Implementation of Document_impl Pimpl class
- * @details Provides concrete implementation for the Document facade, wrapping nlohmann::json.
+ * @details Provides concrete implementation for the Document facade, wrapping nlohmann::ordered_json.
  */
 
 #include "Document_impl.h"
@@ -16,13 +16,13 @@ namespace nfx::serialization::json
 
 	Document_impl::Document_impl()
 	{
-		// Using assignment here avoids initializer_list ambiguity with nlohmann::json.
-		m_data = nlohmann::json::object();
+		// Using assignment here avoids initializer_list ambiguity with nlohmann::ordered_json.
+		m_data = nlohmann::ordered_json::object();
 	}
 
-	Document_impl::Document_impl( nlohmann::json jsonData )
+	Document_impl::Document_impl( nlohmann::ordered_json jsonData )
 	{
-		// Using assignment here avoids initializer_list ambiguity with nlohmann::json
+		// Using assignment here avoids initializer_list ambiguity with nlohmann::ordered_json
 		m_data = std::move( jsonData );
 	}
 
@@ -30,14 +30,14 @@ namespace nfx::serialization::json
 	// Navigation methods
 	//----------------------------------------------
 
-	nlohmann::json* Document_impl::navigateToPath( std::string_view path, bool createPath )
+	nlohmann::ordered_json* Document_impl::navigateToPath( std::string_view path, bool createPath )
 	{
 		if ( path.empty() )
 		{
 			return &m_data;
 		}
 
-		nlohmann::json* current = &m_data;
+		nlohmann::ordered_json* current = &m_data;
 		size_t start = 0;
 		size_t pos = 0;
 
@@ -64,7 +64,7 @@ namespace nfx::serialization::json
 
 				if ( createPath && !current->contains( arrayName ) )
 				{
-					( *current )[arrayName] = nlohmann::json::array();
+					( *current )[arrayName] = nlohmann::ordered_json::array();
 				}
 
 				if ( !current->contains( arrayName ) || !( *current )[arrayName].is_array() )
@@ -90,7 +90,7 @@ namespace nfx::serialization::json
 
 				if ( createPath && !current->contains( segment ) )
 				{
-					( *current )[segment] = nlohmann::json::object();
+					( *current )[segment] = nlohmann::ordered_json::object();
 				}
 
 				if ( !current->contains( segment ) )
@@ -107,12 +107,12 @@ namespace nfx::serialization::json
 		return current;
 	}
 
-	const nlohmann::json* Document_impl::navigateToPath( std::string_view path ) const
+	const nlohmann::ordered_json* Document_impl::navigateToPath( std::string_view path ) const
 	{
 		return const_cast<Document_impl*>( this )->navigateToPath( path, false );
 	}
 
-	nlohmann::json* Document_impl::navigateToJsonPointer( std::string_view pointer, bool createPath )
+	nlohmann::ordered_json* Document_impl::navigateToJsonPointer( std::string_view pointer, bool createPath )
 	{
 		// RFC 6901: Empty string means root document
 		if ( pointer.empty() )
@@ -126,7 +126,7 @@ namespace nfx::serialization::json
 			return nullptr;
 		}
 
-		nlohmann::json* current = &m_data;
+		nlohmann::ordered_json* current = &m_data;
 		size_t start = 1; // Skip initial "/"
 
 		while ( start < pointer.length() )
@@ -158,7 +158,7 @@ namespace nfx::serialization::json
 					if ( createPath && pos == pointer.length() )
 					{
 						// Append new element to array
-						current->push_back( nlohmann::json::object() );
+						current->push_back( nlohmann::ordered_json::object() );
 						return &current->back();
 					}
 					else
@@ -183,7 +183,7 @@ namespace nfx::serialization::json
 						// Extend array if needed
 						while ( current->size() <= index )
 						{
-							current->push_back( nlohmann::json::object() );
+							current->push_back( nlohmann::ordered_json::object() );
 						}
 					}
 					else if ( index >= current->size() )
@@ -219,17 +219,17 @@ namespace nfx::serialization::json
 
 						if ( isValidArrayIndex( nextToken ) || nextToken == "-" )
 						{
-							( *current )[token] = nlohmann::json::array();
+							( *current )[token] = nlohmann::ordered_json::array();
 						}
 						else
 						{
-							( *current )[token] = nlohmann::json::object();
+							( *current )[token] = nlohmann::ordered_json::object();
 						}
 					}
 					else
 					{
 						// This is the final token, create as object by default
-						( *current )[token] = nlohmann::json::object();
+						( *current )[token] = nlohmann::ordered_json::object();
 					}
 				}
 
@@ -252,7 +252,7 @@ namespace nfx::serialization::json
 		return current;
 	}
 
-	const nlohmann::json* Document_impl::navigateToJsonPointer( std::string_view pointer ) const
+	const nlohmann::ordered_json* Document_impl::navigateToJsonPointer( std::string_view pointer ) const
 	{
 		return const_cast<Document_impl*>( this )->navigateToJsonPointer( pointer, false );
 	}

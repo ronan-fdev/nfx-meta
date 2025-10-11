@@ -1,7 +1,6 @@
 /**
  * @file SchemaValidator_impl.cpp
  * @brief Implementation of SchemaValidator_impl class
- * @details Provides JSON Schema validation functionality using nlohmann::json backend.
  */
 
 #include <algorithm>
