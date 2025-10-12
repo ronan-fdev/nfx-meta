@@ -155,6 +155,15 @@ namespace nfx::serialization::json
 		std::optional<bool> getBool( std::string_view path ) const;
 
 		/**
+		 * @brief Get character value at path (from single-character string)
+		 * @param path The path to the character value
+		 * @return Optional character value, nullopt if not found, wrong type, or string length != 1
+		 * @details Convenience method that extracts a character from a single-character string.
+		 *          Returns nullopt if the path doesn't exist, isn't a string, or the string length is not exactly 1.
+		 */
+		std::optional<char> getChar( std::string_view path ) const;
+
+		/**
 		 * @brief Get document (any JSON type) at path
 		 * @param path The path to the document
 		 * @return Optional Document at the specified path, nullopt if not found
@@ -247,6 +256,14 @@ namespace nfx::serialization::json
 		bool hasBoolByPointer( std::string_view pointer ) const;
 
 		/**
+		 * @brief Check if character exists at JSON Pointer path (single-character string)
+		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/initial", "/grades/0")
+		 * @return True if pointer references a single-character string, false otherwise
+		 * @details Convenience method that checks if a JSON Pointer path contains a character.
+		 */
+		bool hasCharByPointer( std::string_view pointer ) const;
+
+		/**
 		 * @brief Check if null exists at JSON Pointer path
 		 * @param pointer RFC 6901 JSON Pointer (e.g., "/optional/field", "/data/empty")
 		 * @return True if pointer references null, false otherwise
@@ -312,6 +329,14 @@ namespace nfx::serialization::json
 		 */
 		std::optional<bool> getBoolByPointer( std::string_view pointer ) const;
 
+		/**
+		 * @brief Get character value using JSON Pointer (from single-character string)
+		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/initial", "/data/0/grade")
+		 * @return Optional character value, nullopt if not found, wrong type, or string length != 1
+		 * @details Convenience method that extracts a character from a single-character string using JSON Pointer notation.
+		 */
+		std::optional<char> getCharByPointer( std::string_view pointer ) const;
+
 		//----------------------------------------------
 		// Value setting
 		//----------------------------------------------
@@ -343,6 +368,15 @@ namespace nfx::serialization::json
 		 * @param value The boolean value to set
 		 */
 		void setBool( std::string_view path, bool value );
+
+		/**
+		 * @brief Set character value at path (stored as single-character string)
+		 * @param path The path where to set the character value
+		 * @param c The character to set
+		 * @details Convenience method that stores a character as a single-character string.
+		 *          JSON doesn't have a native character type, so characters are stored as strings.
+		 */
+		void setChar( std::string_view path, char c );
 
 		/**
 		 * @brief Set null value at path
@@ -420,6 +454,14 @@ namespace nfx::serialization::json
 		void setBoolByPointer( std::string_view pointer, bool value );
 
 		/**
+		 * @brief Set character value using JSON Pointer (stored as single-character string)
+		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/initial", "/data/0/grade")
+		 * @param c The character to set
+		 * @details Convenience method that stores a character as a single-character string using JSON Pointer notation.
+		 */
+		void setCharByPointer( std::string_view pointer, char c );
+
+		/**
 		 * @brief Set null value using JSON Pointer
 		 * @param pointer RFC 6901 JSON Pointer (e.g., "/optional/field")
 		 */
@@ -472,6 +514,14 @@ namespace nfx::serialization::json
 		void addToArray( std::string_view path, bool value );
 
 		/**
+		 * @brief Add character value to array at path
+		 * @param path The path to the array
+		 * @param c The character to add (stored as single-character string)
+		 * @details Convenience method that adds a character to an array as a single-character string.
+		 */
+		void addToArray( std::string_view path, char c );
+
+		/**
 		 * @brief Add document (any JSON type) to array at path
 		 * @param path The path to the array
 		 * @param document The document to add (can be object, array, or primitive)
@@ -518,6 +568,15 @@ namespace nfx::serialization::json
 		 * @return Optional boolean value of the array element, nullopt if array not found, index out of bounds, or wrong type
 		 */
 		std::optional<bool> getArrayElementBool( std::string_view path, size_t index ) const;
+
+		/**
+		 * @brief Get character value from array element at index
+		 * @param path The path to the array
+		 * @param index The index of the element to get
+		 * @return Optional character value, nullopt if array not found, index out of bounds, wrong type, or string length != 1
+		 * @details Convenience method that extracts a character from an array element stored as a single-character string.
+		 */
+		std::optional<char> getArrayElementChar( std::string_view path, size_t index ) const;
 
 		//----------------------------------------------
 		// Advanced array and document operations
@@ -619,6 +678,14 @@ namespace nfx::serialization::json
 		bool isBool( std::string_view path ) const;
 
 		/**
+		 * @brief Check if path points to a character value (single-character string)
+		 * @param path The path to check
+		 * @return True if path points to a single-character string, false otherwise
+		 * @details Convenience method that checks if a path contains a character (single-character string).
+		 */
+		bool isChar( std::string_view path ) const;
+
+		/**
 		 * @brief Check if path points to a null value
 		 * @param path The path to check
 		 * @return True if path points to null, false otherwise
@@ -647,77 +714,6 @@ namespace nfx::serialization::json
 		 * @return Error message string, empty if no errors occurred
 		 */
 		std::string lastError() const;
-
-		//----------------------------------------------
-		// Character utility methods
-		//----------------------------------------------
-
-		/**
-		 * @brief Set character value at path (stored as single-character string)
-		 * @param path The path where to set the character value
-		 * @param c The character to set
-		 * @details Convenience method that stores a character as a single-character string.
-		 *          JSON doesn't have a native character type, so characters are stored as strings.
-		 */
-		void setChar( std::string_view path, char c );
-
-		/**
-		 * @brief Get character value at path (from single-character string)
-		 * @param path The path to the character value
-		 * @return Optional character value, nullopt if not found, wrong type, or string length != 1
-		 * @details Convenience method that extracts a character from a single-character string.
-		 *          Returns nullopt if the path doesn't exist, isn't a string, or the string length is not exactly 1.
-		 */
-		std::optional<char> getChar( std::string_view path ) const;
-
-		/**
-		 * @brief Set character value using JSON Pointer (stored as single-character string)
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/initial", "/data/0/grade")
-		 * @param c The character to set
-		 * @details Convenience method that stores a character as a single-character string using JSON Pointer notation.
-		 */
-		void setCharByPointer( std::string_view pointer, char c );
-
-		/**
-		 * @brief Get character value using JSON Pointer (from single-character string)
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/initial", "/data/0/grade")
-		 * @return Optional character value, nullopt if not found, wrong type, or string length != 1
-		 * @details Convenience method that extracts a character from a single-character string using JSON Pointer notation.
-		 */
-		std::optional<char> getCharByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Add character value to array at path
-		 * @param path The path to the array
-		 * @param c The character to add (stored as single-character string)
-		 * @details Convenience method that adds a character to an array as a single-character string.
-		 */
-		void addCharToArray( std::string_view path, char c );
-
-		/**
-		 * @brief Get character value from array element at index
-		 * @param path The path to the array
-		 * @param index The index of the element to get
-		 * @return Optional character value, nullopt if array not found, index out of bounds, wrong type, or string length != 1
-		 * @details Convenience method that extracts a character from an array element stored as a single-character string.
-		 */
-		std::optional<char> getArrayElementChar( std::string_view path, size_t index ) const;
-
-		/**
-		 * @brief Check if path points to a character value (single-character string)
-		 * @param path The path to check
-		 * @return True if path points to a single-character string, false otherwise
-		 * @details Convenience method that checks if a path contains a character (single-character string).
-		 */
-		bool isChar( std::string_view path ) const;
-
-		/**
-		 * @brief Check if character exists at JSON Pointer path (single-character string)
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/initial", "/grades/0")
-		 * @return True if pointer references a single-character string, false otherwise
-		 * @details Convenience method that checks if a JSON Pointer path contains a character.
-		 */
-		bool hasCharByPointer( std::string_view pointer ) const;
 
 	private:
 		//----------------------------------------------

@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.3.5] - 2025-10-12
+
+### Changed
+
+- **JSON Document**: Character (type char) methods integrated with standard type API
+
 ## [0.3.4] - 2025-10-11
 
 ### Changed

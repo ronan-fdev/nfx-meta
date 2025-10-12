@@ -1930,8 +1930,8 @@ namespace nfx::serialization::json::test
 		Document doc = Document::createObject();
 
 		// Test that JSON Pointer and dot notation access different paths
-		doc.setChar( "user.name", 'D' );  // Dot notation - creates nested object
-		doc.setCharByPointer( "/user.name", 'P' );  // JSON Pointer - creates field named "user.name"
+		doc.setChar( "user.name", 'D' );		   // Dot notation - creates nested object
+		doc.setCharByPointer( "/user.name", 'P' ); // JSON Pointer - creates field named "user.name"
 
 		// Verify they access different locations
 		auto dotResult = doc.getChar( "user.name" );
@@ -1959,9 +1959,9 @@ namespace nfx::serialization::json::test
 		Document doc = Document::createObject();
 
 		// Test addCharToArray
-		doc.addCharToArray( "char_array", 'A' );
-		doc.addCharToArray( "char_array", 'B' );
-		doc.addCharToArray( "char_array", 'C' );
+		doc.addToArray( "char_array", 'A' );
+		doc.addToArray( "char_array", 'B' );
+		doc.addToArray( "char_array", 'C' );
 
 		// Test getArrayElementChar
 		auto charResult = doc.getArrayElementChar( "char_array", 0 );
@@ -1984,7 +1984,7 @@ namespace nfx::serialization::json::test
 		EXPECT_FALSE( charResult.has_value() );
 
 		// Test adding to non-existent array (should create array)
-		doc.addCharToArray( "new_array", 'X' );
+		doc.addToArray( "new_array", 'X' );
 		charResult = doc.getArrayElementChar( "new_array", 0 );
 		ASSERT_TRUE( charResult.has_value() );
 		EXPECT_EQ( charResult.value(), 'X' );
@@ -2070,15 +2070,15 @@ namespace nfx::serialization::json::test
 		ASSERT_TRUE( charResult.has_value() );
 		EXPECT_EQ( charResult.value(), 'X' );
 		EXPECT_TRUE( doc.isChar( "age" ) );
-		
+
 		// After overwriting with char, getInt should return nullopt since it's no longer an int
 		auto intResult = doc.getInt( "age" );
 		EXPECT_FALSE( intResult.has_value() );
 
 		// Test character arrays mixed with regular arrays
-		doc.addCharToArray( "mixed_array", 'Z' );
+		doc.addToArray( "mixed_array", 'Z' );
 		doc.addToArray( "mixed_array", static_cast<int64_t>( 42 ) ); // Explicit cast to avoid ambiguity
-		doc.addCharToArray( "mixed_array", 'Y' );
+		doc.addToArray( "mixed_array", 'Y' );
 
 		EXPECT_EQ( doc.getArraySize( "mixed_array" ), 3 );
 

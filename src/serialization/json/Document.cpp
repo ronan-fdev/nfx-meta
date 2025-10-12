@@ -228,6 +228,20 @@ namespace nfx::serialization::json
 		return std::nullopt;
 	}
 
+	std::optional<char> Document::getChar( std::string_view path ) const
+	{
+		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		if ( node && node->is_string() )
+		{
+			const auto& str = node->get<std::string>();
+			if ( str.length() == 1 )
+			{
+				return str[0];
+			}
+		}
+		return std::nullopt;
+	}
+
 	std::optional<Document> Document::getDocument( std::string_view path ) const
 	{
 		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
@@ -312,6 +326,17 @@ namespace nfx::serialization::json
 		return node && node->is_boolean();
 	}
 
+	bool Document::hasCharByPointer( std::string_view pointer ) const
+	{
+		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
+		if ( node && node->is_string() )
+		{
+			const auto& str = node->get<std::string>();
+			return str.length() == 1;
+		}
+		return false;
+	}
+
 	bool Document::hasNullByPointer( std::string_view pointer ) const
 	{
 		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
@@ -394,6 +419,20 @@ namespace nfx::serialization::json
 		return std::nullopt;
 	}
 
+	std::optional<char> Document::getCharByPointer( std::string_view pointer ) const
+	{
+		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
+		if ( node && node->is_string() )
+		{
+			const auto& str = node->get<std::string>();
+			if ( str.length() == 1 )
+			{
+				return str[0];
+			}
+		}
+		return std::nullopt;
+	}
+
 	//----------------------------------------------
 	// Value setting
 	//----------------------------------------------
@@ -431,6 +470,15 @@ namespace nfx::serialization::json
 		if ( node )
 		{
 			*node = value;
+		}
+	}
+
+	void Document::setChar( std::string_view path, char value )
+	{
+		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		if ( node )
+		{
+			*node = std::string( 1, value );
 		}
 	}
 
@@ -510,6 +558,15 @@ namespace nfx::serialization::json
 		if ( node )
 		{
 			*node = value;
+		}
+	}
+
+	void Document::setCharByPointer( std::string_view pointer, char c )
+	{
+		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer, true );
+		if ( node )
+		{
+			*node = std::string( 1, c );
 		}
 	}
 
@@ -601,6 +658,19 @@ namespace nfx::serialization::json
 		}
 	}
 
+	void Document::addToArray( std::string_view path, char c )
+	{
+		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		if ( node )
+		{
+			if ( !node->is_array() )
+			{
+				*node = nlohmann::ordered_json::array();
+			}
+			node->push_back( std::string( 1, c ) );
+		}
+	}
+
 	void Document::addToArray( std::string_view path, const Document& document )
 	{
 		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
@@ -674,6 +744,24 @@ namespace nfx::serialization::json
 			if ( element.is_boolean() )
 			{
 				return element.get<bool>();
+			}
+		}
+		return std::nullopt;
+	}
+
+	std::optional<char> Document::getArrayElementChar( std::string_view path, size_t index ) const
+	{
+		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		if ( node && node->is_array() && index < node->size() )
+		{
+			const auto& element = ( *node )[index];
+			if ( element.is_string() )
+			{
+				const auto& str = element.get<std::string>();
+				if ( str.length() == 1 )
+				{
+					return str[0];
+				}
 			}
 		}
 		return std::nullopt;
@@ -865,6 +953,17 @@ namespace nfx::serialization::json
 		return node && node->is_boolean();
 	}
 
+	bool Document::isChar( std::string_view path ) const
+	{
+		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		if ( node && node->is_string() )
+		{
+			const auto& str = node->get<std::string>();
+			return str.length() == 1;
+		}
+		return false;
+	}
+
 	bool Document::isNull( std::string_view path ) const
 	{
 		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
@@ -913,106 +1012,4 @@ namespace nfx::serialization::json
 		return static_cast<Document_impl*>( m_impl )->lastError();
 	}
 
-	//----------------------------------------------
-	// Character utility methods
-	//----------------------------------------------
-
-	void Document::setChar( std::string_view path, char value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			*node = std::string( 1, value );
-		}
-	}
-
-	std::optional<char> Document::getChar( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_string() )
-		{
-			const auto& str = node->get<std::string>();
-			if ( str.length() == 1 )
-			{
-				return str[0];
-			}
-		}
-		return std::nullopt;
-	}
-
-	void Document::setCharByPointer( std::string_view pointer, char c )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer, true );
-		if ( node )
-		{
-			*node = std::string( 1, c );
-		}
-	}
-
-	std::optional<char> Document::getCharByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node && node->is_string() )
-		{
-			const auto& str = node->get<std::string>();
-			if ( str.length() == 1 )
-			{
-				return str[0];
-			}
-		}
-		return std::nullopt;
-	}
-
-	void Document::addCharToArray( std::string_view path, char c )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			if ( !node->is_array() )
-			{
-				*node = nlohmann::ordered_json::array();
-			}
-			node->push_back( std::string( 1, c ) );
-		}
-	}
-
-	std::optional<char> Document::getArrayElementChar( std::string_view path, size_t index ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_array() && index < node->size() )
-		{
-			const auto& element = ( *node )[index];
-			if ( element.is_string() )
-			{
-				const auto& str = element.get<std::string>();
-				if ( str.length() == 1 )
-				{
-					return str[0];
-				}
-			}
-		}
-		return std::nullopt;
-	}
-
-	bool Document::isChar( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_string() )
-		{
-			const auto& str = node->get<std::string>();
-			return str.length() == 1;
-		}
-		return false;
-	}
-
-	bool Document::hasCharByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node && node->is_string() )
-		{
-			const auto& str = node->get<std::string>();
-			return str.length() == 1;
-		}
-		return false;
-	}
 } // namespace nfx::serialization::json
