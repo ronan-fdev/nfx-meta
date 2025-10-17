@@ -140,9 +140,9 @@ namespace nfx::serialization::json::test
 
 		// Get first user as Document
 		Document user0 = enumerator.currentElement();
-		auto name = user0.getString( "name" );
-		auto age = user0.getInt( "age" );
-		auto active = user0.getBool( "active" );
+		auto name = user0.get<std::string>( "name" );
+		auto age = user0.get<int64_t>( "age" );
+		auto active = user0.get<bool>( "active" );
 
 		ASSERT_TRUE( name.has_value() );
 		EXPECT_EQ( *name, "Alice" );
@@ -154,9 +154,9 @@ namespace nfx::serialization::json::test
 		// Move to next user
 		EXPECT_TRUE( enumerator.next() );
 		Document user1 = enumerator.currentElement();
-		name = user1.getString( "name" );
-		age = user1.getInt( "age" );
-		active = user1.getBool( "active" );
+		name = user1.get<std::string>( "name" );
+		age = user1.get<int64_t>( "age" );
+		active = user1.get<bool>( "active" );
 
 		ASSERT_TRUE( name.has_value() );
 		EXPECT_EQ( *name, "Bob" );
@@ -354,7 +354,7 @@ namespace nfx::serialization::json::test
 		// Element 4: object
 		EXPECT_TRUE( enumerator.next() );
 		Document objDoc = enumerator.currentElement();
-		auto nestedVal = objDoc.getString( "nested" );
+		auto nestedVal = objDoc.get<std::string>( "nested" );
 		EXPECT_TRUE( nestedVal.has_value() );
 		EXPECT_EQ( *nestedVal, "object" );
 	}

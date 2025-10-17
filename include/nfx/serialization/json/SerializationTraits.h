@@ -141,7 +141,7 @@ namespace nfx::serialization::json
 		static void serialize( const nfx::datatypes::Int128& obj, Document& doc )
 		{
 			std::string value = obj.toString();
-			doc.setStringByPointer( "", value );
+			doc.set<std::string>( "", value );
 		}
 
 		/**
@@ -153,12 +153,15 @@ namespace nfx::serialization::json
 		 */
 		static void deserialize( nfx::datatypes::Int128& obj, const Document& doc )
 		{
-			auto val = doc.getStringByPointer( "" );
-			if ( val )
+			if ( doc.is<std::string>( "" ) )
 			{
-				if ( !nfx::datatypes::Int128::tryParse( *val, obj ) )
+				auto val = doc.get<std::string>( "" );
+				if ( val.has_value() && !val.value().empty() )
 				{
-					throw std::runtime_error( "Invalid Int128 format: unable to parse string representation" );
+					if ( !nfx::datatypes::Int128::tryParse( val.value(), obj ) )
+					{
+						throw std::runtime_error( "Invalid Int128 format: unable to parse string representation" );
+					}
 				}
 			}
 		}
@@ -180,7 +183,7 @@ namespace nfx::serialization::json
 		static void serialize( const nfx::datatypes::Decimal& obj, Document& doc )
 		{
 			std::string value = obj.toString();
-			doc.setStringByPointer( "", value );
+			doc.set<std::string>( "", value );
 		}
 
 		/**
@@ -192,12 +195,15 @@ namespace nfx::serialization::json
 		 */
 		static void deserialize( nfx::datatypes::Decimal& obj, const Document& doc )
 		{
-			auto val = doc.getStringByPointer( "" );
-			if ( val )
+			if ( doc.is<std::string>( "" ) )
 			{
-				if ( !nfx::datatypes::Decimal::tryParse( *val, obj ) )
+				auto val = doc.get<std::string>( "" );
+				if ( val.has_value() && !val.value().empty() )
 				{
-					throw std::runtime_error( "Invalid Decimal format: unable to parse string representation" );
+					if ( !nfx::datatypes::Decimal::tryParse( val.value(), obj ) )
+					{
+						throw std::runtime_error( "Invalid Decimal format: unable to parse string representation" );
+					}
 				}
 			}
 		}
@@ -216,7 +222,7 @@ namespace nfx::serialization::json
 		 */
 		static void serialize( const nfx::time::TimeSpan& obj, Document& doc )
 		{
-			doc.setIntByPointer( "", obj.ticks() );
+			doc.set<int64_t>( "", obj.ticks() );
 		}
 
 		/**
@@ -226,10 +232,13 @@ namespace nfx::serialization::json
 		 */
 		static void deserialize( nfx::time::TimeSpan& obj, const Document& doc )
 		{
-			auto ticksVal = doc.getIntByPointer( "" );
-			if ( ticksVal )
+			if ( doc.is<int>( "" ) )
 			{
-				obj = nfx::time::TimeSpan( *ticksVal );
+				auto ticksVal = doc.get<int64_t>( "" );
+				if ( ticksVal.has_value() )
+				{
+					obj = nfx::time::TimeSpan( ticksVal.value() );
+				}
 			}
 			else
 			{
@@ -252,7 +261,7 @@ namespace nfx::serialization::json
 		static void serialize( const nfx::time::DateTime& obj, Document& doc )
 		{
 			std::string value = obj.toIso8601Extended();
-			doc.setStringByPointer( "", value );
+			doc.set<std::string>( "", value );
 		}
 
 		/**
@@ -262,12 +271,15 @@ namespace nfx::serialization::json
 		 */
 		static void deserialize( nfx::time::DateTime& obj, const Document& doc )
 		{
-			auto val = doc.getStringByPointer( "" );
-			if ( val )
+			if ( doc.is<std::string>( "" ) )
 			{
-				if ( !nfx::time::DateTime::tryParse( *val, obj ) )
+				auto val = doc.get<std::string>( "" );
+				if ( val.has_value() && !val.value().empty() )
 				{
-					throw std::runtime_error( "Invalid DateTime format: expected ISO 8601 string" );
+					if ( !nfx::time::DateTime::tryParse( val.value(), obj ) )
+					{
+						throw std::runtime_error( "Invalid DateTime format: expected ISO 8601 string" );
+					}
 				}
 			}
 		}
@@ -287,7 +299,7 @@ namespace nfx::serialization::json
 		static void serialize( const nfx::time::DateTimeOffset& obj, Document& doc )
 		{
 			std::string value = obj.toIso8601Extended();
-			doc.setStringByPointer( "", value );
+			doc.set<std::string>( "", value );
 		}
 
 		/**
@@ -297,12 +309,15 @@ namespace nfx::serialization::json
 		 */
 		static void deserialize( nfx::time::DateTimeOffset& obj, const Document& doc )
 		{
-			auto val = doc.getStringByPointer( "" );
-			if ( val )
+			if ( doc.is<std::string>( "" ) )
 			{
-				if ( !nfx::time::DateTimeOffset::tryParse( *val, obj ) )
+				auto val = doc.get<std::string>( "" );
+				if ( val.has_value() && !val.value().empty() )
 				{
-					throw std::runtime_error( "Invalid DateTimeOffset format: expected ISO 8601 string with offset" );
+					if ( !nfx::time::DateTimeOffset::tryParse( val.value(), obj ) )
+					{
+						throw std::runtime_error( "Invalid DateTimeOffset format: expected ISO 8601 string with offset" );
+					}
 				}
 			}
 		}
@@ -321,13 +336,11 @@ namespace nfx::serialization::json
 		 */
 		static void serialize( const nfx::containers::ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>& obj, Document& doc )
 		{
-			doc = Document::createObject();
-
 			// Store CHD construction parameters for proper deserialization
-			doc.setIntByPointer( "/maxSeedSearchMultiplier", static_cast<int64_t>( obj.maxSeedSearchMultiplier() ) );
+			doc.set<int64_t>( "/maxSeedSearchMultiplier", static_cast<int64_t>( obj.maxSeedSearchMultiplier() ) );
 
 			// Create nested object for the key-value data
-			Document dataDoc = Document::createObject();
+			Document dataDoc;
 
 			// Use ChdHashMap's custom iterator to traverse all key-value pairs
 			for ( auto it = obj.begin(); it != obj.end(); ++it )
@@ -343,39 +356,41 @@ namespace nfx::serialization::json
 
 				// Set field in data object using JSON Pointer syntax
 				std::string fieldPath = "/" + key;
-				if ( valueDoc.hasStringByPointer( "" ) )
+				if ( valueDoc.is<std::string>( "" ) )
 				{
-					auto str = valueDoc.getStringByPointer( "" );
-					dataDoc.setStringByPointer( fieldPath, *str );
+					auto str = valueDoc.get<std::string>( "" );
+					dataDoc.set<std::string>( fieldPath, str.value() );
 				}
-				else if ( valueDoc.hasIntByPointer( "" ) )
+				else if ( valueDoc.is<int>( "" ) )
 				{
-					auto val = valueDoc.getIntByPointer( "" );
-					dataDoc.setIntByPointer( fieldPath, *val );
+					auto val = valueDoc.get<int64_t>( "" );
+					dataDoc.set<int64_t>( fieldPath, val.value() );
 				}
-				else if ( valueDoc.hasDoubleByPointer( "" ) )
+				else if ( valueDoc.is<double>( "" ) )
 				{
-					auto val = valueDoc.getDoubleByPointer( "" );
-					dataDoc.setDoubleByPointer( fieldPath, *val );
+					auto val = valueDoc.get<double>( "" );
+					dataDoc.set<double>( fieldPath, val.value() );
 				}
-				else if ( valueDoc.hasBoolByPointer( "" ) )
+				else if ( valueDoc.is<bool>( "" ) )
 				{
-					auto val = valueDoc.getBoolByPointer( "" );
-					dataDoc.setBoolByPointer( fieldPath, *val );
+					auto val = valueDoc.get<bool>( "" );
+					dataDoc.set<bool>( fieldPath, val.value() );
 				}
-				else if ( valueDoc.hasNullByPointer( "" ) )
+				else if ( valueDoc.isNull( "" ) )
 				{
-					dataDoc.setNullByPointer( fieldPath );
+					// Preserve null semantics by setting an explicit null value
+					// This is crucial for optional types to maintain empty state
+					dataDoc.setNull( fieldPath );
 				}
-				else if ( valueDoc.hasArrayByPointer( "" ) || valueDoc.hasObjectByPointer( "" ) )
+				else if ( valueDoc.is<Document::Array>( "" ) || valueDoc.is<Document::Object>( "" ) )
 				{
 					// Handle nested arrays and objects
-					dataDoc.setDocumentByPointer( fieldPath, valueDoc );
+					dataDoc.set<Document>( fieldPath, valueDoc );
 				}
 			}
 
 			// Store the data object in the main document
-			doc.setDocumentByPointer( "/data", dataDoc );
+			doc.set<Document>( "/data", dataDoc );
 		}
 
 		/**
@@ -385,17 +400,18 @@ namespace nfx::serialization::json
 		 */
 		static void deserialize( nfx::containers::ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>& obj, const Document& doc )
 		{
-			if ( !doc.isObject( "" ) )
+			if ( !doc.is<Document::Object>( "" ) )
 			{
 				throw std::runtime_error( "Cannot deserialize non-object JSON value into ChdHashMap" );
 			}
 
 			uint32_t maxSeedSearchMultiplier = 100;
-			if ( doc.hasIntByPointer( "/maxSeedSearchMultiplier" ) )
+			if ( doc.hasValue( "/maxSeedSearchMultiplier" ) && doc.is<int>( "/maxSeedSearchMultiplier" ) )
 			{
-				if ( auto multiplierOpt = doc.getIntByPointer( "/maxSeedSearchMultiplier" ) )
+				auto multiplier = doc.get<int64_t>( "/maxSeedSearchMultiplier" );
+				if ( multiplier.has_value() )
 				{
-					maxSeedSearchMultiplier = static_cast<uint32_t>( *multiplierOpt );
+					maxSeedSearchMultiplier = static_cast<uint32_t>( multiplier.value() );
 				}
 			}
 
@@ -404,9 +420,9 @@ namespace nfx::serialization::json
 
 			// Get the data object from the structured format
 			Document dataDoc;
-			if ( auto dataDocOpt = doc.getDocumentByPointer( "/data" ) )
+			if ( doc.hasValue( "/data" ) )
 			{
-				dataDoc = *dataDocOpt;
+				dataDoc = doc.get<Document>( "/data" ).value();
 			}
 			else
 			{

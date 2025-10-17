@@ -21,7 +21,7 @@ int main()
 	std::string jsonStr = R"({
 		"users": [
 			{"name": "Alice", "age": 30, "active": true},
-			{"name": "Bob", "age": 25, "active": false}, 
+			{"name": "Bob", "age": 25, "active": false},
 			{"name": "Charlie", "age": 35, "active": true}
 		],
 		"scores": [100, 95, 87, 92, 78],
@@ -62,9 +62,9 @@ int main()
 				Document user = enumerator.currentElement();
 
 				// Access user properties
-				auto name = user.getString( "name" );
-				auto age = user.getInt( "age" );
-				auto active = user.getBool( "active" );
+				auto name = user.get<std::string>( "name" );
+				auto age = user.get<int64_t>( "age" );
+				auto active = user.get<bool>( "active" );
 
 				std::cout << "  Name: " << ( name ? *name : "N/A" ) << std::endl;
 				std::cout << "  Age: " << ( age ? std::to_string( *age ) : "N/A" ) << std::endl;

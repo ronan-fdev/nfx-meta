@@ -205,7 +205,7 @@ namespace nfx::serialization::json
 			return false;
 		}
 
-		if ( !schema.isObject( "" ) )
+		if ( !schema.is<Document::Object>( "" ) )
 		{
 			return false;
 		}
@@ -308,7 +308,8 @@ namespace nfx::serialization::json
 		}
 
 		auto* impl = static_cast<SchemaValidator_impl*>( m_impl );
-		return impl->getSchema().getString( "$schema" ).value_or( "" );
+		auto result = impl->getSchema().get<std::string>( "$schema" );
+		return result.value_or( "" );
 	}
 
 	std::string SchemaValidator::schemaTitle() const
@@ -319,7 +320,8 @@ namespace nfx::serialization::json
 		}
 
 		auto* impl = static_cast<SchemaValidator_impl*>( m_impl );
-		return impl->getSchema().getString( "title" ).value_or( "" );
+		auto result = impl->getSchema().get<std::string>( "title" );
+		return result.value_or( "" );
 	}
 
 	std::string SchemaValidator::schemaDescription() const
@@ -330,7 +332,8 @@ namespace nfx::serialization::json
 		}
 
 		auto* impl = static_cast<SchemaValidator_impl*>( m_impl );
-		return impl->getSchema().getString( "description" ).value_or( "" );
+		auto result = impl->getSchema().get<std::string>( "description" );
+		return result.value_or( "" );
 	}
 
 	//----------------------------------------------

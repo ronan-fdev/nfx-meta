@@ -164,7 +164,7 @@ namespace nfx::serialization::json::test
 
 		// Get field value as Document
 		Document objectDoc = enumerator.currentValue();
-		auto keyValue = objectDoc.getString( "key" );
+		auto keyValue = objectDoc.get<std::string>( "key" );
 		ASSERT_TRUE( keyValue.has_value() );
 		EXPECT_EQ( *keyValue, "value" );
 	}
@@ -358,11 +358,11 @@ namespace nfx::serialization::json::test
 
 		EXPECT_TRUE( enumerator.moveToKey( "array" ) );
 		Document arrayDoc = enumerator.currentValue();
-		EXPECT_TRUE( arrayDoc.isArray( "" ) ); // Root is array
+		EXPECT_TRUE( arrayDoc.is<Document::Array>( "" ) ); // Root is array
 
 		EXPECT_TRUE( enumerator.moveToKey( "object" ) );
 		Document objectDoc = enumerator.currentValue();
-		EXPECT_TRUE( objectDoc.isObject( "" ) ); // Root is object
+		EXPECT_TRUE( objectDoc.is<Document::Object>( "" ) ); // Root is object
 	}
 
 	//----------------------------------------------

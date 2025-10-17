@@ -21,6 +21,8 @@
 #include <vector>
 
 #include <nfx/core/Hashing.h>
+
+#include <nfx/serialization/json/Document.h>
 #include <nfx/serialization/json/Serializer.h>
 
 namespace nfx::serialization::json::test
@@ -636,30 +638,29 @@ namespace nfx::serialization::json::test
 		// Custom serialization method
 		void serialize( const Serializer<SimpleStruct>& serializer, Document& doc ) const
 		{
-			doc = Document::createObject();
-			doc.setStringByPointer( "/name", name );
-			doc.setIntByPointer( "/value", value );
-			doc.setBoolByPointer( "/enabled", enabled );
+			doc.set<std::string>( "/name", name );
+			doc.set<int64_t>( "/value", value );
+			doc.set<bool>( "/enabled", enabled );
 
 			// Example of using serializer options - could add metadata if includeNullFields is set
 			if ( serializer.options().includeNullFields && name.empty() )
 			{
 				// Could add some metadata indicating this was an empty string vs missing field
-				doc.setStringByPointer( "/metadata", "empty_name_field" );
+				doc.set<std::string>( "/metadata", "empty_name_field" );
 			}
 		} // Custom deserialization method
 
 		void deserialize( const Serializer<SimpleStruct>& serializer, const Document& doc )
 		{
-			if ( auto nameVal = doc.getStringByPointer( "/name" ) )
+			if ( auto nameVal = doc.get<std::string>( "/name" ) )
 			{
 				name = *nameVal;
 			}
-			if ( auto valueVal = doc.getIntByPointer( "/value" ) )
+			if ( auto valueVal = doc.get<int64_t>( "/value" ) )
 			{
 				value = static_cast<int>( *valueVal );
 			}
-			if ( auto enabledVal = doc.getBoolByPointer( "/enabled" ) )
+			if ( auto enabledVal = doc.get<bool>( "/enabled" ) )
 			{
 				enabled = *enabledVal;
 			}
@@ -674,7 +675,7 @@ namespace nfx::serialization::json::test
 				}
 
 				// Example: handle metadata that was added during serialization
-				if ( auto metadataVal = doc.getStringByPointer( "/metadata" ) )
+				if ( auto metadataVal = doc.get<std::string>( "/metadata" ) )
 				{
 					// Could log or handle special metadata cases
 					if ( *metadataVal == "empty_name_field" && !name.empty() )
@@ -1018,14 +1019,14 @@ namespace nfx::serialization::json::test
 				// Custom serialization method - no parameters
 				Document serialize() const
 				{
-					Document doc = Document::createObject();
+					Document doc;
 
 					// Serialize StringMap<Int128> integerData using instance serializer
 					{
 						Document intDoc;
 						Serializer<StringMap<Int128>> intSerializer;
 						intDoc = intSerializer.serialize( integerData );
-						doc.setDocumentByPointer( "/integerData", intDoc );
+						doc.set<Document>( "/integerData", intDoc );
 					}
 
 					// Serialize HashMap<string, vector<Decimal>> financialData using instance serializer
@@ -1033,7 +1034,7 @@ namespace nfx::serialization::json::test
 						Document finDoc;
 						Serializer<HashMap<std::string, std::vector<Decimal>>> finSerializer;
 						finDoc = finSerializer.serialize( financialData );
-						doc.setDocumentByPointer( "/financialData", finDoc );
+						doc.set<Document>( "/financialData", finDoc );
 					}
 
 					// Serialize unordered_set<string> stringSet using instance serializer
@@ -1041,7 +1042,7 @@ namespace nfx::serialization::json::test
 						Document strDoc;
 						Serializer<std::unordered_set<std::string>> strSerializer;
 						strDoc = strSerializer.serialize( stringSet );
-						doc.setDocumentByPointer( "/stringSet", strDoc );
+						doc.set<Document>( "/stringSet", strDoc );
 					}
 
 					// Serialize map<string, DateTime> dateMap using instance serializer
@@ -1049,7 +1050,7 @@ namespace nfx::serialization::json::test
 						Document dateDoc;
 						Serializer<std::map<std::string, DateTime>> dateSerializer;
 						dateDoc = dateSerializer.serialize( dateMap );
-						doc.setDocumentByPointer( "/dateMap", dateDoc );
+						doc.set<Document>( "/dateMap", dateDoc );
 					}
 
 					// Serialize vector<unordered_map<string, bool>> boolMaps using instance serializer
@@ -1057,7 +1058,7 @@ namespace nfx::serialization::json::test
 						Document boolDoc;
 						Serializer<std::vector<std::unordered_map<std::string, bool>>> boolSerializer;
 						boolDoc = boolSerializer.serialize( boolMaps );
-						doc.setDocumentByPointer( "/boolMaps", boolDoc );
+						doc.set<Document>( "/boolMaps", boolDoc );
 					}
 
 					return doc;
@@ -1072,9 +1073,9 @@ namespace nfx::serialization::json::test
 				void deserialize( const Serializer<ComplexMixedData>&, const Document& doc )
 				{
 					// Deserialize StringMap<Int128> integerData using instance serializer
-					if ( doc.hasObjectByPointer( "/integerData" ) )
+					if ( doc.is<Document::Object>( "/integerData" ) )
 					{
-						if ( auto intDocOpt = doc.getDocumentByPointer( "/integerData" ) )
+						if ( auto intDocOpt = doc.get<Document>( "/integerData" ) )
 						{
 							Serializer<StringMap<Int128>> intSerializer;
 							integerData = intSerializer.deserialize( *intDocOpt );
@@ -1082,9 +1083,9 @@ namespace nfx::serialization::json::test
 					}
 
 					// Deserialize HashMap<string, vector<Decimal>> financialData using instance serializer
-					if ( doc.hasObjectByPointer( "/financialData" ) )
+					if ( doc.is<Document::Object>( "/financialData" ) )
 					{
-						if ( auto finDocOpt = doc.getDocumentByPointer( "/financialData" ) )
+						if ( auto finDocOpt = doc.get<Document>( "/financialData" ) )
 						{
 							Serializer<HashMap<std::string, std::vector<Decimal>>> finSerializer;
 							financialData = finSerializer.deserialize( *finDocOpt );
@@ -1092,9 +1093,9 @@ namespace nfx::serialization::json::test
 					}
 
 					// Deserialize unordered_set<string> stringSet using instance serializer
-					if ( doc.hasArrayByPointer( "/stringSet" ) )
+					if ( doc.is<Document::Array>( "/stringSet" ) )
 					{
-						if ( auto strDocOpt = doc.getDocumentByPointer( "/stringSet" ) )
+						if ( auto strDocOpt = doc.get<Document>( "/stringSet" ) )
 						{
 							Serializer<std::unordered_set<std::string>> strSerializer;
 							stringSet = strSerializer.deserialize( *strDocOpt );
@@ -1102,9 +1103,9 @@ namespace nfx::serialization::json::test
 					}
 
 					// Deserialize map<string, DateTime> dateMap using instance serializer
-					if ( doc.hasObjectByPointer( "/dateMap" ) )
+					if ( doc.is<Document::Object>( "/dateMap" ) )
 					{
-						if ( auto dateDocOpt = doc.getDocumentByPointer( "/dateMap" ) )
+						if ( auto dateDocOpt = doc.get<Document>( "/dateMap" ) )
 						{
 							Serializer<std::map<std::string, DateTime>> dateSerializer;
 							dateMap = dateSerializer.deserialize( *dateDocOpt );
@@ -1112,9 +1113,9 @@ namespace nfx::serialization::json::test
 					}
 
 					// Deserialize vector<unordered_map<string, bool>> boolMaps using instance serializer
-					if ( doc.hasArrayByPointer( "/boolMaps" ) )
+					if ( doc.is<Document::Array>( "/boolMaps" ) )
 					{
-						if ( auto boolDocOpt = doc.getDocumentByPointer( "/boolMaps" ) )
+						if ( auto boolDocOpt = doc.get<Document>( "/boolMaps" ) )
 						{
 							Serializer<std::vector<std::unordered_map<std::string, bool>>> boolSerializer;
 							boolMaps = boolSerializer.deserialize( *boolDocOpt );
@@ -1384,24 +1385,16 @@ namespace nfx::serialization::json::test
 				{ "empty_string", std::optional<std::string>{ "" } } };
 			ChdHashMap<std::optional<std::string>> optionalMap( std::move( items ) );
 
-			// Test with different serialization options
+			// Test with different serialization options using testRoundTrip helper
 			Serializer<ChdHashMap<std::optional<std::string>>>::Options options1;
 			options1.includeNullFields = true;
 			options1.prettyPrint = true;
-
-			Serializer<ChdHashMap<std::optional<std::string>>> serializer1( options1 );
-			std::string json1 = serializer1.serializeToString( optionalMap );
-			auto deserialized1 = serializer1.deserializeFromString( json1 );
-			EXPECT_EQ( optionalMap, deserialized1 );
+			testRoundTrip( optionalMap, options1 );
 
 			Serializer<ChdHashMap<std::optional<std::string>>>::Options options2;
 			options2.includeNullFields = false;
 			options2.validateOnDeserialize = true;
-
-			Serializer<ChdHashMap<std::optional<std::string>>> serializer2( options2 );
-			std::string json2 = serializer2.serializeToString( optionalMap );
-			auto deserialized2 = serializer2.deserializeFromString( json2 );
-			EXPECT_EQ( optionalMap, deserialized2 );
+			testRoundTrip( optionalMap, options2 );
 		}
 	}
 
@@ -1493,14 +1486,14 @@ namespace nfx::serialization::json::test
 				// Custom serialization method - no parameters
 				Document serialize() const
 				{
-					Document doc = Document::createObject();
+					Document doc;
 
 					// Serialize HashMap<string, vector<DateTime>> dateCollections using instance serializer
 					{
 						Document dateDoc;
 						Serializer<HashMap<std::string, std::vector<DateTime>>> dateSerializer;
 						dateDoc = dateSerializer.serialize( dateCollections );
-						doc.setDocumentByPointer( "/dateCollections", dateDoc );
+						doc.set<Document>( "/dateCollections", dateDoc );
 					}
 
 					// Serialize unordered_set<string> uniqueStrings using instance serializer
@@ -1508,7 +1501,7 @@ namespace nfx::serialization::json::test
 						Document stringDoc;
 						Serializer<std::unordered_set<std::string>> stringSerializer;
 						stringDoc = stringSerializer.serialize( uniqueStrings );
-						doc.setDocumentByPointer( "/uniqueStrings", stringDoc );
+						doc.set<Document>( "/uniqueStrings", stringDoc );
 					}
 
 					// Serialize StringMap<unordered_map<string, double>> nestedMaps using instance serializer
@@ -1516,7 +1509,7 @@ namespace nfx::serialization::json::test
 						Document mapDoc;
 						Serializer<StringMap<std::unordered_map<std::string, double>>> mapSerializer;
 						mapDoc = mapSerializer.serialize( nestedMaps );
-						doc.setDocumentByPointer( "/nestedMaps", mapDoc );
+						doc.set<Document>( "/nestedMaps", mapDoc );
 					}
 
 					return doc;
@@ -1531,9 +1524,9 @@ namespace nfx::serialization::json::test
 				void deserialize( const Serializer<LargeDataset>&, const Document& doc )
 				{
 					// Deserialize HashMap<string, vector<DateTime>> dateCollections using instance serializer
-					if ( doc.hasObjectByPointer( "/dateCollections" ) )
+					if ( doc.is<Document::Object>( "/dateCollections" ) )
 					{
-						if ( auto dateDocOpt = doc.getDocumentByPointer( "/dateCollections" ) )
+						if ( auto dateDocOpt = doc.get<Document>( "/dateCollections" ) )
 						{
 							Serializer<HashMap<std::string, std::vector<DateTime>>> dateSerializer;
 							dateCollections = dateSerializer.deserialize( *dateDocOpt );
@@ -1541,9 +1534,9 @@ namespace nfx::serialization::json::test
 					}
 
 					// Deserialize unordered_set<string> uniqueStrings using instance serializer
-					if ( doc.hasArrayByPointer( "/uniqueStrings" ) )
+					if ( doc.is<Document::Array>( "/uniqueStrings" ) )
 					{
-						if ( auto stringDocOpt = doc.getDocumentByPointer( "/uniqueStrings" ) )
+						if ( auto stringDocOpt = doc.get<Document>( "/uniqueStrings" ) )
 						{
 							Serializer<std::unordered_set<std::string>> stringSerializer;
 							uniqueStrings = stringSerializer.deserialize( *stringDocOpt );
@@ -1551,9 +1544,9 @@ namespace nfx::serialization::json::test
 					}
 
 					// Deserialize StringMap<unordered_map<string, double>> nestedMaps using instance serializer
-					if ( doc.hasObjectByPointer( "/nestedMaps" ) )
+					if ( doc.is<Document::Object>( "/nestedMaps" ) )
 					{
-						if ( auto mapDocOpt = doc.getDocumentByPointer( "/nestedMaps" ) )
+						if ( auto mapDocOpt = doc.get<Document>( "/nestedMaps" ) )
 						{
 							Serializer<StringMap<std::unordered_map<std::string, double>>> mapSerializer;
 							nestedMaps = mapSerializer.deserialize( *mapDocOpt );

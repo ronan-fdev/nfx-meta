@@ -35,7 +35,7 @@ namespace nfx::serialization::json
 	}
 
 	Document::Document( Document&& other ) noexcept
-		: m_impl{ other.m_impl }
+		: m_impl{ std::move( other.m_impl ) }
 	{
 		other.m_impl = nullptr;
 	}
@@ -94,12 +94,31 @@ namespace nfx::serialization::json
 	}
 
 	//----------------------------------------------
+	// Comparison
+	//----------------------------------------------
+
+	bool Document::operator==( const Document& other ) const
+	{
+		if ( !m_impl || !other.m_impl )
+		{
+			return m_impl == other.m_impl;
+		}
+
+		return static_cast<Document_impl*>( m_impl )->data() ==
+			   static_cast<Document_impl*>( other.m_impl )->data();
+	}
+
+	bool Document::operator!=( const Document& other ) const
+	{
+		return !( *this == other );
+	}
+
+	//----------------------------------------------
 	// Factory
 	//----------------------------------------------
 
 	std::optional<Document> Document::fromJsonString( std::string_view jsonStr )
 	{
-		// Empty string is not valid JSON
 		if ( jsonStr.empty() )
 		{
 			return std::nullopt;
@@ -141,18 +160,25 @@ namespace nfx::serialization::json
 		}
 	}
 
-	Document Document::createObject()
+	std::optional<Document> Document::fromJsonBytes( std::vector<uint8_t>& bytes )
 	{
-		Document doc;
-		static_cast<Document_impl*>( doc.m_impl )->setData( nlohmann::ordered_json::object() );
-		return doc;
-	}
+		if ( bytes.empty() )
+		{
+			return std::nullopt;
+		}
 
-	Document Document::createArray()
-	{
-		Document doc;
-		static_cast<Document_impl*>( doc.m_impl )->setData( nlohmann::ordered_json::array() );
-		return doc;
+		try
+		{
+			auto jsonData = nlohmann::ordered_json::parse( bytes );
+			Document doc;
+			delete static_cast<Document_impl*>( doc.m_impl );
+			doc.m_impl = new Document_impl{ std::move( jsonData ) };
+			return doc;
+		}
+		catch ( const nlohmann::ordered_json::exception& )
+		{
+			return std::nullopt;
+		}
 	}
 
 	//----------------------------------------------
@@ -179,684 +205,26 @@ namespace nfx::serialization::json
 	}
 
 	//----------------------------------------------
-	// Value access
+	// Value inspection
 	//----------------------------------------------
 
-	bool Document::hasField( std::string_view path ) const
+	bool Document::hasValue( std::string_view path ) const
 	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		// Auto-detect path syntax: paths starting with "/" are JSON Pointer, others are dot notation
+		const nlohmann::ordered_json* node = nullptr;
+		if ( !path.empty() && path[0] == '/' )
+		{
+			// JSON Pointer (RFC 6901)
+			node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path );
+		}
+		else
+		{
+			// Dot notation
+			node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		}
+
+		// Return true if any JSON value exists at the path
 		return node != nullptr;
-	}
-
-	std::optional<std::string> Document::getString( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_string() )
-		{
-			return node->get<std::string>();
-		}
-		return std::nullopt;
-	}
-
-	std::optional<int64_t> Document::getInt( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_number_integer() )
-		{
-			return node->get<std::int64_t>();
-		}
-		return std::nullopt;
-	}
-
-	std::optional<double> Document::getDouble( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_number() )
-		{
-			return node->get<double>();
-		}
-		return std::nullopt;
-	}
-
-	std::optional<bool> Document::getBool( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_boolean() )
-		{
-			return node->get<bool>();
-		}
-		return std::nullopt;
-	}
-
-	std::optional<char> Document::getChar( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_string() )
-		{
-			const auto& str = node->get<std::string>();
-			if ( str.length() == 1 )
-			{
-				return str[0];
-			}
-		}
-		return std::nullopt;
-	}
-
-	std::optional<Document> Document::getDocument( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node )
-		{
-			Document result;
-			static_cast<Document_impl*>( result.m_impl )->setData( *node );
-			return result;
-		}
-		return std::nullopt;
-	}
-
-	//----------------------------------------------
-	// JSON Pointer access (RFC 6901)
-	//----------------------------------------------
-
-	bool Document::hasFieldByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( !node )
-		{
-			return false;
-		}
-
-		if ( pointer.empty() || pointer == "/" )
-		{
-			return node->is_object();
-		}
-
-		size_t lastSlash = pointer.find_last_of( '/' );
-		if ( lastSlash == 0 )
-		{
-			auto root = static_cast<Document_impl*>( m_impl )->data();
-			return root.is_object();
-		}
-
-		std::string parentPointer{ pointer.substr( 0, lastSlash ) };
-		auto parent = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( parentPointer );
-
-		return parent && parent->is_object();
-	}
-
-	bool Document::hasValueByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		return node != nullptr;
-	}
-
-	bool Document::hasArrayByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		return node && node->is_array();
-	}
-
-	bool Document::hasObjectByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		return node && node->is_object();
-	}
-
-	bool Document::hasStringByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		return node && node->is_string();
-	}
-
-	bool Document::hasIntByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		return node && node->is_number_integer();
-	}
-
-	bool Document::hasDoubleByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		return node && node->is_number_float();
-	}
-
-	bool Document::hasBoolByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		return node && node->is_boolean();
-	}
-
-	bool Document::hasCharByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node && node->is_string() )
-		{
-			const auto& str = node->get<std::string>();
-			return str.length() == 1;
-		}
-		return false;
-	}
-
-	bool Document::hasNullByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		return node && node->is_null();
-	}
-
-	std::optional<Document> Document::getDocumentByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node )
-		{
-			Document result;
-			static_cast<Document_impl*>( result.m_impl )->setData( *node );
-			return result;
-		}
-		return std::nullopt;
-	}
-
-	std::optional<Document> Document::getArrayByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node && node->is_array() )
-		{
-			Document result;
-			static_cast<Document_impl*>( result.m_impl )->setData( *node );
-			return result;
-		}
-		return std::nullopt;
-	}
-
-	std::optional<Document> Document::getObjectByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node && node->is_object() )
-		{
-			Document result;
-			static_cast<Document_impl*>( result.m_impl )->setData( *node );
-			return result;
-		}
-		return std::nullopt;
-	}
-
-	std::optional<std::string> Document::getStringByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node && node->is_string() )
-		{
-			return node->get<std::string>();
-		}
-		return std::nullopt;
-	}
-
-	std::optional<int64_t> Document::getIntByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node && node->is_number_integer() )
-		{
-			return node->get<std::int64_t>();
-		}
-		return std::nullopt;
-	}
-
-	std::optional<double> Document::getDoubleByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node && node->is_number() )
-		{
-			return node->get<double>();
-		}
-		return std::nullopt;
-	}
-
-	std::optional<bool> Document::getBoolByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node && node->is_boolean() )
-		{
-			return node->get<bool>();
-		}
-		return std::nullopt;
-	}
-
-	std::optional<char> Document::getCharByPointer( std::string_view pointer ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer );
-		if ( node && node->is_string() )
-		{
-			const auto& str = node->get<std::string>();
-			if ( str.length() == 1 )
-			{
-				return str[0];
-			}
-		}
-		return std::nullopt;
-	}
-
-	//----------------------------------------------
-	// Value setting
-	//----------------------------------------------
-
-	void Document::setString( std::string_view path, std::string_view value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			*node = value;
-		}
-	}
-
-	void Document::setInt( std::string_view path, int64_t value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			*node = value;
-		}
-	}
-
-	void Document::setDouble( std::string_view path, double value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			*node = value;
-		}
-	}
-
-	void Document::setBool( std::string_view path, bool value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			*node = value;
-		}
-	}
-
-	void Document::setChar( std::string_view path, char value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			*node = std::string( 1, value );
-		}
-	}
-
-	void Document::setNull( std::string_view path )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			*node = nullptr;
-		}
-	}
-
-	void Document::setDocument( std::string_view path, const Document& document )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			*node = static_cast<Document_impl*>( document.m_impl )->data();
-		}
-	}
-
-	//----------------------------------------------
-	// JSON Pointer value setting (RFC 6901)
-	//----------------------------------------------
-
-	void Document::setDocumentByPointer( std::string_view pointer, const Document& document )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer, true );
-		if ( node )
-		{
-			*node = static_cast<Document_impl*>( document.m_impl )->data();
-		}
-	}
-
-	void Document::setArrayByPointer( std::string_view pointer, const Document& arrayDocument )
-	{
-		// Convenience wrapper around the generic method
-		setDocumentByPointer( pointer, arrayDocument );
-	}
-
-	void Document::setObjectByPointer( std::string_view pointer, const Document& objectDocument )
-	{
-		// Convenience wrapper around the generic method
-		setDocumentByPointer( pointer, objectDocument );
-	}
-
-	void Document::setStringByPointer( std::string_view pointer, std::string_view value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer, true );
-		if ( node )
-		{
-			*node = value;
-		}
-	}
-
-	void Document::setIntByPointer( std::string_view pointer, int64_t value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer, true );
-		if ( node )
-		{
-			*node = value;
-		}
-	}
-
-	void Document::setDoubleByPointer( std::string_view pointer, double value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer, true );
-		if ( node )
-		{
-			*node = value;
-		}
-	}
-
-	void Document::setBoolByPointer( std::string_view pointer, bool value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer, true );
-		if ( node )
-		{
-			*node = value;
-		}
-	}
-
-	void Document::setCharByPointer( std::string_view pointer, char c )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer, true );
-		if ( node )
-		{
-			*node = std::string( 1, c );
-		}
-	}
-
-	void Document::setNullByPointer( std::string_view pointer )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( pointer, true );
-		if ( node )
-		{
-			*node = nullptr;
-		}
-	}
-
-	//----------------------------------------------
-	// Array operations
-	//----------------------------------------------
-
-	size_t Document::getArraySize( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_array() )
-		{
-			return node->size();
-		}
-		return 0;
-	}
-
-	void Document::addToArray( std::string_view path, std::string_view value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			if ( !node->is_array() )
-			{
-				*node = nlohmann::ordered_json::array();
-			}
-			node->push_back( value );
-		}
-	}
-
-	void Document::addToArray( std::string_view path, const char* value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			if ( !node->is_array() )
-			{
-				*node = nlohmann::ordered_json::array();
-			}
-			node->push_back( std::string( value ) );
-		}
-	}
-
-	void Document::addToArray( std::string_view path, int64_t value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			if ( !node->is_array() )
-			{
-				*node = nlohmann::ordered_json::array();
-			}
-			node->push_back( value );
-		}
-	}
-
-	void Document::addToArray( std::string_view path, double value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			if ( !node->is_array() )
-			{
-				*node = nlohmann::ordered_json::array();
-			}
-			node->push_back( value );
-		}
-	}
-
-	void Document::addToArray( std::string_view path, bool value )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			if ( !node->is_array() )
-			{
-				*node = nlohmann::ordered_json::array();
-			}
-			node->push_back( value );
-		}
-	}
-
-	void Document::addToArray( std::string_view path, char c )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			if ( !node->is_array() )
-			{
-				*node = nlohmann::ordered_json::array();
-			}
-			node->push_back( std::string( 1, c ) );
-		}
-	}
-
-	void Document::addToArray( std::string_view path, const Document& document )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			if ( !node->is_array() )
-			{
-				*node = nlohmann::ordered_json::array();
-			}
-			node->push_back( static_cast<Document_impl*>( document.m_impl )->data() );
-		}
-	}
-
-	void Document::clearArray( std::string_view path )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, false );
-		if ( node && node->is_array() )
-		{
-			node->clear();
-		}
-	}
-
-	std::optional<std::string> Document::getArrayElementString( std::string_view path, size_t index ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_array() && index < node->size() )
-		{
-			const auto& element = ( *node )[index];
-			if ( element.is_string() )
-			{
-				return element.get<std::string>();
-			}
-		}
-		return std::nullopt;
-	}
-
-	std::optional<int64_t> Document::getArrayElementInt( std::string_view path, size_t index ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_array() && index < node->size() )
-		{
-			const auto& element = ( *node )[index];
-			if ( element.is_number_integer() )
-			{
-				return element.get<int64_t>();
-			}
-		}
-		return std::nullopt;
-	}
-
-	std::optional<double> Document::getArrayElementDouble( std::string_view path, size_t index ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_array() && index < node->size() )
-		{
-			const auto& element = ( *node )[index];
-			if ( element.is_number() )
-			{
-				return element.get<double>();
-			}
-		}
-		return std::nullopt;
-	}
-
-	std::optional<bool> Document::getArrayElementBool( std::string_view path, size_t index ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_array() && index < node->size() )
-		{
-			const auto& element = ( *node )[index];
-			if ( element.is_boolean() )
-			{
-				return element.get<bool>();
-			}
-		}
-		return std::nullopt;
-	}
-
-	std::optional<char> Document::getArrayElementChar( std::string_view path, size_t index ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_array() && index < node->size() )
-		{
-			const auto& element = ( *node )[index];
-			if ( element.is_string() )
-			{
-				const auto& str = element.get<std::string>();
-				if ( str.length() == 1 )
-				{
-					return str[0];
-				}
-			}
-		}
-		return std::nullopt;
-	}
-
-	//----------------------------------------------
-	// Advanced array and document operations
-	//----------------------------------------------
-
-	bool Document::isArray( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		return node && node->is_array();
-	}
-
-	Document Document::getArrayElement( std::string_view path, size_t index ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_array() && index < node->size() )
-		{
-			Document result;
-			static_cast<Document_impl*>( result.m_impl )->setData( ( *node )[index] );
-			return result;
-		}
-		return Document{}; // Return empty document if not found
-	}
-
-	void Document::setArray( std::string_view path, const Document& arrayDocument )
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
-		if ( node )
-		{
-			*node = static_cast<Document_impl*>( arrayDocument.m_impl )->data();
-		}
-	}
-
-	void Document::addDocument( const Document& document )
-	{
-		// This method is for array documents - add a document to this array
-		if ( !static_cast<Document_impl*>( m_impl )->data().is_array() )
-		{
-			static_cast<Document_impl*>( m_impl )->setData( nlohmann::ordered_json::array() );
-		}
-		static_cast<Document_impl*>( m_impl )->data().push_back(
-			static_cast<Document_impl*>( document.m_impl )->data() );
-	}
-
-	size_t Document::size() const
-	{
-		// For array documents, return the size
-		if ( static_cast<Document_impl*>( m_impl )->data().is_array() )
-		{
-			return static_cast<Document_impl*>( m_impl )->data().size();
-		}
-		return 0;
-	}
-
-	//----------------------------------------------
-	// Field operations
-	//----------------------------------------------
-
-	bool Document::removeField( std::string_view path )
-	{
-		// Handle root path removal
-		if ( path.empty() )
-		{
-			return false; // Cannot remove root
-		}
-
-		// Find the last dot to separate parent path from field name
-		size_t lastDot = path.find_last_of( '.' );
-		if ( lastDot == std::string::npos )
-		{
-			// Direct field in root object
-			auto root = &static_cast<Document_impl*>( m_impl )->data();
-			if ( root->is_object() && root->contains( path ) )
-			{
-				root->erase( path );
-				return true;
-			}
-			return false;
-		}
-
-		// Navigate to parent and remove field
-		std::string parentPath{ path.substr( 0, lastDot ) };
-		std::string fieldName{ path.substr( lastDot + 1 ) };
-
-		auto parentNode = static_cast<Document_impl*>( m_impl )->navigateToPath( parentPath, false );
-		if ( parentNode && parentNode->is_object() && parentNode->contains( fieldName ) )
-		{
-			parentNode->erase( fieldName );
-			return true;
-		}
-
-		return false;
 	}
 
 	//----------------------------------------------
@@ -918,7 +286,19 @@ namespace nfx::serialization::json
 			return;
 		}
 
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		// Auto-detect path syntax: paths starting with "/" are JSON Pointer, others are dot notation
+		nlohmann::ordered_json* node = nullptr;
+		if ( !path.empty() && path[0] == '/' )
+		{
+			// JSON Pointer (RFC 6901)
+			node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path, true );
+		}
+		else
+		{
+			// Dot notation
+			node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		}
+
 		if ( node )
 		{
 			*node = static_cast<Document_impl*>( value.m_impl )->data();
@@ -926,54 +306,490 @@ namespace nfx::serialization::json
 	}
 
 	//----------------------------------------------
+	// Value access
+	//----------------------------------------------
+
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	std::optional<T> Document::get( std::string_view path ) const
+	{
+		// Auto-detect path syntax: paths starting with "/" are JSON Pointer, others are dot notation
+		const nlohmann::ordered_json* node = nullptr;
+		if ( path.empty() )
+		{
+			// Empty path handling - get root document
+			if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+			{
+				Document result;
+				static_cast<Document_impl*>( result.m_impl )->setData( static_cast<Document_impl*>( m_impl )->data() );
+				return result;
+			}
+			else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+			{
+				if ( static_cast<Document_impl*>( m_impl )->data().is_object() )
+				{
+					return Object( const_cast<Document*>( this ), "" );
+				}
+				return std::nullopt;
+			}
+			else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
+			{
+				if ( static_cast<Document_impl*>( m_impl )->data().is_array() )
+				{
+					return Array( const_cast<Document*>( this ), "" );
+				}
+				return std::nullopt;
+			}
+			else
+			{
+				node = &static_cast<Document_impl*>( m_impl )->data();
+			}
+		}
+		else if ( path[0] == '/' )
+		{
+			// JSON Pointer (RFC 6901)
+			node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path );
+		}
+		else
+		{
+			// Dot notation
+			node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		}
+
+		if ( !node )
+		{
+			return std::nullopt;
+		}
+
+		// Type-specific extraction using if constexpr
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> )
+		{
+			if ( node->is_string() )
+			{
+				return node->get<std::string>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			if ( node->is_string() )
+			{
+				return std::string_view( node->get<std::string>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			if ( node->is_number_integer() )
+			{
+				return node->get<int64_t>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			if ( node->is_number_integer() )
+			{
+				return static_cast<int32_t>( node->get<int64_t>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			if ( node->is_number_float() )
+			{
+				return node->get<double>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			if ( node->is_boolean() )
+			{
+				return node->get<bool>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			if ( node->is_string() && node->get<std::string>().length() == 1 )
+			{
+				return node->get<std::string>()[0];
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			Document result;
+			static_cast<Document_impl*>( result.m_impl )->setData( *node );
+			return result;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		{
+			if ( node->is_object() )
+			{
+				return Object( const_cast<Document*>( this ), std::string( path ) );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
+		{
+			if ( node->is_array() )
+			{
+				return Array( const_cast<Document*>( this ), std::string( path ) );
+			}
+		}
+
+		return std::nullopt;
+	}
+
+	template std::optional<std::string_view> Document::get<std::string_view>( std::string_view path ) const;
+	template std::optional<std::string> Document::get<std::string>( std::string_view path ) const;
+	template std::optional<char> Document::get<char>( std::string_view path ) const;
+	template std::optional<bool> Document::get<bool>( std::string_view path ) const;
+	template std::optional<int32_t> Document::get<int32_t>( std::string_view path ) const;
+	template std::optional<int64_t> Document::get<int64_t>( std::string_view path ) const;
+	template std::optional<double> Document::get<double>( std::string_view path ) const;
+	template std::optional<Document> Document::get<Document>( std::string_view path ) const;
+	template std::optional<Document::Array> Document::get<Document::Array>( std::string_view path ) const;
+	template std::optional<Document::Object> Document::get<Document::Object>( std::string_view path ) const;
+
+	//----------------------------------------------
+	// Value modification
+	//----------------------------------------------
+
+	// Copy version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::set( std::string_view path, const T& value )
+	{
+		// Auto-detect path syntax: paths starting with "/" are JSON Pointer, others are dot notation
+		nlohmann::ordered_json* node = nullptr;
+		if ( !path.empty() && path[0] == '/' )
+		{
+			// JSON Pointer (RFC 6901)
+			node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path, true );
+		}
+		else
+		{
+			// Dot notation
+			node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		}
+
+		if ( !node )
+		{
+			return;
+		}
+
+		// Type-specific assignment using if constexpr (copy semantics)
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> || std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			*node = std::string{ value };
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			*node = std::string( 1, value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			*node = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			*node = static_cast<int64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			*node = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			*node = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			*node = static_cast<Document_impl*>( value.m_impl )->data();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			*node = static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
+		{
+			*node = static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+		}
+	}
+
+	template void Document::set<std::string_view>( std::string_view path, const std::string_view& );
+	template void Document::set<std::string>( std::string_view path, const std::string& );
+	template void Document::set<char>( std::string_view path, const char& );
+	template void Document::set<bool>( std::string_view path, const bool& );
+	template void Document::set<int32_t>( std::string_view path, const int32_t& );
+	template void Document::set<int64_t>( std::string_view path, const int64_t& );
+	template void Document::set<double>( std::string_view path, const double& );
+	template void Document::set<Document>( std::string_view path, const Document& );
+	template void Document::set<Document::Array>( std::string_view path, const Array& );
+	template void Document::set<Document::Object>( std::string_view path, const Document::Object& );
+
+	// Move version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::set( std::string_view path, T&& value )
+	{
+		// Auto-detect path syntax: paths starting with "/" are JSON Pointer, others are dot notation
+		nlohmann::ordered_json* node = nullptr;
+		if ( !path.empty() && path[0] == '/' )
+		{
+			// JSON Pointer (RFC 6901)
+			node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path, true );
+		}
+		else
+		{
+			// Dot notation
+			node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		}
+
+		if ( !node )
+		{
+			return;
+		}
+
+		// Type-specific assignment using if constexpr (move semantics)
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> || std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			*node = std::move( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			*node = std::string( 1, value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			*node = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			*node = static_cast<int64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			*node = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			*node = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			*node = std::move( static_cast<Document_impl*>( value.m_impl )->data() );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			*node = std::move( static_cast<Document_impl*>( value.m_doc->m_impl )->data() );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
+		{
+			*node = std::move( static_cast<Document_impl*>( value.m_doc->m_impl )->data() );
+		}
+	}
+
+	template void Document::set<std::string_view>( std::string_view path, std::string_view&& );
+	template void Document::set<std::string>( std::string_view path, std::string&& );
+	template void Document::set<char>( std::string_view path, char&& );
+	template void Document::set<bool>( std::string_view path, bool&& );
+	template void Document::set<int32_t>( std::string_view path, int32_t&& );
+	template void Document::set<int64_t>( std::string_view path, int64_t&& );
+	template void Document::set<double>( std::string_view path, double&& );
+	template void Document::set<Document>( std::string_view path, Document&& );
+	template void Document::set<Document::Array>( std::string_view path, Array&& );
+	template void Document::set<Document::Object>( std::string_view path, Document::Object&& );
+
+	//-----------------------------
+	// Type-only creation
+	//-----------------------------
+
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::set( std::string_view path )
+	{
+		// Auto-detect path syntax: paths starting with "/" are JSON Pointer, others are dot notation
+		nlohmann::ordered_json* node = nullptr;
+		if ( !path.empty() && path[0] == '/' )
+		{
+			// JSON Pointer (RFC 6901)
+			node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path, true );
+		}
+		else
+		{
+			// Dot notation
+			node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		}
+
+		if ( node )
+		{
+			if constexpr ( std::is_same_v<T, Document> )
+			{
+				*node = nlohmann::ordered_json::object();
+			}
+			else if constexpr ( std::is_same_v<T, Document::Object> )
+			{
+				*node = nlohmann::ordered_json::object();
+			}
+			else if constexpr ( std::is_same_v<T, Document::Array> )
+			{
+				*node = nlohmann::ordered_json::array();
+			}
+		}
+	}
+
+	template void Document::set<Document>( std::string_view path );
+	template void Document::set<Document::Object>( std::string_view path );
+	template void Document::set<Document::Array>( std::string_view path );
+
+	//-----------------------------
+	// Null operations
+	//-----------------------------
+
+	void Document::setNull( std::string_view path )
+	{
+		// Auto-detect path syntax: paths starting with "/" are JSON Pointer, others are dot notation
+		nlohmann::ordered_json* node = nullptr;
+		if ( !path.empty() && path[0] == '/' )
+		{
+			// JSON Pointer (RFC 6901)
+			node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path, true );
+		}
+		else
+		{
+			// Dot notation
+			node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+		}
+
+		if ( node )
+		{
+			*node = nullptr;
+		}
+	}
+
+	//----------------------------------------------
 	// Type checking
 	//----------------------------------------------
 
-	bool Document::isString( std::string_view path ) const
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	bool Document::is( std::string_view path ) const
 	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		return node && node->is_string();
-	}
-
-	bool Document::isInt( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		return node && node->is_number_integer();
-	}
-
-	bool Document::isDouble( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		return node && node->is_number_float();
-	}
-
-	bool Document::isBool( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		return node && node->is_boolean();
-	}
-
-	bool Document::isChar( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		if ( node && node->is_string() )
+		// Auto-detect path syntax: paths starting with "/" are JSON Pointer, others are dot notation
+		const nlohmann::ordered_json* node = nullptr;
+		if ( !path.empty() && path[0] == '/' )
 		{
-			const auto& str = node->get<std::string>();
-			return str.length() == 1;
+			// JSON Pointer (RFC 6901)
+			node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path );
 		}
+		else
+		{
+			// Dot notation
+			node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		}
+
+		if ( !node )
+		{
+			return false;
+		}
+
+		// Type-specific checking using if constexpr
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> || std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			return node->is_string();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> || std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			return node->is_number_integer();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			return node->is_number_float();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			return node->is_boolean();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			return node->is_string() && node->get<std::string>().length() == 1;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		{
+			return node->is_object();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
+		{
+			return node->is_array();
+		}
+
 		return false;
 	}
 
+	template bool Document::is<std::string_view>( std::string_view path ) const;
+	template bool Document::is<std::string>( std::string_view path ) const;
+	template bool Document::is<char>( std::string_view path ) const;
+	template bool Document::is<bool>( std::string_view path ) const;
+	template bool Document::is<int32_t>( std::string_view path ) const;
+	template bool Document::is<int64_t>( std::string_view path ) const;
+	template bool Document::is<double>( std::string_view path ) const;
+	template bool Document::is<Document::Array>( std::string_view path ) const;
+	template bool Document::is<Document::Object>( std::string_view path ) const;
+
 	bool Document::isNull( std::string_view path ) const
 	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		// Auto-detect path syntax: paths starting with "/" are JSON Pointer, others are dot notation
+		nlohmann::ordered_json* node = nullptr;
+		if ( !path.empty() && path[0] == '/' )
+		{
+			// JSON Pointer (RFC 6901)
+			node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path );
+		}
+		else
+		{
+			// Dot notation
+			node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+		}
 		return node && node->is_null();
-	}
-
-	bool Document::isObject( std::string_view path ) const
-	{
-		auto node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
-		return node && node->is_object();
 	}
 
 	//----------------------------------------------
@@ -1012,4 +828,1880 @@ namespace nfx::serialization::json
 		return static_cast<Document_impl*>( m_impl )->lastError();
 	}
 
+	//----------------------------------------------
+	// Document::Object class
+	//----------------------------------------------
+
+	//-----------------------------
+	// Construction
+	//-----------------------------
+
+	Document::Object::Object( Document* doc, std::string_view path )
+		: m_doc{ doc },
+		  m_path{ path }
+	{
+	}
+
+	Document::Object::Object()
+		: m_doc{ nullptr },
+		  m_path{}
+	{
+	}
+
+	Document::Object::Object( const Object& other )
+		: m_doc{ other.m_doc },
+		  m_path{ other.m_path }
+	{
+	}
+
+	Document::Object::Object( Object&& other ) noexcept
+		: m_doc{ other.m_doc },
+		  m_path{ std::move( other.m_path ) }
+	{
+		other.m_doc = nullptr;
+		other.m_path.clear();
+	}
+
+	//-----------------------------
+	// Assignment
+	//-----------------------------
+
+	Document::Object& Document::Object::operator=( const Document::Object& other )
+	{
+		if ( this != &other )
+		{
+			m_doc = other.m_doc;
+			m_path = other.m_path;
+		}
+		return *this;
+	}
+
+	Document::Object& Document::Object::operator=( Document::Object&& other ) noexcept
+	{
+		if ( this != &other )
+		{
+			m_doc = other.m_doc;
+			m_path = std::move( other.m_path );
+			other.m_doc = nullptr;
+			other.m_path.clear();
+		}
+		return *this;
+	}
+
+	//-----------------------------
+	// Comparison
+	//-----------------------------
+
+	bool Document::Object::operator==( const Document::Object& other ) const
+	{
+		if ( !m_doc || !other.m_doc )
+		{
+			return false;
+		}
+
+		if ( m_doc == other.m_doc && m_path == other.m_path )
+		{
+			return true;
+		}
+
+		const nlohmann::ordered_json* thisNode = nullptr;
+		const nlohmann::ordered_json* otherNode = nullptr;
+
+		if ( m_path.empty() )
+		{
+			thisNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			thisNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+		}
+		else
+		{
+			thisNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+		}
+
+		if ( other.m_path.empty() )
+		{
+			otherNode = &static_cast<Document_impl*>( other.m_doc->m_impl )->data();
+		}
+		else if ( other.m_path[0] == '/' )
+		{
+			otherNode = static_cast<Document_impl*>( other.m_doc->m_impl )->navigateToJsonPointer( other.m_path );
+		}
+		else
+		{
+			otherNode = static_cast<Document_impl*>( other.m_doc->m_impl )->navigateToPath( other.m_path );
+		}
+
+		if ( !thisNode || !otherNode || !thisNode->is_object() || !otherNode->is_object() )
+		{
+			return false;
+		}
+
+		return *thisNode == *otherNode;
+	}
+
+	bool Document::Object::operator!=( const Document::Object& other ) const
+	{
+		return !( *this == other );
+	}
+
+	//-----------------------------
+	// Output
+	//-----------------------------
+
+	std::string Document::Object::toJsonString( int indent ) const
+	{
+		if ( !m_doc )
+		{
+			return "{}";
+		}
+
+		Document objectDoc = m_doc->get<Document>( m_path ).value_or( Document{} );
+		return objectDoc.toJsonString( indent );
+	}
+
+	std::vector<uint8_t> Document::Object::toJsonBytes() const
+	{
+		std::string jsonStr = toJsonString( 0 );
+		return std::vector<uint8_t>( jsonStr.begin(), jsonStr.end() );
+	}
+
+	//-----------------------------
+	// Field inspection
+	//-----------------------------
+
+	bool Document::Object::hasField( std::string_view fieldName ) const
+	{
+		if ( !m_doc )
+		{
+			return false;
+		}
+
+		if ( fieldName.empty() )
+		{
+			return false;
+		}
+
+		if ( fieldName[0] == '/' )
+		{
+			std::string_view pathView = fieldName.substr( 1 );
+			if ( pathView.find( '/' ) != std::string_view::npos )
+			{
+				return false;
+			}
+			fieldName = pathView;
+		}
+
+		const nlohmann::ordered_json* objectNode = nullptr;
+		if ( m_path.empty() )
+		{
+			objectNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			objectNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+		}
+		else
+		{
+			objectNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+		}
+
+		if ( objectNode && objectNode->is_object() )
+		{
+			return objectNode->contains( std::string( fieldName ) );
+		}
+
+		return false;
+	}
+
+	//-----------------------------
+	// Size
+	//-----------------------------
+
+	std::size_t Document::Object::size() const
+	{
+		if ( !m_doc )
+		{
+			return 0;
+		}
+
+		const nlohmann::ordered_json* node = nullptr;
+		if ( m_path.empty() )
+		{
+			node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+		}
+		else
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+		}
+
+		if ( node && node->is_object() )
+		{
+			return node->size();
+		}
+
+		return 0;
+	}
+
+	//-----------------------------
+	// Clearing
+	//-----------------------------
+
+	void Document::Object::clear()
+	{
+		if ( !m_doc )
+		{
+			return;
+		}
+
+		nlohmann::ordered_json* node = nullptr;
+		if ( m_path.empty() )
+		{
+			node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			node = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path ) );
+		}
+		else
+		{
+			node = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path ) );
+		}
+
+		if ( node && node->is_object() )
+		{
+			node->clear();
+		}
+	}
+
+	//-----------------------------
+	// Field removal
+	//-----------------------------
+
+	bool Document::Object::removeField( std::string_view key )
+	{
+		if ( !m_doc || key.empty() )
+		{
+			return false;
+		}
+
+		// Handle JSON Pointer syntax
+		std::string fieldName( key );
+		if ( key[0] == '/' )
+		{
+			std::string_view pathView = key.substr( 1 );
+			if ( pathView.find( '/' ) != std::string_view::npos )
+			{
+				return false; // Not a direct field
+			}
+			fieldName = std::string( pathView );
+		}
+
+		nlohmann::ordered_json* objectNode = nullptr;
+		if ( m_path.empty() )
+		{
+			objectNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			objectNode = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path ) );
+		}
+		else
+		{
+			objectNode = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path ) );
+		}
+
+		if ( objectNode && objectNode->is_object() )
+		{
+			auto it = objectNode->find( fieldName );
+			if ( it != objectNode->end() )
+			{
+				objectNode->erase( it );
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	//-----------------------------
+	// Field access
+	//-----------------------------
+
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	std::optional<T> Document::Object::get( std::string_view path ) const
+	{
+		if ( !m_doc || path.empty() )
+		{
+			return std::nullopt;
+		}
+
+		std::string fullPath;
+
+		// Handle different path construction scenarios
+		if ( m_path.empty() )
+		{
+			// Object is at root level
+			if ( path[0] == '/' )
+			{
+				fullPath = std::string{ path }; // Already a JSON pointer
+			}
+			else
+			{
+				fullPath = "/" + std::string{ path }; // Convert to JSON pointer
+			}
+		}
+		else
+		{
+			// Object is nested within the document
+			if ( path[0] == '/' )
+			{
+				// Path is already a JSON pointer, append to our path
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + std::string{ path };
+				}
+			}
+			else
+			{
+				// Convert regular path to JSON pointer format
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + "/" + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + "/" + std::string{ path };
+				}
+			}
+		}
+
+		// Always use JSON pointer navigation since we've normalized the path
+		const nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath );
+
+		if ( !targetNode )
+		{
+			return std::nullopt;
+		}
+
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> )
+		{
+			if ( targetNode->is_string() )
+			{
+				return targetNode->get<std::string>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			if ( targetNode->is_string() )
+			{
+				return std::string_view( targetNode->get<std::string>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			if ( targetNode->is_number_integer() )
+			{
+				return targetNode->get<int64_t>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			if ( targetNode->is_number_integer() )
+			{
+				return static_cast<int32_t>( targetNode->get<int64_t>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			if ( targetNode->is_number_float() )
+			{
+				return targetNode->get<double>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			if ( targetNode->is_boolean() )
+			{
+				return targetNode->get<bool>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			if ( targetNode->is_string() && targetNode->get<std::string>().length() == 1 )
+			{
+				return targetNode->get<std::string>()[0];
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			Document newDoc;
+			static_cast<Document_impl*>( newDoc.m_impl )->setData( *targetNode );
+			return newDoc;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			if ( targetNode->is_array() )
+			{
+				Document arrayDoc;
+				static_cast<Document_impl*>( arrayDoc.m_impl )->setData( *targetNode );
+				return Document::Array( &arrayDoc, "" );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		{
+			if ( targetNode->is_object() )
+			{
+				Document objDoc;
+				static_cast<Document_impl*>( objDoc.m_impl )->setData( *targetNode );
+				return Object( &objDoc, "" );
+			}
+		}
+
+		return std::nullopt;
+	}
+
+	template std::optional<std::string_view> Document::Object::get<std::string_view>( std::string_view path ) const;
+	template std::optional<std::string> Document::Object::get<std::string>( std::string_view path ) const;
+	template std::optional<char> Document::Object::get<char>( std::string_view path ) const;
+	template std::optional<bool> Document::Object::get<bool>( std::string_view path ) const;
+	template std::optional<int32_t> Document::Object::get<int32_t>( std::string_view path ) const;
+	template std::optional<int64_t> Document::Object::get<int64_t>( std::string_view path ) const;
+	template std::optional<double> Document::Object::get<double>( std::string_view path ) const;
+	template std::optional<Document> Document::Object::get<Document>( std::string_view path ) const;
+	template std::optional<Document::Array> Document::Object::get<Document::Array>( std::string_view path ) const;
+	template std::optional<Document::Object> Document::Object::get<Document::Object>( std::string_view path ) const;
+
+	//-----------------------------
+	// Field modification
+	//-----------------------------
+
+	// Copy version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::Object::set( std::string_view path, const T& value )
+	{
+		if ( !m_doc || path.empty() )
+		{
+			return;
+		}
+
+		std::string fullPath;
+
+		// Handle different path construction scenarios
+		if ( m_path.empty() )
+		{
+			// Object is at root level
+			if ( path[0] == '/' )
+			{
+				fullPath = std::string{ path }; // Already a JSON pointer
+			}
+			else
+			{
+				fullPath = "/" + std::string{ path }; // Convert to JSON pointer
+			}
+		}
+		else
+		{
+			// Object is nested within the document
+			if ( path[0] == '/' )
+			{
+				// Path is already a JSON pointer, append to our path
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + std::string{ path };
+				}
+			}
+			else
+			{
+				// Convert regular path to JSON pointer format
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + "/" + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + "/" + std::string{ path };
+				}
+			}
+		}
+
+		// Always use JSON pointer navigation since we've normalized the path
+		nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath, true );
+
+		if ( !targetNode )
+		{
+			return;
+		}
+
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> || std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			*targetNode = std::string{ value };
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> || std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			*targetNode = static_cast<int64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			*targetNode = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			*targetNode = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			*targetNode = std::string( 1, value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			if ( value.m_impl )
+			{
+				*targetNode = static_cast<Document_impl*>( value.m_impl )->data();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			if ( value.m_doc && value.m_doc->m_impl )
+			{
+				const nlohmann::ordered_json* arrayNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					arrayNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					arrayNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					arrayNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( arrayNode )
+				{
+					*targetNode = *arrayNode;
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		{
+			if ( value.m_doc && value.m_doc->m_impl )
+			{
+				const nlohmann::ordered_json* objectNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					objectNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( objectNode )
+				{
+					*targetNode = *objectNode;
+				}
+			}
+		}
+	}
+
+	template void Document::Object::set<std::string_view>( std::string_view path, const std::string_view& );
+	template void Document::Object::set<std::string>( std::string_view path, const std::string& );
+	template void Document::Object::set<char>( std::string_view path, const char& );
+	template void Document::Object::set<bool>( std::string_view path, const bool& );
+	template void Document::Object::set<int32_t>( std::string_view path, const int32_t& );
+	template void Document::Object::set<int64_t>( std::string_view path, const int64_t& );
+	template void Document::Object::set<double>( std::string_view path, const double& );
+	template void Document::Object::set<Document>( std::string_view path, const Document& );
+	template void Document::Object::set<Document::Array>( std::string_view path, const Document::Array& );
+	template void Document::Object::set<Document::Object>( std::string_view path, const Document::Object& );
+
+	// Move version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::Object::set( std::string_view path, T&& value )
+	{
+		if ( !m_doc || path.empty() )
+		{
+			return;
+		}
+
+		std::string fullPath;
+
+		// Handle different path construction scenarios
+		if ( m_path.empty() )
+		{
+			// Object is at root level
+			if ( path[0] == '/' )
+			{
+				fullPath = std::string{ path }; // Already a JSON pointer
+			}
+			else
+			{
+				fullPath = "/" + std::string{ path }; // Convert to JSON pointer
+			}
+		}
+		else
+		{
+			// Object is nested
+			if ( path[0] == '/' )
+			{
+				// Path is already a JSON pointer, append to our path
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + std::string{ path };
+				}
+			}
+			else
+			{
+				// Convert regular path to JSON pointer format
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + "/" + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + "/" + std::string{ path };
+				}
+			}
+		}
+
+		// Always use JSON pointer navigation since we've normalized the path
+		nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath, true );
+
+		if ( !targetNode )
+		{
+			return;
+		}
+
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> || std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			*targetNode = std::string{ std::move( value ) };
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> || std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			*targetNode = static_cast<int64_t>( std::move( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			*targetNode = std::move( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			*targetNode = std::move( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			*targetNode = std::string( 1, std::move( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			if ( value.m_impl )
+			{
+				*targetNode = std::move( static_cast<Document_impl*>( value.m_impl )->data() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			if ( value.m_doc && value.m_doc->m_impl )
+			{
+				const nlohmann::ordered_json* arrayNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					arrayNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					arrayNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					arrayNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( arrayNode )
+				{
+					*targetNode = *arrayNode; // Note: nlohmann::json doesn't have move semantics for this operation ?
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		{
+			if ( value.m_doc && value.m_doc->m_impl )
+			{
+				const nlohmann::ordered_json* objectNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					objectNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( objectNode )
+				{
+					*targetNode = *objectNode; // Note: nlohmann::json doesn't have move semantics for this operation ?
+				}
+			}
+		}
+	}
+
+	template void Document::Object::set<std::string_view>( std::string_view path, std::string_view&& );
+	template void Document::Object::set<std::string>( std::string_view path, std::string&& );
+	template void Document::Object::set<char>( std::string_view path, char&& );
+	template void Document::Object::set<bool>( std::string_view path, bool&& );
+	template void Document::Object::set<int32_t>( std::string_view path, int32_t&& );
+	template void Document::Object::set<int64_t>( std::string_view path, int64_t&& );
+	template void Document::Object::set<double>( std::string_view path, double&& );
+	template void Document::Object::set<Document>( std::string_view path, Document&& );
+	template void Document::Object::set<Document::Array>( std::string_view path, Document::Array&& );
+	template void Document::Object::set<Document::Object>( std::string_view path, Document::Object&& );
+
+	//-----------------------------
+	// Validation and error handling
+	//-----------------------------
+
+	bool Document::Object::isValid() const
+	{
+		if ( !m_doc )
+		{
+			return false;
+		}
+
+		if ( !m_doc->isValid() )
+		{
+			return false;
+		}
+
+		const nlohmann::ordered_json* node = nullptr;
+		if ( m_path.empty() )
+		{
+			node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+		}
+		else
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+		}
+
+		return node && node->is_object();
+	}
+
+	std::string Document::Object::lastError() const
+	{
+		if ( !m_doc )
+		{
+			return "Object has no document reference";
+		}
+
+		std::string docError = m_doc->lastError();
+		if ( !docError.empty() )
+		{
+			return docError;
+		}
+
+		const nlohmann::ordered_json* node = nullptr;
+		if ( m_path.empty() )
+		{
+			node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+		}
+		else
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+		}
+
+		if ( !node )
+		{
+			return "Object path '" + m_path + "' does not exist in document";
+		}
+
+		if ( !node->is_object() )
+		{
+			return "Path '" + m_path + "' does not point to an object";
+		}
+
+		return "";
+	}
+
+	//----------------------------------------------
+	// Document::Array class
+	//----------------------------------------------
+
+	//-----------------------------
+	// Construction
+	//-----------------------------
+
+	Document::Array::Array( Document* doc, std::string_view path )
+		: m_doc{ doc },
+		  m_path{ path }
+	{
+	}
+
+	Document::Array::Array()
+		: m_doc{ nullptr },
+		  m_path{}
+	{
+	}
+
+	Document::Array::Array( const Document::Array& other )
+		: m_doc{ other.m_doc },
+		  m_path{ other.m_path }
+	{
+	}
+
+	Document::Array::Array( Document::Array&& other ) noexcept
+		: m_doc{ other.m_doc },
+		  m_path{ std::move( other.m_path ) }
+	{
+		other.m_doc = nullptr;
+		other.m_path.clear();
+	}
+
+	//-----------------------------
+	// Assignment
+	//-----------------------------
+
+	Document::Array& Document::Array::operator=( const Document::Array& other )
+	{
+		if ( this != &other )
+		{
+			m_doc = other.m_doc;
+			m_path = other.m_path;
+		}
+		return *this;
+	}
+
+	Document::Array& Document::Array::operator=( Document::Array&& other ) noexcept
+	{
+		if ( this != &other )
+		{
+			m_doc = other.m_doc;
+			m_path = std::move( other.m_path );
+			other.m_doc = nullptr;
+			other.m_path.clear();
+		}
+		return *this;
+	}
+
+	//-----------------------------
+	// Comparison
+	//-----------------------------
+
+	bool Document::Array::operator==( const Document::Array& other ) const
+	{
+		if ( !m_doc || !other.m_doc )
+		{
+			return false;
+		}
+
+		if ( m_doc == other.m_doc && m_path == other.m_path )
+		{
+			return true;
+		}
+
+		const nlohmann::ordered_json* thisNode = nullptr;
+		const nlohmann::ordered_json* otherNode = nullptr;
+
+		if ( m_path.empty() )
+		{
+			thisNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			thisNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+		}
+		else
+		{
+			thisNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+		}
+
+		if ( other.m_path.empty() )
+		{
+			otherNode = &static_cast<Document_impl*>( other.m_doc->m_impl )->data();
+		}
+		else if ( other.m_path[0] == '/' )
+		{
+			otherNode = static_cast<Document_impl*>( other.m_doc->m_impl )->navigateToJsonPointer( other.m_path );
+		}
+		else
+		{
+			otherNode = static_cast<Document_impl*>( other.m_doc->m_impl )->navigateToPath( other.m_path );
+		}
+
+		if ( !thisNode || !otherNode || !thisNode->is_array() || !otherNode->is_array() )
+		{
+			return false;
+		}
+
+		return *thisNode == *otherNode;
+	}
+
+	bool Document::Array::operator!=( const Document::Array& other ) const
+	{
+		return !( *this == other );
+	}
+
+	//-----------------------------
+	// Output
+	//-----------------------------
+
+	std::string Document::Array::toJsonString( int indent ) const
+	{
+		if ( !m_doc )
+		{
+			return "[]";
+		}
+
+		Document arrayDoc = m_doc->get<Document>( m_path ).value_or( Document{} );
+		return arrayDoc.toJsonString( indent );
+	}
+
+	std::vector<uint8_t> Document::Array::toJsonBytes() const
+	{
+		std::string jsonStr = toJsonString( 0 );
+		return std::vector<uint8_t>( jsonStr.begin(), jsonStr.end() );
+	}
+
+	//-----------------------------
+	// Element inspection
+	//-----------------------------
+
+	bool Document::Array::hasElement( std::string_view indexStr ) const
+	{
+		if ( !m_doc )
+		{
+			return false;
+		}
+
+		if ( indexStr.empty() )
+		{
+			return false;
+		}
+
+		try
+		{
+			std::string indexString( indexStr );
+			if ( !indexString.empty() && indexString[0] == '/' )
+			{
+				indexString = indexString.substr( 1 );
+			}
+			size_t index = std::stoull( indexString );
+
+			const nlohmann::ordered_json* arrayNode = nullptr;
+			if ( m_path.empty() )
+			{
+				arrayNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+			}
+			else if ( m_path[0] == '/' )
+			{
+				arrayNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+			}
+			else
+			{
+				arrayNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+			}
+
+			if ( arrayNode && arrayNode->is_array() )
+			{
+				return index < arrayNode->size();
+			}
+
+			return false;
+		}
+		catch ( ... )
+		{
+			return false;
+		}
+	}
+
+	//-----------------------------
+	// Size
+	//-----------------------------
+
+	std::size_t Document::Array::size() const
+	{
+		if ( !m_doc )
+		{
+			return 0;
+		}
+
+		const nlohmann::ordered_json* node = nullptr;
+		if ( m_path.empty() )
+		{
+			node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+		}
+		else
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+		}
+
+		if ( node && node->is_array() )
+		{
+			return node->size();
+		}
+
+		return 0;
+	}
+
+	//-----------------------------
+	// Clearing
+	//-----------------------------
+
+	void Document::Array::clear()
+	{
+		if ( !m_doc )
+		{
+			return;
+		}
+
+		nlohmann::ordered_json* node = nullptr;
+		if ( m_path.empty() )
+		{
+			node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			node = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path ) );
+		}
+		else
+		{
+			node = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path ) );
+		}
+
+		if ( node && node->is_array() )
+		{
+			node->clear();
+		}
+	}
+
+	//-----------------------------
+	// Element removal
+	//-----------------------------
+
+	bool Document::Array::remove( size_t index )
+	{
+		if ( !m_doc )
+		{
+			return false;
+		}
+
+		nlohmann::ordered_json* arrayNode = nullptr;
+		if ( m_path.empty() )
+		{
+			arrayNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			arrayNode = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path ) );
+		}
+		else
+		{
+			arrayNode = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path ) );
+		}
+
+		if ( arrayNode && arrayNode->is_array() && index < arrayNode->size() )
+		{
+			arrayNode->erase( arrayNode->begin() + index );
+			return true;
+		}
+
+		return false;
+	}
+
+	//-----------------------------
+	// Element access
+	//-----------------------------
+
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	std::optional<T> Document::Array::get( size_t index ) const
+	{
+		if ( !m_doc )
+		{
+			return std::nullopt;
+		}
+
+		return static_cast<Document_impl*>( m_doc->m_impl )->getArrayImpl<T>( m_path, index, m_doc );
+	}
+
+	template std::optional<std::string_view> Document::Array::get<std::string_view>( size_t index ) const;
+	template std::optional<std::string> Document::Array::get<std::string>( size_t index ) const;
+	template std::optional<char> Document::Array::get<char>( size_t index ) const;
+	template std::optional<bool> Document::Array::get<bool>( size_t index ) const;
+	template std::optional<int32_t> Document::Array::get<int32_t>( size_t index ) const;
+	template std::optional<int64_t> Document::Array::get<int64_t>( size_t index ) const;
+	template std::optional<double> Document::Array::get<double>( size_t index ) const;
+	template std::optional<Document> Document::Array::get<Document>( size_t index ) const;
+	template std::optional<Document::Array> Document::Array::get<Document::Array>( size_t index ) const;
+	template std::optional<Document::Object> Document::Array::get<Document::Object>( size_t index ) const;
+
+	//-----------------------------
+	// Nested element access
+	//-----------------------------
+
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	std::optional<T> Document::Array::get( std::string_view path ) const
+	{
+		if ( !m_doc || path.empty() )
+		{
+			return std::nullopt;
+		}
+
+		std::string fullPath;
+
+		if ( m_path.empty() )
+		{
+			if ( path[0] == '/' )
+			{
+				fullPath = std::string{ path };
+			}
+			else
+			{
+				fullPath = "/" + std::string{ path };
+			}
+		}
+		else
+		{
+			if ( path[0] == '/' )
+			{
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + std::string{ path };
+				}
+			}
+			else
+			{
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + "/" + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + "/" + std::string{ path };
+				}
+			}
+		}
+
+		const nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath );
+
+		if ( !targetNode )
+		{
+			return std::nullopt;
+		}
+
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> )
+		{
+			if ( targetNode->is_string() )
+			{
+				return targetNode->get<std::string>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			if ( targetNode->is_string() )
+			{
+				return std::string_view( targetNode->get<std::string>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			if ( targetNode->is_number_integer() )
+			{
+				return targetNode->get<int64_t>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			if ( targetNode->is_number_integer() )
+			{
+				return static_cast<int32_t>( targetNode->get<int64_t>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			if ( targetNode->is_number_float() )
+			{
+				return targetNode->get<double>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			if ( targetNode->is_boolean() )
+			{
+				return targetNode->get<bool>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			if ( targetNode->is_string() && targetNode->get<std::string>().length() == 1 )
+			{
+				return targetNode->get<std::string>()[0];
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			Document newDoc;
+			static_cast<Document_impl*>( newDoc.m_impl )->setData( *targetNode );
+			return newDoc;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
+		{
+			if ( targetNode->is_array() )
+			{
+				Document arrayDoc;
+				static_cast<Document_impl*>( arrayDoc.m_impl )->setData( *targetNode );
+				return Array( &arrayDoc, "" );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		{
+			if ( targetNode->is_object() )
+			{
+				Document objDoc;
+				static_cast<Document_impl*>( objDoc.m_impl )->setData( *targetNode );
+				return Object( &objDoc, "" );
+			}
+		}
+
+		return std::nullopt;
+	}
+
+	template std::optional<std::string_view> Document::Array::get<std::string_view>( std::string_view path ) const;
+	template std::optional<std::string> Document::Array::get<std::string>( std::string_view path ) const;
+	template std::optional<char> Document::Array::get<char>( std::string_view path ) const;
+	template std::optional<bool> Document::Array::get<bool>( std::string_view path ) const;
+	template std::optional<int32_t> Document::Array::get<int32_t>( std::string_view path ) const;
+	template std::optional<int64_t> Document::Array::get<int64_t>( std::string_view path ) const;
+	template std::optional<double> Document::Array::get<double>( std::string_view path ) const;
+	template std::optional<Document> Document::Array::get<Document>( std::string_view path ) const;
+	template std::optional<Document::Array> Document::Array::get<Document::Array>( std::string_view path ) const;
+	template std::optional<Document::Object> Document::Array::get<Document::Object>( std::string_view path ) const;
+
+	//-----------------------------
+	// Element modification
+	//-----------------------------
+
+	// Copy version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::Array::set( size_t index, const T& value )
+	{
+		if ( m_doc )
+		{
+			static_cast<Document_impl*>( m_doc->m_impl )->setArrayImpl<T>( m_path, index, T{ value } );
+		}
+	}
+
+	template void Document::Array::set<std::string_view>( size_t index, const std::string_view& );
+	template void Document::Array::set<std::string>( size_t index, const std::string& );
+	template void Document::Array::set<char>( size_t index, const char& );
+	template void Document::Array::set<bool>( size_t index, const bool& );
+	template void Document::Array::set<int32_t>( size_t index, const int32_t& );
+	template void Document::Array::set<int64_t>( size_t index, const int64_t& );
+	template void Document::Array::set<double>( size_t index, const double& );
+	template void Document::Array::set<Document>( size_t index, const Document& );
+	template void Document::Array::set<Document::Array>( size_t index, const Array& );
+	template void Document::Array::set<Document::Object>( size_t index, const Document::Object& );
+
+	// Move version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::Array::set( size_t index, T&& value )
+	{
+		if ( m_doc )
+		{
+			static_cast<Document_impl*>( m_doc->m_impl )->setArrayImpl<T>( m_path, index, std::move( value ) );
+		}
+	}
+
+	template void Document::Array::set<std::string_view>( size_t index, std::string_view&& );
+	template void Document::Array::set<std::string>( size_t index, std::string&& );
+	template void Document::Array::set<char>( size_t index, char&& );
+	template void Document::Array::set<bool>( size_t index, bool&& );
+	template void Document::Array::set<int32_t>( size_t index, int32_t&& );
+	template void Document::Array::set<int64_t>( size_t index, int64_t&& );
+	template void Document::Array::set<double>( size_t index, double&& );
+	template void Document::Array::set<Document>( size_t index, Document&& );
+	template void Document::Array::set<Document::Array>( size_t index, Array&& );
+	template void Document::Array::set<Document::Object>( size_t index, Document::Object&& );
+
+	//-----------------------------
+	// Nested element modification
+	//-----------------------------
+
+	// Copy version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::Array::set( std::string_view path, const T& value )
+	{
+		if ( !m_doc || path.empty() )
+		{
+			return;
+		}
+
+		std::string fullPath;
+
+		if ( m_path.empty() )
+		{
+			if ( path[0] == '/' )
+			{
+				fullPath = std::string{ path };
+			}
+			else
+			{
+				fullPath = "/" + std::string{ path };
+			}
+		}
+		else
+		{
+			if ( path[0] == '/' )
+			{
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + std::string{ path };
+				}
+			}
+			else
+			{
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + "/" + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + "/" + std::string{ path };
+				}
+			}
+		}
+
+		nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath, true );
+
+		if ( !targetNode )
+		{
+			return;
+		}
+
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> || std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			*targetNode = std::string{ value };
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> || std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			*targetNode = static_cast<int64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			*targetNode = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			*targetNode = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			*targetNode = std::string( 1, value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			*targetNode = static_cast<Document_impl*>( value.m_impl )->data();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
+		{
+			if ( value.m_doc )
+			{
+				Document arrDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
+				*targetNode = static_cast<Document_impl*>( arrDoc.m_impl )->data();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		{
+			if ( value.m_doc )
+			{
+				Document objDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
+				*targetNode = static_cast<Document_impl*>( objDoc.m_impl )->data();
+			}
+		}
+	}
+
+	template void Document::Array::set<std::string_view>( std::string_view path, const std::string_view& );
+	template void Document::Array::set<std::string>( std::string_view path, const std::string& );
+	template void Document::Array::set<char>( std::string_view path, const char& );
+	template void Document::Array::set<bool>( std::string_view path, const bool& );
+	template void Document::Array::set<int32_t>( std::string_view path, const int32_t& );
+	template void Document::Array::set<int64_t>( std::string_view path, const int64_t& );
+	template void Document::Array::set<double>( std::string_view path, const double& );
+	template void Document::Array::set<Document>( std::string_view path, const Document& );
+	template void Document::Array::set<Document::Array>( std::string_view path, const Array& );
+	template void Document::Array::set<Document::Object>( std::string_view path, const Document::Object& );
+
+	// Move version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::Array::set( std::string_view path, T&& value )
+	{
+		if ( !m_doc || path.empty() )
+		{
+			return;
+		}
+
+		std::string fullPath;
+
+		if ( m_path.empty() )
+		{
+			if ( path[0] == '/' )
+			{
+				fullPath = std::string{ path };
+			}
+			else
+			{
+				fullPath = "/" + std::string{ path };
+			}
+		}
+		else
+		{
+			if ( path[0] == '/' )
+			{
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + std::string{ path };
+				}
+			}
+			else
+			{
+				if ( m_path[0] == '/' )
+				{
+					fullPath = m_path + "/" + std::string{ path };
+				}
+				else
+				{
+					fullPath = "/" + m_path + "/" + std::string{ path };
+				}
+			}
+		}
+
+		nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath, true );
+
+		if ( !targetNode )
+		{
+			return;
+		}
+
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> || std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			*targetNode = std::string{ std::move( value ) };
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> || std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			*targetNode = static_cast<int64_t>( std::move( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			*targetNode = std::move( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			*targetNode = std::move( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			*targetNode = std::string( 1, std::move( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			*targetNode = std::move( static_cast<Document_impl*>( value.m_impl )->data() );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
+		{
+			if ( value.m_doc )
+			{
+				Document arrDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
+				*targetNode = std::move( static_cast<Document_impl*>( arrDoc.m_impl )->data() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		{
+			if ( value.m_doc )
+			{
+				Document objDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
+				*targetNode = std::move( static_cast<Document_impl*>( objDoc.m_impl )->data() );
+			}
+		}
+	}
+
+	template void Document::Array::set<std::string_view>( std::string_view path, std::string_view&& );
+	template void Document::Array::set<std::string>( std::string_view path, std::string&& );
+	template void Document::Array::set<char>( std::string_view path, char&& );
+	template void Document::Array::set<bool>( std::string_view path, bool&& );
+	template void Document::Array::set<int32_t>( std::string_view path, int32_t&& );
+	template void Document::Array::set<int64_t>( std::string_view path, int64_t&& );
+	template void Document::Array::set<double>( std::string_view path, double&& );
+	template void Document::Array::set<Document>( std::string_view path, Document&& );
+	template void Document::Array::set<Document::Array>( std::string_view path, Array&& );
+	template void Document::Array::set<Document::Object>( std::string_view path, Document::Object&& );
+
+	// Copy version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::Array::add( const T& value )
+	{
+		if ( m_doc )
+		{
+			static_cast<Document_impl*>( m_doc->m_impl )->addArrayImpl<T>( m_path, T{ value } );
+		}
+	}
+
+	template void Document::Array::add<std::string_view>( const std::string_view& );
+	template void Document::Array::add<std::string>( const std::string& );
+	template void Document::Array::add<char>( const char& );
+	template void Document::Array::add<bool>( const bool& );
+	template void Document::Array::add<int32_t>( const int32_t& );
+	template void Document::Array::add<int64_t>( const int64_t& );
+	template void Document::Array::add<double>( const double& );
+	template void Document::Array::add<Document>( const Document& );
+	template void Document::Array::add<Document::Array>( const Document::Array& );
+	template void Document::Array::add<Document::Object>( const Document::Object& );
+
+	// Move version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::Array::add( T&& value )
+	{
+		if ( m_doc )
+		{
+			static_cast<Document_impl*>( m_doc->m_impl )->addArrayImpl<T>( m_path, std::move( value ) );
+		}
+	}
+
+	template void Document::Array::add<std::string_view>( std::string_view&& );
+	template void Document::Array::add<std::string>( std::string&& );
+	template void Document::Array::add<char>( char&& );
+	template void Document::Array::add<bool>( bool&& );
+	template void Document::Array::add<int32_t>( int32_t&& );
+	template void Document::Array::add<int64_t>( int64_t&& );
+	template void Document::Array::add<double>( double&& );
+	template void Document::Array::add<Document>( Document&& );
+	template void Document::Array::add<Document::Array>( Document::Array&& );
+	template void Document::Array::add<Document::Object>( Document::Object&& );
+
+	// Reference versions (for non-const lvalue matching) - delegate to copy version
+	void Document::Array::add( Document& value )
+	{
+		add<Document>( static_cast<const Document&>( value ) );
+	}
+
+	void Document::Array::add( Document::Array& value )
+	{
+		add<Document::Array>( static_cast<const Document::Array&>( value ) );
+	}
+
+	void Document::Array::add( Document::Object& value )
+	{
+		add<Document::Object>( static_cast<const Document::Object&>( value ) );
+	}
+
+	// Copy version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::Array::insert( size_t index, const T& value )
+	{
+		static_cast<Document_impl*>( m_doc->m_impl )->insertArrayImpl<T>( m_path, index, T{ value } );
+	}
+
+	template void Document::Array::insert<std::string_view>( size_t index, const std::string_view& );
+	template void Document::Array::insert<std::string>( size_t index, const std::string& );
+	template void Document::Array::insert<char>( size_t index, const char& );
+	template void Document::Array::insert<bool>( size_t index, const bool& );
+	template void Document::Array::insert<int32_t>( size_t index, const int32_t& );
+	template void Document::Array::insert<int64_t>( size_t index, const int64_t& );
+	template void Document::Array::insert<double>( size_t index, const double& );
+	template void Document::Array::insert<Document>( size_t index, const Document& );
+	template void Document::Array::insert<Document::Array>( size_t index, const Array& );
+	template void Document::Array::insert<Document::Object>( size_t index, const Document::Object& );
+
+	// Move version
+	template <typename T>
+		requires(
+			std::is_same_v<std::decay_t<T>, std::string_view> ||
+			std::is_same_v<std::decay_t<T>, std::string> ||
+			std::is_same_v<std::decay_t<T>, char> ||
+			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int32_t> ||
+			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, double> ||
+			std::is_same_v<std::decay_t<T>, Document> ||
+			std::is_same_v<std::decay_t<T>, Document::Object> ||
+			std::is_same_v<std::decay_t<T>, Document::Array> )
+	void Document::Array::insert( size_t index, T&& value )
+	{
+		static_cast<Document_impl*>( m_doc->m_impl )->insertArrayImpl<T>( m_path, index, std::move( value ) );
+	}
+
+	template void Document::Array::insert<std::string_view>( size_t index, std::string_view&& );
+	template void Document::Array::insert<std::string>( size_t index, std::string&& );
+	template void Document::Array::insert<char>( size_t index, char&& );
+	template void Document::Array::insert<bool>( size_t index, bool&& );
+	template void Document::Array::insert<int32_t>( size_t index, int32_t&& );
+	template void Document::Array::insert<int64_t>( size_t index, int64_t&& );
+	template void Document::Array::insert<double>( size_t index, double&& );
+	template void Document::Array::insert<Document>( size_t index, Document&& );
+	template void Document::Array::insert<Document::Array>( size_t index, Array&& );
+	template void Document::Array::insert<Document::Object>( size_t index, Document::Object&& );
+
+	// Reference versions (for non-const lvalue matching) - delegate to copy version
+	void Document::Array::insert( size_t index, Document& value )
+	{
+		insert<Document>( index, static_cast<const Document&>( value ) );
+	}
+
+	void Document::Array::insert( size_t index, Document::Array& value )
+	{
+		insert<Document::Array>( index, static_cast<const Document::Array&>( value ) );
+	}
+
+	void Document::Array::insert( size_t index, Document::Object& value )
+	{
+		insert<Document::Object>( index, static_cast<const Document::Object&>( value ) );
+	}
+
+	//-----------------------------
+	// Validation and error handling
+	//-----------------------------
+
+	bool Document::Array::isValid() const
+	{
+		if ( !m_doc )
+		{
+			return false;
+		}
+
+		if ( !m_doc->isValid() )
+		{
+			return false;
+		}
+
+		const nlohmann::ordered_json* node = nullptr;
+		if ( m_path.empty() )
+		{
+			node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+		}
+		else
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+		}
+
+		return node && node->is_array();
+	}
+
+	std::string Document::Array::lastError() const
+	{
+		if ( !m_doc )
+		{
+			return "Array has no document reference";
+		}
+
+		std::string docError = m_doc->lastError();
+		if ( !docError.empty() )
+		{
+			return docError;
+		}
+
+		const nlohmann::ordered_json* node = nullptr;
+		if ( m_path.empty() )
+		{
+			node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+		}
+		else if ( m_path[0] == '/' )
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+		}
+		else
+		{
+			node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+		}
+
+		if ( !node )
+		{
+			return "Array path '" + m_path + "' does not exist in document";
+		}
+
+		if ( !node->is_array() )
+		{
+			return "Path '" + m_path + "' does not point to an array";
+		}
+
+		return "";
+	}
 } // namespace nfx::serialization::json

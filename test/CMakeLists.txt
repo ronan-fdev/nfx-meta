@@ -63,8 +63,10 @@ endif()
 if(NFX_CORE_WITH_JSON)
 	list(APPEND TEST_SOURCES
 		serialization/json/TESTS_JSONArrayEnumerator.cpp
+		serialization/json/TESTS_JSONArrays.cpp
 		serialization/json/TESTS_JSONDocument.cpp
 		serialization/json/TESTS_JSONFieldEnumerator.cpp
+		serialization/json/TESTS_JSONObjects.cpp
 		serialization/json/TESTS_JSONSchemaValidator.cpp
 		serialization/json/TESTS_JSONSerializer.cpp
 	)

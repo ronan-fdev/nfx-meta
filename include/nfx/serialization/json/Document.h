@@ -9,33 +9,51 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace nfx::serialization::json
 {
+	class Document_impl;
+
 	//=====================================================================
 	// Document class
 	//=====================================================================
 
 	/**
-	 * @brief Generic document abstraction
+	 * @brief Generic JSON document abstraction for serialization
+	 * @details Provides a high-level interface for JSON document manipulation with support
+	 *          for JSON Pointer paths, type-safe value access, and nested object/array operations.
 	 */
 	class Document final
 	{
+	public:
+		//----------------------------------------------
+		// Forward declarations
+		//----------------------------------------------
+
+		class Array;
+		class Object;
+
 		//----------------------------------------------
 		// Friends
 		//----------------------------------------------
 
+		friend class Document::Array;
+		friend class Document::Object;
+		friend class Document_impl;
 		friend class ArrayEnumerator_impl;
 		friend class FieldEnumerator_impl;
 		friend class SchemaValidator_impl;
 
-	public:
 		//----------------------------------------------
 		// Construction
 		//----------------------------------------------
 
-		/** @brief Default constructor - creates an empty document */
+		/**
+		 * @brief Default constructor - creates an empty document
+		 */
 		Document();
 
 		/**
@@ -54,7 +72,9 @@ namespace nfx::serialization::json
 		// Destruction
 		//----------------------------------------------
 
-		/** @brief Destructor */
+		/**
+		 * @brief Destructor - cleans up document resources
+		 */
 		~Document();
 
 		//----------------------------------------------
@@ -76,27 +96,40 @@ namespace nfx::serialization::json
 		Document& operator=( Document&& other ) noexcept;
 
 		//----------------------------------------------
+		// Comparison
+		//----------------------------------------------
+
+		/**
+		 * @brief Equality comparison operator
+		 * @param other The document to compare with
+		 * @return true if documents are equal, false otherwise
+		 */
+		bool operator==( const Document& other ) const;
+
+		/**
+		 * @brief Inequality comparison operator
+		 * @param other The document to compare with
+		 * @return true if documents are not equal, false otherwise
+		 */
+		bool operator!=( const Document& other ) const;
+
+		//----------------------------------------------
 		// Factory
 		//----------------------------------------------
 
 		/**
 		 * @brief Create document from JSON string
-		 * @param jsonStr The JSON string to parse
-		 * @return Optional document if parsing succeeds
+		 * @param jsonStr JSON string to parse
+		 * @return Optional document if parsing succeeds, empty optional otherwise
 		 */
 		static std::optional<Document> fromJsonString( std::string_view jsonStr );
 
 		/**
-		 * @brief Create empty object document
-		 * @return New document with empty object structure
+		 * @brief Create document from JSON bytes
+		 * @param bytes JSON bytes to parse
+		 * @return Optional document if parsing succeeds, empty optional otherwise
 		 */
-		static Document createObject();
-
-		/**
-		 * @brief Create empty array document
-		 * @return New document with empty array structure
-		 */
-		static Document createArray();
+		static std::optional<Document> fromJsonBytes( std::vector<uint8_t>& bytes );
 
 		//----------------------------------------------
 		// Output
@@ -110,522 +143,21 @@ namespace nfx::serialization::json
 		std::string toJsonString( int indent = 0 ) const;
 
 		/**
-		 * @brief Convert document to JSON byte array
-		 * @return Vector of bytes representing the JSON document
+		 * @brief Convert document to JSON bytes
+		 * @return JSON byte representation
 		 */
 		std::vector<uint8_t> toJsonBytes() const;
 
 		//----------------------------------------------
-		// Value access
+		// Value inspection
 		//----------------------------------------------
 
 		/**
-		 * @brief Check if field exists at path
-		 * @param path The path to check for field existence
-		 * @return True if field exists, false otherwise
+		 * @brief Check if a value exists at the given path
+		 * @param path JSON Pointer path to check
+		 * @return true if value exists, false otherwise
 		 */
-		bool hasField( std::string_view path ) const;
-
-		/**
-		 * @brief Get string value at path
-		 * @param path The path to the string value
-		 * @return Optional string value at the specified path, nullopt if not found or wrong type
-		 */
-		std::optional<std::string> getString( std::string_view path ) const;
-
-		/**
-		 * @brief Get integer value at path
-		 * @param path The path to the integer value
-		 * @return Optional integer value at the specified path, nullopt if not found or wrong type
-		 */
-		std::optional<int64_t> getInt( std::string_view path ) const;
-
-		/**
-		 * @brief Get double value at path
-		 * @param path The path to the double value
-		 * @return Optional double value at the specified path, nullopt if not found or wrong type
-		 */
-		std::optional<double> getDouble( std::string_view path ) const;
-
-		/**
-		 * @brief Get boolean value at path
-		 * @param path The path to the boolean value
-		 * @return Optional boolean value at the specified path, nullopt if not found or wrong type
-		 */
-		std::optional<bool> getBool( std::string_view path ) const;
-
-		/**
-		 * @brief Get character value at path (from single-character string)
-		 * @param path The path to the character value
-		 * @return Optional character value, nullopt if not found, wrong type, or string length != 1
-		 * @details Convenience method that extracts a character from a single-character string.
-		 *          Returns nullopt if the path doesn't exist, isn't a string, or the string length is not exactly 1.
-		 */
-		std::optional<char> getChar( std::string_view path ) const;
-
-		/**
-		 * @brief Get document (any JSON type) at path
-		 * @param path The path to the document
-		 * @return Optional Document at the specified path, nullopt if not found
-		 * @details Generic getter that returns any JSON structure as a Document.
-		 *          Use this when you need maximum flexibility or don't know the type in advance.
-		 *          For type-specific access, use the specialized getters (getString, getInt, etc.).
-		 */
-		std::optional<Document> getDocument( std::string_view path ) const;
-
-		//----------------------------------------------
-		// JSON Pointer access (RFC 6901)
-		//----------------------------------------------
-
-		/**
-		 * @brief Check if field exists at JSON Pointer path (object fields only)
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/name", "/settings/enabled")
-		 * @return True if pointer references a field in an object, false otherwise
-		 * @details Only returns true for object fields. Array elements (e.g., "/items/0")
-		 *          will return false since they are not object fields. Use hasValueByPointer()
-		 *          for general existence checking that includes array elements.
-		 *          Implements RFC 6901 JSON Pointer specification with object-field validation.
-		 */
-		bool hasFieldByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Check if any value exists at JSON Pointer path (fields, array elements, primitives)
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0", "/items/0", "/field", "/data/array/5")
-		 * @return True if any value exists at the pointer path, false otherwise
-		 * @details General-purpose existence checker that works with:
-		 *          - Object fields ("/user/name")
-		 *          - Array elements ("/items/0", "/data/5")
-		 *          - Nested structures ("/users/0/hobbies/1")
-		 *          - Root document ("")
-		 *          Implements RFC 6901 JSON Pointer specification for all JSON value types.
-		 */
-		bool hasValueByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Check if array exists at JSON Pointer path
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users", "/data/items")
-		 * @return True if pointer references an array, false otherwise
-		 * @details Type-specific existence checker that only returns true for arrays.
-		 *          Use for type validation before calling getArrayByPointer().
-		 */
-		bool hasArrayByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Check if object exists at JSON Pointer path
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/profile", "/settings")
-		 * @return True if pointer references an object, false otherwise
-		 * @details Type-specific existence checker that only returns true for objects.
-		 *          Use for type validation before calling getObjectByPointer().
-		 */
-		bool hasObjectByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Check if string exists at JSON Pointer path
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/name", "/data/0/title")
-		 * @return True if pointer references a string, false otherwise
-		 * @details Type-specific existence checker that only returns true for strings.
-		 *          Use for type validation before calling getStringByPointer().
-		 */
-		bool hasStringByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Check if integer exists at JSON Pointer path
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/age", "/items/0/count")
-		 * @return True if pointer references an integer, false otherwise
-		 * @details Type-specific existence checker that only returns true for integers.
-		 *          Use for type validation before calling getIntByPointer().
-		 */
-		bool hasIntByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Check if double exists at JSON Pointer path
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/metrics/0/value", "/coordinates/lat")
-		 * @return True if pointer references a double, false otherwise
-		 * @details Type-specific existence checker that only returns true for doubles.
-		 *          Use for type validation before calling getDoubleByPointer().
-		 */
-		bool hasDoubleByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Check if boolean exists at JSON Pointer path
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/settings/enabled", "/user/active")
-		 * @return True if pointer references a boolean, false otherwise
-		 * @details Type-specific existence checker that only returns true for booleans.
-		 *          Use for type validation before calling getBoolByPointer().
-		 */
-		bool hasBoolByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Check if character exists at JSON Pointer path (single-character string)
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/initial", "/grades/0")
-		 * @return True if pointer references a single-character string, false otherwise
-		 * @details Convenience method that checks if a JSON Pointer path contains a character.
-		 */
-		bool hasCharByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Check if null exists at JSON Pointer path
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/optional/field", "/data/empty")
-		 * @return True if pointer references null, false otherwise
-		 * @details Type-specific existence checker that only returns true for null values.
-		 *          Distinguishes between non-existent paths and explicit null values.
-		 */
-		bool hasNullByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Get any document (array, object, or primitive) using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/profile")
-		 * @return Optional Document at the specified pointer, nullopt if not found
-		 * @details Returns the document at the pointer regardless of its type (array, object, or primitive).
-		 */
-		std::optional<Document> getDocumentByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Get array document using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/hobbies")
-		 * @return Optional Document representing the array at the specified pointer, nullopt if not found or wrong type
-		 * @details Type-safe getter that only returns arrays. Use for compile-time type safety.
-		 */
-		std::optional<Document> getArrayByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Get object document using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/profile")
-		 * @return Optional Document representing the object at the specified pointer, nullopt if not found or wrong type
-		 * @details Type-safe getter that only returns objects. Use for compile-time type safety.
-		 */
-		std::optional<Document> getObjectByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Get string value using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/profile/name")
-		 * @return Optional string value at the specified pointer, nullopt if not found or wrong type
-		 * @details Implements RFC 6901 JSON Pointer specification with support for:
-		 *          - Object property access ("/user/name")
-		 *          - Array element access ("/items/0")
-		 *          - Escaped characters ("/field~1with~0slash")
-		 *          - Root document access ("")
-		 */
-		std::optional<std::string> getStringByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Get integer value using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/age")
-		 * @return Optional integer value at the specified pointer, nullopt if not found or wrong type
-		 */
-		std::optional<int64_t> getIntByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Get double value using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/metrics/0/value")
-		 * @return Optional double value at the specified pointer, nullopt if not found or wrong type
-		 */
-		std::optional<double> getDoubleByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Get boolean value using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/settings/enabled")
-		 * @return Optional boolean value at the specified pointer, nullopt if not found or wrong type
-		 */
-		std::optional<bool> getBoolByPointer( std::string_view pointer ) const;
-
-		/**
-		 * @brief Get character value using JSON Pointer (from single-character string)
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/initial", "/data/0/grade")
-		 * @return Optional character value, nullopt if not found, wrong type, or string length != 1
-		 * @details Convenience method that extracts a character from a single-character string using JSON Pointer notation.
-		 */
-		std::optional<char> getCharByPointer( std::string_view pointer ) const;
-
-		//----------------------------------------------
-		// Value setting
-		//----------------------------------------------
-
-		/**
-		 * @brief Set string value at path
-		 * @param path The path where to set the string value
-		 * @param value The string value to set
-		 */
-		void setString( std::string_view path, std::string_view value );
-
-		/**
-		 * @brief Set integer value at path
-		 * @param path The path where to set the integer value
-		 * @param value The integer value to set
-		 */
-		void setInt( std::string_view path, int64_t value );
-
-		/**
-		 * @brief Set double value at path
-		 * @param path The path where to set the double value
-		 * @param value The double value to set
-		 */
-		void setDouble( std::string_view path, double value );
-
-		/**
-		 * @brief Set boolean value at path
-		 * @param path The path where to set the boolean value
-		 * @param value The boolean value to set
-		 */
-		void setBool( std::string_view path, bool value );
-
-		/**
-		 * @brief Set character value at path (stored as single-character string)
-		 * @param path The path where to set the character value
-		 * @param c The character to set
-		 * @details Convenience method that stores a character as a single-character string.
-		 *          JSON doesn't have a native character type, so characters are stored as strings.
-		 */
-		void setChar( std::string_view path, char c );
-
-		/**
-		 * @brief Set null value at path
-		 * @param path The path where to set null value
-		 */
-		void setNull( std::string_view path );
-
-		/**
-		 * @brief Set document (any JSON type) at path
-		 * @param path The path where to set the document
-		 * @param document The document to set (can be object, array, or primitive)
-		 * @details Generic setter that can handle any JSON structure.
-		 *          Use this for complex nested objects, arrays, or when maximum flexibility is needed.
-		 *          For simple primitives, the specialized setters may be more convenient.
-		 */
-		void setDocument( std::string_view path, const Document& document );
-
-		//----------------------------------------------
-		// JSON Pointer value setting (RFC 6901)
-		//----------------------------------------------
-
-		/**
-		 * @brief Set any document (array, object, or primitive) using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/profile")
-		 * @param document The document containing data to set
-		 * @details This is the generic method that handles all document types.
-		 *          Creates intermediate objects and arrays as needed based on pointer structure.
-		 */
-		void setDocumentByPointer( std::string_view pointer, const Document& document );
-
-		/**
-		 * @brief Set array document using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/hobbies")
-		 * @param arrayDocument The document containing array data to set
-		 * @details Convenience wrapper around setDocumentByPointer for semantic clarity.
-		 */
-		void setArrayByPointer( std::string_view pointer, const Document& arrayDocument );
-
-		/**
-		 * @brief Set object document using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/profile")
-		 * @param objectDocument The document containing object data to set
-		 * @details Convenience wrapper around setDocumentByPointer for semantic clarity.
-		 */
-		void setObjectByPointer( std::string_view pointer, const Document& objectDocument );
-
-		/**
-		 * @brief Set string value using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/name")
-		 * @param value The string value to set
-		 * @details Creates intermediate objects and arrays as needed based on pointer structure.
-		 *          Numeric tokens create arrays, non-numeric tokens create objects.
-		 */
-		void setStringByPointer( std::string_view pointer, std::string_view value );
-
-		/**
-		 * @brief Set integer value using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/users/0/age")
-		 * @param value The integer value to set
-		 */
-		void setIntByPointer( std::string_view pointer, int64_t value );
-
-		/**
-		 * @brief Set double value using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/metrics/0/value")
-		 * @param value The double value to set
-		 */
-		void setDoubleByPointer( std::string_view pointer, double value );
-
-		/**
-		 * @brief Set boolean value using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/settings/enabled")
-		 * @param value The boolean value to set
-		 */
-		void setBoolByPointer( std::string_view pointer, bool value );
-
-		/**
-		 * @brief Set character value using JSON Pointer (stored as single-character string)
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/user/initial", "/data/0/grade")
-		 * @param c The character to set
-		 * @details Convenience method that stores a character as a single-character string using JSON Pointer notation.
-		 */
-		void setCharByPointer( std::string_view pointer, char c );
-
-		/**
-		 * @brief Set null value using JSON Pointer
-		 * @param pointer RFC 6901 JSON Pointer (e.g., "/optional/field")
-		 */
-		void setNullByPointer( std::string_view pointer );
-
-		//----------------------------------------------
-		// Array operations
-		//----------------------------------------------
-
-		/**
-		 * @brief Get array size at path
-		 * @param path The path to the array
-		 * @return Size of the array at the specified path
-		 */
-		size_t getArraySize( std::string_view path ) const;
-
-		/**
-		 * @brief Add string value to array at path
-		 * @param path The path to the array
-		 * @param value The string value to add
-		 */
-		void addToArray( std::string_view path, std::string_view value );
-
-		/**
-		 * @brief Add C-string value to array at path
-		 * @param path The path to the array
-		 * @param value The C-string value to add
-		 */
-		void addToArray( std::string_view path, const char* value );
-
-		/**
-		 * @brief Add integer value to array at path
-		 * @param path The path to the array
-		 * @param value The integer value to add
-		 */
-		void addToArray( std::string_view path, int64_t value );
-
-		/**
-		 * @brief Add double value to array at path
-		 * @param path The path to the array
-		 * @param value The double value to add
-		 */
-		void addToArray( std::string_view path, double value );
-
-		/**
-		 * @brief Add boolean value to array at path
-		 * @param path The path to the array
-		 * @param value The boolean value to add
-		 */
-		void addToArray( std::string_view path, bool value );
-
-		/**
-		 * @brief Add character value to array at path
-		 * @param path The path to the array
-		 * @param c The character to add (stored as single-character string)
-		 * @details Convenience method that adds a character to an array as a single-character string.
-		 */
-		void addToArray( std::string_view path, char c );
-
-		/**
-		 * @brief Add document (any JSON type) to array at path
-		 * @param path The path to the array
-		 * @param document The document to add (can be object, array, or primitive)
-		 * @details Generic method that can add complex nested structures to arrays.
-		 *          Use this for objects, arrays, or when you need maximum flexibility.
-		 *          For simple primitives, the specialized overloads may be more convenient.
-		 */
-		void addToArray( std::string_view path, const Document& document );
-
-		/**
-		 * @brief Clear all elements from array at path
-		 * @param path The path to the array to clear
-		 */
-		void clearArray( std::string_view path );
-
-		/**
-		 * @brief Get string value from array element at index
-		 * @param path The path to the array
-		 * @param index The index of the element to get
-		 * @return Optional string value of the array element, nullopt if array not found, index out of bounds, or wrong type
-		 */
-		std::optional<std::string> getArrayElementString( std::string_view path, size_t index ) const;
-
-		/**
-		 * @brief Get integer value from array element at index
-		 * @param path The path to the array
-		 * @param index The index of the element to get
-		 * @return Optional integer value of the array element, nullopt if array not found, index out of bounds, or wrong type
-		 */
-		std::optional<int64_t> getArrayElementInt( std::string_view path, size_t index ) const;
-
-		/**
-		 * @brief Get double value from array element at index
-		 * @param path The path to the array
-		 * @param index The index of the element to get
-		 * @return Optional double value of the array element, nullopt if array not found, index out of bounds, or wrong type
-		 */
-		std::optional<double> getArrayElementDouble( std::string_view path, size_t index ) const;
-
-		/**
-		 * @brief Get boolean value from array element at index
-		 * @param path The path to the array
-		 * @param index The index of the element to get
-		 * @return Optional boolean value of the array element, nullopt if array not found, index out of bounds, or wrong type
-		 */
-		std::optional<bool> getArrayElementBool( std::string_view path, size_t index ) const;
-
-		/**
-		 * @brief Get character value from array element at index
-		 * @param path The path to the array
-		 * @param index The index of the element to get
-		 * @return Optional character value, nullopt if array not found, index out of bounds, wrong type, or string length != 1
-		 * @details Convenience method that extracts a character from an array element stored as a single-character string.
-		 */
-		std::optional<char> getArrayElementChar( std::string_view path, size_t index ) const;
-
-		//----------------------------------------------
-		// Advanced array and document operations
-		//----------------------------------------------
-
-		/**
-		 * @brief Check if path points to an array
-		 * @param path The path to check
-		 * @return True if path points to an array, false otherwise
-		 */
-		bool isArray( std::string_view path ) const;
-
-		/**
-		 * @brief Get array element document at index
-		 * @param path The path to the array
-		 * @param index The index of the element to get
-		 * @return Document representing the array element
-		 */
-		Document getArrayElement( std::string_view path, size_t index ) const;
-
-		/**
-		 * @brief Set entire array at path
-		 * @param path The path where to set the array
-		 * @param arrayDocument The document containing array data
-		 */
-		void setArray( std::string_view path, const Document& arrayDocument );
-
-		/**
-		 * @brief Add document to array (for array documents only)
-		 * @param document The document to add to this array
-		 */
-		void addDocument( const Document& document );
-
-		/**
-		 * @brief Get number of elements in array document (returns 0 for non-array documents)
-		 * @return Number of elements in the array document
-		 */
-		size_t size() const;
-
-		//----------------------------------------------
-		// Field operations
-		//----------------------------------------------
-
-		/**
-		 * @brief Remove field at specified path
-		 * @param path The path to the field to remove
-		 * @return True if field was found and removed, false otherwise
-		 */
-		bool removeField( std::string_view path );
+		bool hasValue( std::string_view path ) const;
 
 		//----------------------------------------------
 		// Merge / update operations
@@ -633,87 +165,827 @@ namespace nfx::serialization::json
 
 		/**
 		 * @brief Merge another document into this one
-		 * @param other The document to merge from
-		 * @param overwriteArrays If true, arrays will be replaced; if false, arrays will be merged
+		 * @param other Document to merge
+		 * @param overwriteArrays Whether to overwrite arrays or merge them
 		 */
 		void merge( const Document& other, bool overwriteArrays = true );
 
 		/**
-		 * @brief Update field at path with document value
-		 * @param path The path where to update the value
-		 * @param value The document value to set at the path
+		 * @brief Update value at specific path
+		 * @param path JSON Pointer path to update
+		 * @param value New value to set
 		 */
 		void update( std::string_view path, const Document& value );
+
+		//----------------------------------------------
+		// Value access
+		//----------------------------------------------
+
+		/**
+		 * @brief Get typed value at specified path
+		 * @tparam T Type to retrieve (string, int, double, bool, Document, Object, Array)
+		 * @param path JSON Pointer path to value
+		 * @return Optional containing value if exists and correct type, empty otherwise
+		 */
+		template <typename T>
+			requires(
+				std::is_same_v<std::decay_t<T>, std::string_view> ||
+				std::is_same_v<std::decay_t<T>, std::string> ||
+				std::is_same_v<std::decay_t<T>, char> ||
+				std::is_same_v<std::decay_t<T>, bool> ||
+				std::is_same_v<std::decay_t<T>, int32_t> ||
+				std::is_same_v<std::decay_t<T>, int64_t> ||
+				std::is_same_v<std::decay_t<T>, double> ||
+				std::is_same_v<std::decay_t<T>, Document> ||
+				std::is_same_v<std::decay_t<T>, Document::Object> ||
+				std::is_same_v<std::decay_t<T>, Document::Array> )
+		std::optional<T> get( std::string_view path ) const;
+
+		//----------------------------------------------
+		// Value modification
+		//----------------------------------------------
+
+		/**
+		 * @brief Set typed value at specified path (copy version)
+		 * @tparam T Type to set (string, int, double, bool, Document, Object, Array)
+		 * @param path JSON Pointer path where to set value
+		 * @param value Value to set (copied)
+		 */
+		template <typename T>
+			requires(
+				std::is_same_v<std::decay_t<T>, std::string_view> ||
+				std::is_same_v<std::decay_t<T>, std::string> ||
+				std::is_same_v<std::decay_t<T>, char> ||
+				std::is_same_v<std::decay_t<T>, bool> ||
+				std::is_same_v<std::decay_t<T>, int32_t> ||
+				std::is_same_v<std::decay_t<T>, int64_t> ||
+				std::is_same_v<std::decay_t<T>, double> ||
+				std::is_same_v<std::decay_t<T>, Document> ||
+				std::is_same_v<std::decay_t<T>, Document::Object> ||
+				std::is_same_v<std::decay_t<T>, Document::Array> )
+		void set( std::string_view path, const T& value );
+
+		/**
+		 * @brief Set typed value at specified path (move version)
+		 * @tparam T Type to set (string, int, double, bool, Document, Object, Array)
+		 * @param path JSON Pointer path where to set value
+		 * @param value Value to set (moved)
+		 */
+		template <typename T>
+			requires(
+				std::is_same_v<std::decay_t<T>, std::string_view> ||
+				std::is_same_v<std::decay_t<T>, std::string> ||
+				std::is_same_v<std::decay_t<T>, char> ||
+				std::is_same_v<std::decay_t<T>, bool> ||
+				std::is_same_v<std::decay_t<T>, int32_t> ||
+				std::is_same_v<std::decay_t<T>, int64_t> ||
+				std::is_same_v<std::decay_t<T>, double> ||
+				std::is_same_v<std::decay_t<T>, Document> ||
+				std::is_same_v<std::decay_t<T>, Document::Object> ||
+				std::is_same_v<std::decay_t<T>, Document::Array> )
+		void set( std::string_view path, T&& value );
+
+		//-----------------------------
+		// Type-only creation
+		//-----------------------------
+
+		/**
+		 * @brief Create empty container at specified path
+		 * @tparam T Container type (Document, Object, Array)
+		 * @param path JSON Pointer path where to create container
+		 */
+		template <typename T>
+			requires(
+				std::is_same_v<std::decay_t<T>, Document> ||
+				std::is_same_v<std::decay_t<T>, Document::Object> ||
+				std::is_same_v<std::decay_t<T>, Document::Array> )
+		void set( std::string_view path );
+
+		//-----------------------------
+		// Null operations
+		//-----------------------------
+
+		/**
+		 * @brief Set null value at specified path
+		 * @param path JSON Pointer path where to set null
+		 */
+		void setNull( std::string_view path );
 
 		//----------------------------------------------
 		// Type checking
 		//----------------------------------------------
 
 		/**
-		 * @brief Check if path points to a string value
-		 * @param path The path to check
-		 * @return True if path points to a string, false otherwise
+		 * @brief Check if value at path is of specified type
+		 * @tparam T Type to check for
+		 * @param path JSON Pointer path to check
+		 * @return true if value exists and is of type T, false otherwise
 		 */
-		bool isString( std::string_view path ) const;
+		template <typename T>
+			requires(
+				std::is_same_v<std::decay_t<T>, std::string_view> ||
+				std::is_same_v<std::decay_t<T>, std::string> ||
+				std::is_same_v<std::decay_t<T>, char> ||
+				std::is_same_v<std::decay_t<T>, bool> ||
+				std::is_same_v<std::decay_t<T>, int32_t> ||
+				std::is_same_v<std::decay_t<T>, int64_t> ||
+				std::is_same_v<std::decay_t<T>, double> ||
+				std::is_same_v<std::decay_t<T>, Document> ||
+				std::is_same_v<std::decay_t<T>, Document::Object> ||
+				std::is_same_v<std::decay_t<T>, Document::Array> )
+		bool is( std::string_view path ) const;
 
 		/**
-		 * @brief Check if path points to an integer value
-		 * @param path The path to check
-		 * @return True if path points to an integer, false otherwise
-		 */
-		bool isInt( std::string_view path ) const;
-
-		/**
-		 * @brief Check if path points to a double value
-		 * @param path The path to check
-		 * @return True if path points to a double, false otherwise
-		 */
-		bool isDouble( std::string_view path ) const;
-
-		/**
-		 * @brief Check if path points to a boolean value
-		 * @param path The path to check
-		 * @return True if path points to a boolean, false otherwise
-		 */
-		bool isBool( std::string_view path ) const;
-
-		/**
-		 * @brief Check if path points to a character value (single-character string)
-		 * @param path The path to check
-		 * @return True if path points to a single-character string, false otherwise
-		 * @details Convenience method that checks if a path contains a character (single-character string).
-		 */
-		bool isChar( std::string_view path ) const;
-
-		/**
-		 * @brief Check if path points to a null value
-		 * @param path The path to check
-		 * @return True if path points to null, false otherwise
+		 * @brief Check if value at path is null
+		 * @param path JSON Pointer path to check
+		 * @return true if value is null, false otherwise
 		 */
 		bool isNull( std::string_view path ) const;
-
-		/**
-		 * @brief Check if path points to an object
-		 * @param path The path to check
-		 * @return True if path points to an object, false otherwise
-		 */
-		bool isObject( std::string_view path ) const;
 
 		//----------------------------------------------
 		// Validation and error handling
 		//----------------------------------------------
 
 		/**
-		 * @brief Check if document is valid
-		 * @return True if document is valid, false otherwise
+		 * @brief Check if document is in valid state
+		 * @return true if document is valid, false otherwise
 		 */
 		bool isValid() const;
 
 		/**
-		 * @brief Get last error message from document operations
-		 * @return Error message string, empty if no errors occurred
+		 * @brief Get last error message
+		 * @return Error message string
 		 */
 		std::string lastError() const;
+
+		//----------------------------------------------
+		// Document::Object class
+		//----------------------------------------------
+
+		/**
+		 * @brief JSON object wrapper for Document
+		 * @details Provides type-safe access to JSON object fields with support for
+		 *          field access, modification, removal, and nested operations using JSON Pointer paths.
+		 */
+		class Object final
+		{
+			//----------------------------------------------
+			// Friends
+			//----------------------------------------------
+
+			friend class Document;
+			friend class Document::Array;
+			friend class Document_impl;
+
+			//-----------------------------
+			// Construction
+			//-----------------------------
+
+		private:
+			Object( Document* doc, std::string_view path );
+
+		public:
+			/**
+			 * @brief Default constructor - creates invalid object
+			 */
+			Object();
+			
+			/**
+			 * @brief Copy constructor
+			 * @param other Object to copy from
+			 */
+			Object( const Document::Object& other );
+			
+			/**
+			 * @brief Move constructor
+			 * @param other Object to move from
+			 */
+			Object( Document::Object&& other ) noexcept;
+
+			//-----------------------------
+			// Destruction
+			//-----------------------------
+
+			/** @brief Destructor */
+			~Object() = default;
+
+			//-----------------------------
+			// Assignment
+			//-----------------------------
+
+			/**
+			 * @brief Copy assignment operator
+			 * @param other Object to copy from
+			 * @return Reference to this object
+			 */
+			Document::Object& operator=( const Document::Object& other );
+			
+			/**
+			 * @brief Move assignment operator
+			 * @param other Object to move from
+			 * @return Reference to this object
+			 */
+			Document::Object& operator=( Document::Object&& other ) noexcept;
+
+			//-----------------------------
+			// Comparison
+			//-----------------------------
+
+			/**
+			 * @brief Equality comparison operator
+			 * @param other Object to compare with
+			 * @return true if objects are equal
+			 */
+			bool operator==( const Document::Object& other ) const;
+
+			/**
+			 * @brief Inequality comparison operator
+			 * @param other Object to compare with
+			 * @return true if objects are not equal
+			 */
+			bool operator!=( const Document::Object& other ) const;
+
+			//-----------------------------
+			// Output
+			//-----------------------------
+
+			/**
+			 * @brief Convert object to JSON string
+			 * @param indent Indentation level
+			 * @return JSON string representation
+			 */
+			std::string toJsonString( int indent = 0 ) const;
+
+			/**
+			 * @brief Convert object to JSON bytes
+			 * @return JSON byte representation
+			 */
+			std::vector<uint8_t> toJsonBytes() const;
+
+			//-----------------------------
+			// Field inspection
+			//-----------------------------
+
+			/**
+			 * @brief Check if field exists
+			 * @param key Field name to check
+			 * @return true if field exists
+			 */
+			bool hasField( std::string_view key ) const;
+
+			//-----------------------------
+			// Size
+			//-----------------------------
+
+			/**
+			 * @brief Get number of fields in object
+			 * @return Number of key-value pairs
+			 */
+			size_t size() const;
+
+			//-----------------------------
+			// Clearing
+			//-----------------------------
+
+			/**
+			 * @brief Clear all fields from object
+			 */
+			void clear();
+
+			//-----------------------------
+			// Field removal
+			//-----------------------------
+
+			/**
+			 * @brief Remove field from object
+			 * @param key Field name to remove
+			 * @return true if field was removed
+			 */
+			bool removeField( std::string_view key );
+
+			//-----------------------------
+			// Field access
+			//-----------------------------
+
+			/**
+			 * @brief Get field value by key
+			 * @tparam T Type to retrieve
+			 * @param path Field key or nested path
+			 * @return Optional containing field value if exists and correct type
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			std::optional<T> get( std::string_view path ) const;
+
+			//-----------------------------
+			// Field modification
+			//-----------------------------
+
+			/**
+			 * @brief Set field value (copy version)
+			 * @tparam T Type to set
+			 * @param path Field key or nested path
+			 * @param value Value to copy and set
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			void set( std::string_view path, const T& value );
+
+			/**
+			 * @brief Set field value (move version)
+			 * @tparam T Type to set
+			 * @param path Field key or nested path
+			 * @param value Value to move and set
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			void set( std::string_view path, T&& value );
+
+			//-----------------------------
+			// Validation and error handling
+			//-----------------------------
+
+			/**
+			 * @brief Check if object is valid
+			 * @return true if object is valid and accessible
+			 */
+			bool isValid() const;
+
+			/**
+			 * @brief Get last error message
+			 * @return String describing the last error
+			 */
+			std::string lastError() const;
+
+		private:
+			//----------------------------------------------
+			// Private data members
+			//----------------------------------------------
+
+			Document* m_doc;	///< Pointer to the original document
+			std::string m_path; ///< Path to the object within the document
+		};
+
+		//----------------------------------------------
+		// Document::Array class
+		//----------------------------------------------
+
+		/**
+		 * @brief JSON array wrapper for Document
+		 * @details Provides type-safe access to JSON array elements with support for
+		 *          indexed access, element addition/insertion/removal, and nested operations.
+		 */
+		class Array final
+		{
+			//-----------------------------
+			// Friends
+			//-----------------------------
+
+			friend class Document;
+			friend class Document::Object;
+			friend class Document_impl;
+
+			//-----------------------------
+			// Construction
+			//-----------------------------
+
+		private:
+			Array( Document* doc, std::string_view path );
+
+		public:
+			/**
+			 * @brief Default constructor - creates empty array
+			 */
+			Array();
+
+			/**
+			 * @brief Copy constructor
+			 * @param other Array to copy from
+			 */
+			Array( const Document::Array& other );
+
+			/**
+			 * @brief Move constructor
+			 * @param other Array to move from
+			 */
+			Array( Document::Array&& other ) noexcept;
+
+			//-----------------------------
+			// Destruction
+			//-----------------------------
+
+			/** @brief Destructor */
+			~Array() = default;
+
+			//-----------------------------
+			// Assignment
+			//-----------------------------
+
+			/**
+			 * @brief Copy assignment operator
+			 * @param other Array to copy from
+			 * @return Reference to this array
+			 */
+			Document::Array& operator=( const Document::Array& other );
+
+			/**
+			 * @brief Move assignment operator
+			 * @param other Array to move from
+			 * @return Reference to this array
+			 */
+			Document::Array& operator=( Document::Array&& other ) noexcept;
+
+			//-----------------------------
+			// Comparison
+			//-----------------------------
+
+			/**
+			 * @brief Equality comparison
+			 * @param other Array to compare with
+			 * @return true if arrays are equal
+			 */
+			bool operator==( const Document::Array& other ) const;
+
+			/**
+			 * @brief Inequality comparison
+			 * @param other Array to compare with
+			 * @return true if arrays are not equal
+			 */
+			bool operator!=( const Document::Array& other ) const;
+
+			//-----------------------------
+			// Output
+			//-----------------------------
+
+			/**
+			 * @brief Convert array to JSON string
+			 * @param indent Indentation level
+			 * @return JSON string representation
+			 */
+			std::string toJsonString( int indent = 0 ) const;
+
+			/**
+			 * @brief Convert array to JSON bytes
+			 * @return JSON byte representation
+			 */
+			std::vector<uint8_t> toJsonBytes() const;
+
+			//-----------------------------
+			// Element inspection
+			//-----------------------------
+
+			/**
+			 * @brief Check if element exists at path
+			 * @param path JSON pointer path
+			 * @return true if element exists
+			 */
+			bool hasElement( std::string_view path ) const;
+
+			//-----------------------------
+			// Size
+			//-----------------------------
+
+			/**
+			 * @brief Get number of elements in array
+			 * @return Size of array
+			 */
+			size_t size() const;
+
+			//-----------------------------
+			// Clearing
+			//-----------------------------
+
+			/**
+			 * @brief Clear all elements from array
+			 */
+			void clear();
+
+			//-----------------------------
+			// Element removal
+			//-----------------------------
+
+			/**
+			 * @brief Remove element at index
+			 * @param index Array index
+			 * @return true if element was removed
+			 */
+			bool remove( size_t index );
+
+			//-----------------------------
+			// Element access
+			//-----------------------------
+
+			/**
+			 * @brief Get element at index
+			 * @tparam T Type to retrieve
+			 * @param index Array index
+			 * @return Optional containing element if exists and correct type
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			std::optional<T> get( size_t index ) const;
+
+			//-----------------------------
+			// Nested element access
+			//-----------------------------
+
+			/**
+			 * @brief Get nested element at path
+			 * @tparam T Type to retrieve
+			 * @param path JSON pointer path
+			 * @return Optional containing element if exists and correct type
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			std::optional<T> get( std::string_view path ) const;
+
+			//-----------------------------
+			// Element modification
+			//-----------------------------
+
+			/**
+			 * @brief Set element at index (copy version)
+			 * @tparam T Type to set
+			 * @param index Array index
+			 * @param value Value to copy
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			void set( size_t index, const T& value );
+
+			/**
+			 * @brief Set element at index (move version)
+			 * @tparam T Type to set
+			 * @param index Array index
+			 * @param value Value to move
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			void set( size_t index, T&& value );
+
+			//-----------------------------
+			// Nested element modification
+			//-----------------------------
+
+			/**
+			 * @brief Set nested element at path (copy version)
+			 * @tparam T Type to set
+			 * @param path JSON pointer path
+			 * @param value Value to copy
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			void set( std::string_view path, const T& value );
+
+			/**
+			 * @brief Set nested element at path (move version)
+			 * @tparam T Type to set
+			 * @param path JSON pointer path
+			 * @param value Value to move
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			void set( std::string_view path, T&& value );
+
+			//-----------------------------
+			// Element addition
+			//-----------------------------
+
+			/**
+			 * @brief Add element to end of array (copy version)
+			 * @tparam T Type to add
+			 * @param value Value to copy and add
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			void add( const T& value );
+
+			/**
+			 * @brief Add element to end of array (move version)
+			 * @tparam T Type to add
+			 * @param value Value to move and add
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			void add( T&& value );
+
+			/**
+			 * @brief Add Document to end of array (reference version)
+			 * @param value Document reference to add
+			 */
+			void add( Document& value );
+
+			/**
+			 * @brief Add Array to end of array (reference version)
+			 * @param value Array reference to add
+			 */
+			void add( Document::Array& value );
+
+			/**
+			 * @brief Add Object to end of array (reference version)
+			 * @param value Object reference to add
+			 */
+			void add( Document::Object& value );
+
+			//-----------------------------
+			// Element insertion
+			//-----------------------------
+
+			/**
+			 * @brief Insert element at index (copy version)
+			 * @tparam T Type to insert
+			 * @param index Position to insert at
+			 * @param value Value to copy and insert
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			void insert( size_t index, const T& value );
+
+			/**
+			 * @brief Insert element at index (move version)
+			 * @tparam T Type to insert
+			 * @param index Position to insert at
+			 * @param value Value to move and insert
+			 */
+			template <typename T>
+				requires(
+					std::is_same_v<std::decay_t<T>, std::string_view> ||
+					std::is_same_v<std::decay_t<T>, std::string> ||
+					std::is_same_v<std::decay_t<T>, char> ||
+					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int32_t> ||
+					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, double> ||
+					std::is_same_v<std::decay_t<T>, Document> ||
+					std::is_same_v<std::decay_t<T>, Document::Object> ||
+					std::is_same_v<std::decay_t<T>, Document::Array> )
+			void insert( size_t index, T&& value );
+
+			/**
+			 * @brief Insert Document at index (reference version)
+			 * @param index Position to insert at
+			 * @param value Document reference to insert
+			 */
+			void insert( size_t index, Document& value );
+			
+			/**
+			 * @brief Insert Array at index (reference version)
+			 * @param index Position to insert at
+			 * @param value Array reference to insert
+			 */
+			void insert( size_t index, Document::Array& value );
+			
+			/**
+			 * @brief Insert Object at index (reference version)
+			 * @param index Position to insert at
+			 * @param value Object reference to insert
+			 */
+			void insert( size_t index, Document::Object& value );
+
+			//-----------------------------
+			// Validation and error handling
+			//-----------------------------
+
+			/**
+			 * @brief Check if array is valid
+			 * @return true if array is valid and accessible
+			 */
+			bool isValid() const;
+
+			/**
+			 * @brief Get last error message
+			 * @return String describing the last error
+			 */
+			std::string lastError() const;
+
+		private:
+			//-----------------------------
+			// Private data members
+			//-----------------------------
+
+			Document* m_doc;	///< Pointer to the original document
+			std::string m_path; ///< Path to the array within the document
+		};
 
 	private:
 		//----------------------------------------------

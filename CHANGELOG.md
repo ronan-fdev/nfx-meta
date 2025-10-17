@@ -31,6 +31,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.4.0] - 2025-10-17
+
+> **WORK IN PROGRESS**: This release introduces a major API modernization that is still undergoing refinement, stabilization, and documentation updates.
+
+### Changed
+
+#### JSON Document API Modernization (Breaking Change)
+
+- **Unified Template API**: Complete replacement of individual typed methods with generic template interface
+
+  - **Before**: `getString(path)`, `setInt(path, value)`, `addToArray(path, value)`, `hasStringByPointer(pointer)`
+  - **After**: `get<std::string>(path)`, `set<int>(path, value)`, `array.add(value)`, `is<std::string>(path)`
+  - **Benefits**: Type safety, reduced API surface, better performance through dual overload pattern
+
+- **Dual Overload Pattern**: Optimal performance with both copy and move semantics
+
+  - **Copy Semantics**: `set<T>(path, const T& value)` for lvalue references and const objects
+  - **Move Semantics**: `set<T>(path, T&& value)` for temporaries and moved objects
+  - **Performance**: Automatic selection of optimal operation based on value category
+
+- **Document::Array and Document::Object Classes**: New nested classes for improved type safety
+  - **Array Operations**: `array.add<T>(value)`, `array.set<T>(index, value)`, `array.get<T>(index)`
+  - **Object Operations**: `object.set<T>(key, value)`, `object.get<T>(key)`, `object.hasField(key)`
+  - **Fluent Interface**: Direct manipulation of nested structures without path navigation
+
+#### C++20 Template Constraints
+
+- **Concepts Integration**: Template methods now use `requires` clauses for better compile-time validation
+  - **Supported Types**: `std::string`, `std::string_view`, `char`, `bool`, `int`, `int32_t`, `int64_t`, `double`, `Document`, `Document::Object`, `Document::Array`
+  - **Compile-Time Safety**: Invalid type usage caught at compilation with clear error messages
+
+#### API Simplification
+
+- **Factory Method Removal**: Eliminated verbose factory methods in favor of template-based creation
+  - **Removed**: `Document::createObject()`, `Document::createArray()`
+  - **Replaced**: `doc.set<Document::Object>(path)`, `doc.set<Document::Array>(path)`
+  - **Benefits**: Consistent API patterns, reduced cognitive load
+
+#### Serializer Framework Updates
+
+- **Template API Adoption**: Updated `Serializer<T>` implementation to use new unified template interface
+  - **Internal Changes**: All `setBoolByPointer`, `hasStringByPointer` calls replaced with `set<bool>`, `is<std::string>`
+  - **Backward Compatibility**: Public `Serializer<T>` API remains unchanged
+  - **Performance**: Benefits from improved dual overload architecture in Document layer
+
 ## [0.3.5] - 2025-10-12
 
 ### Changed

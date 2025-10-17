@@ -99,19 +99,22 @@ namespace nfx::serialization::json
 	void SchemaValidator_impl::validateNode( const Document& document, const Document& schema, std::string_view path, ValidationResult& result ) const
 	{
 		// Handle $ref references
-		if ( schema.hasField( "$ref" ) )
+		if ( schema.hasValue( "$ref" ) )
 		{
-			std::string ref = schema.getString( "$ref" ).value_or( "" );
-			Document resolvedSchema = resolveReference( ref );
-			if ( resolvedSchema.isValid() )
+			auto refOpt = schema.get<std::string>( "$ref" );
+			if ( refOpt.has_value() )
 			{
-				validateNode( document, resolvedSchema, path, result );
-				return;
-			}
-			else
-			{
-				result.addError( path, "Could not resolve reference: " + ref, "$ref", ref, "unresolved" );
-				return;
+				Document resolvedSchema = resolveReference( refOpt.value() );
+				if ( resolvedSchema.isValid() )
+				{
+					validateNode( document, resolvedSchema, path, result );
+					return;
+				}
+				else
+				{
+					result.addError( path, "Could not resolve reference: " + refOpt.value(), "$ref", refOpt.value(), "unresolved" );
+					return;
+				}
 			}
 		}
 
@@ -119,7 +122,7 @@ namespace nfx::serialization::json
 		validateType( document, schema, path, result );
 
 		// Validate based on type
-		std::string expectedType = schema.getString( "type" ).value_or( "" );
+		auto expectedType = schema.get<std::string>( "type" );
 
 		if ( expectedType == "object" )
 		{
@@ -142,37 +145,37 @@ namespace nfx::serialization::json
 
 	void SchemaValidator_impl::validateType( const Document& document, const Document& schema, std::string_view path, ValidationResult& result ) const
 	{
-		if ( !schema.hasField( "type" ) )
+		if ( !schema.hasValue( "type" ) )
 		{
 			return; // No type constraint
 		}
 
-		std::string expectedType = schema.getString( "type" ).value_or( "" );
+		auto expectedType = schema.get<std::string>( "type" ).value_or( "" );
 		std::string type = actualType( document, path );
 
 		bool typeMatches = false;
 
-		if ( expectedType == "object" && document.isObject( path ) )
+		if ( expectedType == "object" && document.is<Document::Object>( path ) )
 		{
 			typeMatches = true;
 		}
-		else if ( expectedType == "array" && document.isArray( path ) )
+		else if ( expectedType == "array" && document.is<Document::Array>( path ) )
 		{
 			typeMatches = true;
 		}
-		else if ( expectedType == "string" && document.isString( path ) )
+		else if ( expectedType == "string" && document.is<std::string>( path ) )
 		{
 			typeMatches = true;
 		}
-		else if ( expectedType == "number" && ( document.isDouble( path ) || document.isInt( path ) ) )
+		else if ( expectedType == "number" && ( document.is<double>( path ) || document.is<int>( path ) ) )
 		{
 			typeMatches = true;
 		}
-		else if ( expectedType == "integer" && document.isInt( path ) )
+		else if ( expectedType == "integer" && document.is<int>( path ) )
 		{
 			typeMatches = true;
 		}
-		else if ( expectedType == "boolean" && document.isBool( path ) )
+		else if ( expectedType == "boolean" && document.is<bool>( path ) )
 		{
 			typeMatches = true;
 		}
@@ -189,22 +192,29 @@ namespace nfx::serialization::json
 
 	void SchemaValidator_impl::validateRequired( const Document& document, const Document& schema, std::string_view path, ValidationResult& result ) const
 	{
-		if ( !schema.hasField( "required" ) )
+		if ( !schema.hasValue( "required" ) )
 		{
 			return; // No required fields
 		}
 
-		size_t requiredCount = schema.getArraySize( "required" );
+		auto requiredArray = schema.get<Document::Array>( "required" );
+		if ( !requiredArray.has_value() )
+		{
+			return;
+		}
+
+		size_t requiredCount = requiredArray.value().size();
 		for ( size_t i = 0; i < requiredCount; ++i )
 		{
-			auto requiredField = schema.getArrayElementString( "required", i );
-			if ( requiredField.has_value() )
+			auto arrayElementOpt = requiredArray.value().get<std::string>( i );
+			if ( arrayElementOpt.has_value() )
 			{
-				std::string fieldPath = path.empty() ? requiredField.value() : std::string{ path } + "." + requiredField.value();
+				std::string requiredField = arrayElementOpt.value();
+				std::string fieldPath = path.empty() ? requiredField : std::string{ path } + "." + requiredField;
 
-				if ( !document.hasField( fieldPath ) )
+				if ( !document.hasValue( fieldPath ) )
 				{
-					result.addError( fieldPath, "Required field missing", "required", requiredField.value(), "undefined" );
+					result.addError( fieldPath, "Required field missing", "required", requiredField, "undefined" );
 				}
 			}
 		}
@@ -212,7 +222,7 @@ namespace nfx::serialization::json
 
 	void SchemaValidator_impl::validateProperties( const Document& document, const Document& schema, std::string_view path, ValidationResult& result ) const
 	{
-		if ( !schema.hasField( "properties" ) )
+		if ( !schema.hasValue( "properties" ) )
 		{
 			return; // No properties defined
 		}
@@ -234,7 +244,7 @@ namespace nfx::serialization::json
 			std::string propertyPath = path.empty() ? propertyName : std::string{ path } + "." + propertyName;
 
 			// Check if the property exists in the document
-			if ( document.hasField( propertyPath ) )
+			if ( document.hasValue( propertyPath ) )
 			{
 				// Validate the property against its schema
 				validateNode( document, propertySchema, propertyPath, result );
@@ -248,9 +258,9 @@ namespace nfx::serialization::json
 		}
 
 		// Check additionalProperties constraint
-		if ( schema.hasField( "additionalProperties" ) )
+		if ( schema.hasValue( "additionalProperties" ) && schema.is<bool>( "additionalProperties" ) )
 		{
-			auto additionalProps = schema.getBool( "additionalProperties" );
+			auto additionalProps = schema.get<bool>( "additionalProperties" );
 			if ( additionalProps.has_value() && !additionalProps.value() )
 			{
 				// additionalProperties: false - strict validation
@@ -262,46 +272,62 @@ namespace nfx::serialization::json
 
 	void SchemaValidator_impl::validateArray( const Document& document, const Document& schema, std::string_view path, ValidationResult& result ) const
 	{
-		if ( !document.isArray( path ) )
+		if ( !document.is<Document::Array>( path ) )
 		{
 			return; // Not an array, type validation will catch this
 		}
 
-		size_t arraySize = document.getArraySize( path );
+		auto documentArray = document.get<Document::Array>( path );
+		if ( !documentArray.has_value() )
+		{
+			return;
+		}
+		size_t arraySize = documentArray.value().size();
 
 		// Validate minItems
-		if ( schema.hasField( "minItems" ) )
+		if ( schema.hasValue( "minItems" ) && schema.is<int>( "minItems" ) )
 		{
-			auto minItems = schema.getInt( "minItems" );
-			if ( minItems.has_value() && arraySize < static_cast<size_t>( minItems.value() ) )
+			auto minItemsOpt = schema.get<int64_t>( "minItems" );
+			if ( minItemsOpt.has_value() )
 			{
-				result.addError( path, "Array has too few items", "minItems",
-					std::to_string( minItems.value() ), std::to_string( arraySize ) );
+				int64_t minItems = minItemsOpt.value();
+				if ( minItems > 0 && arraySize < static_cast<size_t>( minItems ) )
+				{
+					result.addError( path, "Array has too few items", "minItems",
+						std::to_string( minItems ), std::to_string( arraySize ) );
+				}
 			}
 		}
 
 		// Validate maxItems
-		if ( schema.hasField( "maxItems" ) )
+		if ( schema.hasValue( "maxItems" ) && schema.is<int>( "maxItems" ) )
 		{
-			auto maxItems = schema.getInt( "maxItems" );
-			if ( maxItems.has_value() && arraySize > static_cast<size_t>( maxItems.value() ) )
+			auto maxItemsOpt = schema.get<int64_t>( "maxItems" );
+			if ( maxItemsOpt.has_value() )
 			{
-				result.addError( path, "Array has too many items", "maxItems",
-					std::to_string( maxItems.value() ), std::to_string( arraySize ) );
+				int64_t maxItems = maxItemsOpt.value();
+				if ( maxItems > 0 && arraySize > static_cast<size_t>( maxItems ) )
+				{
+					result.addError( path, "Array has too many items", "maxItems",
+						std::to_string( maxItems ), std::to_string( arraySize ) );
+				}
 			}
 		}
 
 		// Validate items
-		if ( schema.hasField( "items" ) )
+		if ( schema.hasValue( "items" ) )
 		{
 			// Extract the items schema definition
 			Document itemsSchema = extractSubDocument( schema, "items" );
 
 			// If items schema has a $ref, resolve it
-			if ( itemsSchema.hasField( "$ref" ) )
+			if ( itemsSchema.hasValue( "$ref" ) )
 			{
-				std::string itemsRef = itemsSchema.getString( "$ref" ).value_or( "" );
-				itemsSchema = resolveReference( itemsRef );
+				auto itemsRef = itemsSchema.get<std::string>( "$ref" );
+				if ( itemsRef.has_value() )
+				{
+					itemsSchema = resolveReference( itemsRef.value() );
+				}
 			}
 
 			for ( size_t i = 0; i < arraySize; ++i )
@@ -317,17 +343,17 @@ namespace nfx::serialization::json
 	{
 		// Get the numeric value
 		std::optional<double> value;
-		if ( document.isInt( path ) )
+		if ( document.is<int>( path ) )
 		{
-			auto intVal = document.getInt( path );
+			auto intVal = document.get<int64_t>( path );
 			if ( intVal.has_value() )
 			{
 				value = static_cast<double>( intVal.value() );
 			}
 		}
-		else if ( document.isDouble( path ) )
+		else if ( document.is<double>( path ) )
 		{
-			value = document.getDouble( path );
+			value = document.get<double>( path );
 		}
 
 		if ( !value.has_value() )
@@ -336,64 +362,104 @@ namespace nfx::serialization::json
 		}
 
 		// Validate minimum
-		if ( schema.hasField( "minimum" ) )
+		if ( schema.hasValue( "minimum" ) && ( schema.is<double>( "minimum" ) || schema.is<int>( "minimum" ) ) )
 		{
-			auto minimum = schema.getDouble( "minimum" );
-			if ( minimum.has_value() && value.value() < minimum.value() )
+			double minimum;
+			if ( schema.is<double>( "minimum" ) )
+			{
+				auto minOpt = schema.get<double>( "minimum" );
+				if ( !minOpt.has_value() )
+					return;
+				minimum = minOpt.value();
+			}
+			else
+			{
+				auto minOpt = schema.get<int64_t>( "minimum" );
+				if ( !minOpt.has_value() )
+					return;
+				minimum = static_cast<double>( minOpt.value() );
+			}
+			if ( value.value() < minimum )
 			{
 				result.addError( path, "Value below minimum", "minimum",
-					std::to_string( minimum.value() ), std::to_string( value.value() ) );
+					std::to_string( minimum ), std::to_string( value.value() ) );
 			}
 		}
 
 		// Validate maximum
-		if ( schema.hasField( "maximum" ) )
+		if ( schema.hasValue( "maximum" ) && ( schema.is<double>( "maximum" ) || schema.is<int>( "maximum" ) ) )
 		{
-			auto maximum = schema.getDouble( "maximum" );
-			if ( maximum.has_value() && value.value() > maximum.value() )
+			double maximum;
+			if ( schema.is<double>( "maximum" ) )
+			{
+				auto maxOpt = schema.get<double>( "maximum" );
+				if ( !maxOpt.has_value() )
+					return;
+				maximum = maxOpt.value();
+			}
+			else
+			{
+				auto maxOpt = schema.get<int64_t>( "maximum" );
+				if ( !maxOpt.has_value() )
+					return;
+				maximum = static_cast<double>( maxOpt.value() );
+			}
+			if ( value.value() > maximum )
 			{
 				result.addError( path, "Value above maximum", "maximum",
-					std::to_string( maximum.value() ), std::to_string( value.value() ) );
+					std::to_string( maximum ), std::to_string( value.value() ) );
 			}
 		}
 	}
 
 	void SchemaValidator_impl::validateStringConstraints( const Document& document, const Document& schema, std::string_view path, ValidationResult& result ) const
 	{
-		auto stringValue = document.getString( path );
-		if ( !stringValue.has_value() )
+		if ( !document.is<std::string>( path ) )
 		{
 			return; // Not a string
 		}
 
-		const std::string& value = stringValue.value();
+		auto valueOpt = document.get<std::string>( path );
+		if ( !valueOpt.has_value() )
+		{
+			return; // No value
+		}
+		const std::string& value = valueOpt.value();
 
 		// Validate minLength
-		if ( schema.hasField( "minLength" ) )
+		if ( schema.hasValue( "minLength" ) && schema.is<int>( "minLength" ) )
 		{
-			auto minLength = schema.getInt( "minLength" );
-			if ( minLength.has_value() && value.length() < static_cast<size_t>( minLength.value() ) )
+			auto minLengthOpt = schema.get<int64_t>( "minLength" );
+			if ( minLengthOpt.has_value() )
 			{
-				result.addError( path, "String too short", "minLength",
-					std::to_string( minLength.value() ), std::to_string( value.length() ) );
+				int64_t minLength = minLengthOpt.value();
+				if ( minLength > 0 && value.length() < static_cast<size_t>( minLength ) )
+				{
+					result.addError( path, "String too short", "minLength",
+						std::to_string( minLength ), std::to_string( value.length() ) );
+				}
 			}
 		}
 
 		// Validate maxLength
-		if ( schema.hasField( "maxLength" ) )
+		if ( schema.hasValue( "maxLength" ) && schema.is<int>( "maxLength" ) )
 		{
-			auto maxLength = schema.getInt( "maxLength" );
-			if ( maxLength.has_value() && value.length() > static_cast<size_t>( maxLength.value() ) )
+			auto maxLengthOpt = schema.get<int64_t>( "maxLength" );
+			if ( maxLengthOpt.has_value() )
 			{
-				result.addError( path, "String too long", "maxLength",
-					std::to_string( maxLength.value() ), std::to_string( value.length() ) );
+				int64_t maxLength = maxLengthOpt.value();
+				if ( maxLength > 0 && value.length() > static_cast<size_t>( maxLength ) )
+				{
+					result.addError( path, "String too long", "maxLength",
+						std::to_string( maxLength ), std::to_string( value.length() ) );
+				}
 			}
 		}
 
 		// Validate format (basic implementation)
-		if ( schema.hasField( "format" ) )
+		if ( schema.hasValue( "format" ) )
 		{
-			std::string format = schema.getString( "format" ).value_or( "" );
+			auto format = schema.get<std::string>( "format" );
 			if ( format == "date-time" )
 			{
 				// Basic ISO 8601 format check - very simplified
@@ -417,7 +483,7 @@ namespace nfx::serialization::json
 		{
 			std::string_view defName = reference.substr( 14 ); // Skip "#/definitions/"
 			std::string defPath = "definitions." + std::string{ defName };
-			return m_schema ? m_schema->hasField( defPath ) : false;
+			return m_schema ? m_schema->hasValue( defPath ) : false;
 		}
 
 		// Handle other JSON Pointer references like "#/properties/someProperty"
@@ -426,7 +492,7 @@ namespace nfx::serialization::json
 			std::string_view jsonPointerPath = reference.substr( 2 ); // Remove "#/"
 			// Convert JSON Pointer path to dot notation
 			std::string dotPath = convertJsonPointerToDotPath( jsonPointerPath );
-			return m_schema ? m_schema->hasField( dotPath ) : false;
+			return m_schema ? m_schema->hasValue( dotPath ) : false;
 		}
 
 		return false; // Reference not found
@@ -445,7 +511,7 @@ namespace nfx::serialization::json
 			std::string_view defName = reference.substr( 14 ); // Skip "#/definitions/"
 			std::string defPath = "definitions." + std::string{ defName };
 
-			if ( m_schema && m_schema->hasField( defPath ) )
+			if ( m_schema && m_schema->hasValue( defPath ) )
 			{
 				// Extract the sub-document from the definitions section
 				return extractSubDocument( *m_schema, defPath );
@@ -459,7 +525,7 @@ namespace nfx::serialization::json
 			// Convert JSON Pointer path to dot notation
 			std::string dotPath = convertJsonPointerToDotPath( jsonPointerPath );
 
-			if ( m_schema && m_schema->hasField( dotPath ) )
+			if ( m_schema && m_schema->hasValue( dotPath ) )
 			{
 				return extractSubDocument( *m_schema, dotPath );
 			}
@@ -470,27 +536,27 @@ namespace nfx::serialization::json
 
 	std::string SchemaValidator_impl::actualType( const Document& document, std::string_view path ) const noexcept
 	{
-		if ( document.isObject( path ) )
+		if ( document.is<Document::Object>( path ) )
 		{
 			return "object";
 		}
-		if ( document.isArray( path ) )
+		if ( document.is<Document::Array>( path ) )
 		{
 			return "array";
 		}
-		if ( document.isString( path ) )
+		if ( document.is<std::string>( path ) )
 		{
 			return "string";
 		}
-		if ( document.isInt( path ) )
+		if ( document.is<int>( path ) )
 		{
 			return "integer";
 		}
-		if ( document.isDouble( path ) )
+		if ( document.is<double>( path ) )
 		{
 			return "number";
 		}
-		if ( document.isBool( path ) )
+		if ( document.is<bool>( path ) )
 		{
 			return "boolean";
 		}
@@ -547,16 +613,16 @@ namespace nfx::serialization::json
 		// TODO: Optimize by directly extracting JSON subtree instead of manual field copying
 
 		// Check if the path exists
-		if ( !document.hasField( path ) )
+		if ( !document.hasValue( path ) )
 		{
 			return Document(); // Empty document if path not found
 		}
 
 		// Create a new document and try to extract the value at the path
-		Document result = Document::createObject();
+		Document result;
 
 		// Try different types to copy the value
-		if ( document.isObject( path ) )
+		if ( document.is<Document::Object>( path ) )
 		{
 			// For objects, we need to copy the entire sub-object
 			// We'll navigate using FieldEnumerator to copy all fields
@@ -572,39 +638,39 @@ namespace nfx::serialization::json
 					Document value = enumerator.currentValue();
 
 					// Copy the value based on its type
-					if ( value.isString( "" ) )
+					if ( value.is<std::string>( "" ) )
 					{
-						auto str = value.getString( "" );
-						if ( str.has_value() )
+						auto str = value.get<std::string>( "" );
+						if ( str.has_value() && !str.value().empty() )
 						{
-							result.setString( key, str.value() );
+							result.set<std::string>( key, str.value() );
 						}
 					}
-					else if ( value.isInt( "" ) )
+					else if ( value.is<int>( "" ) )
 					{
-						auto intVal = value.getInt( "" );
+						auto intVal = value.get<int64_t>( "" );
 						if ( intVal.has_value() )
 						{
-							result.setInt( key, intVal.value() );
+							result.set<int64_t>( key, intVal.value() );
 						}
 					}
-					else if ( value.isDouble( "" ) )
+					else if ( value.is<double>( "" ) )
 					{
-						auto doubleVal = value.getDouble( "" );
+						auto doubleVal = value.get<double>( "" );
 						if ( doubleVal.has_value() )
 						{
-							result.setDouble( key, doubleVal.value() );
+							result.set<double>( key, doubleVal.value() );
 						}
 					}
-					else if ( value.isBool( "" ) )
+					else if ( value.is<bool>( "" ) )
 					{
-						auto boolVal = value.getBool( "" );
+						auto boolVal = value.get<bool>( "" );
 						if ( boolVal.has_value() )
 						{
-							result.setBool( key, boolVal.value() );
+							result.set<bool>( key, boolVal.value() );
 						}
 					}
-					else if ( value.isObject( "" ) || value.isArray( "" ) )
+					else if ( value.is<Document::Object>( "" ) || value.is<Document::Array>( "" ) )
 					{
 						// For complex objects/arrays, copy as sub-document
 						result.update( key, value );
@@ -617,23 +683,31 @@ namespace nfx::serialization::json
 				}
 			}
 		}
-		else if ( document.isArray( path ) )
+		else if ( document.is<Document::Array>( path ) )
 		{
-			// TODO: Consider if array document creation is the most efficient approach
-			result = Document::createArray();
-			size_t arraySize = document.getArraySize( path );
-
-			for ( size_t i = 0; i < arraySize; ++i )
+			auto documentArray = document.get<Document::Array>( path );
+			if ( documentArray.has_value() )
 			{
-				Document arrayElement = document.getArrayElement( path, i );
-				result.addDocument( arrayElement );
+				size_t arraySize = documentArray.value().size();
+				auto resultArray = result.get<Document::Array>( "" );
+				if ( resultArray.has_value() )
+				{
+					for ( size_t i = 0; i < arraySize; ++i )
+					{
+						auto arrayElementOpt = documentArray.value().get<Document>( i );
+						if ( arrayElementOpt.has_value() )
+						{
+							resultArray.value().add<Document>( arrayElementOpt.value() );
+						}
+					}
+				}
 			}
 		}
 		else
 		{
 			// For primitive values, we can't really return a sub-document
 			// This shouldn't happen in schema resolution context
-			return Document();
+			return Document{};
 		}
 
 		return result;
@@ -723,7 +797,7 @@ namespace nfx::serialization::json
 		{
 			// Direct property path
 			std::string schemaPathStr{ schemaPath };
-			if ( !m_schema || !m_schema->hasField( schemaPathStr ) )
+			if ( !m_schema || !m_schema->hasValue( schemaPathStr ) )
 			{
 				result.addError( std::string{ documentPath },
 					"Schema path not found: " + schemaPathStr,
@@ -739,7 +813,7 @@ namespace nfx::serialization::json
 		if ( !documentPath.empty() )
 		{
 			std::string docPathStr{ documentPath };
-			if ( !document.hasField( docPathStr ) )
+			if ( !document.hasValue( docPathStr ) )
 			{
 				result.addError( std::string{ documentPath },
 					"Document path not found: " + docPathStr,

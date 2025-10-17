@@ -7,11 +7,14 @@
 
 #include <string>
 #include <string_view>
+#include <optional>
 
 #include <nlohmann/json.hpp>
 
 namespace nfx::serialization::json
 {
+	class Document;
+
 	class Document_impl final
 	{
 	public:
@@ -22,6 +25,32 @@ namespace nfx::serialization::json
 		Document_impl();
 
 		explicit Document_impl( nlohmann::ordered_json jsonData );
+
+		/**
+		 * @brief Copy constructor
+		 * @param other The Document_impl to copy from
+		 */
+		Document_impl( const Document_impl& other );
+
+		/**
+		 * @brief Move constructor
+		 * @param other The Document_impl to move from
+		 */
+		Document_impl( Document_impl&& other ) noexcept;
+
+		/**
+		 * @brief Copy assignment operator
+		 * @param other The Document_impl to copy from
+		 * @return Reference to this Document_impl
+		 */
+		Document_impl& operator=( const Document_impl& other );
+
+		/**
+		 * @brief Move assignment operator
+		 * @param other The Document_impl to move from
+		 * @return Reference to this Document_impl
+		 */
+		Document_impl& operator=( Document_impl&& other ) noexcept;
 
 	public:
 		//----------------------------------------------
@@ -129,6 +158,46 @@ namespace nfx::serialization::json
 		 * @note For internal use only
 		 */
 		const std::string& lastError() const noexcept { return m_lastError; }
+
+		/**
+		 * @brief Get typed array element implementation (complete pimpl template method)
+		 * @tparam T The type to retrieve (all supported Array types)
+		 * @param arrayPath Path to the array within this document
+		 * @param index Index of the element to retrieve
+		 * @param docPtr Pointer to the Document for complex type construction
+		 * @return Optional value of type T, nullopt if not found or type mismatch
+		 */
+		template <typename T>
+		std::optional<T> getArrayImpl( std::string_view arrayPath, size_t index, const class Document* docPtr ) const;
+
+		/**
+		 * @brief Set array element implementation template method (complete pimpl pattern)
+		 * @tparam T The type to set (all supported Array types with perfect forwarding)
+		 * @param arrayPath Path to the array within this document
+		 * @param index Index where to set the element
+		 * @param value The value to set (perfect forwarded)
+		 */
+		template <typename T>
+		void setArrayImpl( std::string_view arrayPath, size_t index, T&& value );
+
+		/**
+		 * @brief Add array element implementation template method (complete pimpl pattern)
+		 * @tparam T The type to add (all supported Array types with perfect forwarding)
+		 * @param arrayPath Path to the array within this document
+		 * @param value The value to add (perfect forwarded)
+		 */
+		template <typename T>
+		void addArrayImpl( std::string_view arrayPath, T&& value );
+
+		/**
+		 * @brief Insert array element implementation template method (complete pimpl pattern)
+		 * @tparam T The type to insert (all supported Array types with perfect forwarding)
+		 * @param arrayPath Path to the array within this document
+		 * @param index Index where to insert the element
+		 * @param value The value to insert (perfect forwarded)
+		 */
+		template <typename T>
+		void insertArrayImpl( std::string_view arrayPath, size_t index, T&& value );
 
 	private:
 		//----------------------------------------------

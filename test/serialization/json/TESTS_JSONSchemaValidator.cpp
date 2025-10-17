@@ -536,7 +536,7 @@ namespace nfx::serialization::json::test
 		SchemaValidator validator( basicSchema );
 
 		Document retrievedSchema = validator.schema();
-		auto title = retrievedSchema.getString( "title" );
+		auto title = retrievedSchema.get<std::string>( "title" );
 		EXPECT_TRUE( title.has_value() );
 		EXPECT_EQ( title.value(), "User Schema" );
 	}
@@ -1041,7 +1041,8 @@ namespace nfx::serialization::json::test
 	TEST_F( SchemaValidatorTest, EmptyDocumentValidation )
 	{
 		SchemaValidator validator( basicSchema );
-		Document emptyDoc = Document::createObject();
+
+		Document emptyDoc;
 
 		ValidationResult result = validator.validate( emptyDoc );
 

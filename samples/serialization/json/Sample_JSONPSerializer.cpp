@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <nfx/serialization/json/Document.h>
 #include <nfx/serialization/json/ArrayEnumerator.h>
 #include <nfx/serialization/json/FieldEnumerator.h>
 #include <nfx/serialization/json/Serializer.h>
@@ -54,26 +55,28 @@ struct Person
 	// Custom serialization method - no parameters
 	Document serialize() const
 	{
-		Document doc = Document::createObject();
-		doc.setStringByPointer( "/name", name );
-		doc.setIntByPointer( "/age", age );
-		doc.setBoolByPointer( "/isActive", isActive );
+		Document doc;
+		doc.set<std::string>( "/name", name );
+		doc.set<int64_t>( "/age", age );
+		doc.set<bool>( "/isActive", isActive );
 
 		if ( email.has_value() )
 		{
-			doc.setStringByPointer( "/email", *email );
+			doc.set<std::string>( "/email", *email );
 		}
 		// Note: includeNullFields not available without serializer parameter
 
 		// Serialize hobbies array
 		if ( !hobbies.empty() )
 		{
-			Document hobbiesArray = Document::createArray();
+			Document hobbiesArray;
+			hobbiesArray.set<Document::Array>( "" );
+			auto hobbiesArrayRef = hobbiesArray.get<Document::Array>( "" ).value();
 			for ( const auto& hobby : hobbies )
 			{
-				hobbiesArray.addToArray( "", hobby );
+				hobbiesArrayRef.add( hobby );
 			}
-			doc.setDocumentByPointer( "/hobbies", hobbiesArray );
+			doc.set<Document>( "/hobbies", hobbiesArray );
 		}
 
 		return doc;
@@ -82,29 +85,31 @@ struct Person
 	// Custom serialization method - with serializer (for options access)
 	Document serialize( Serializer<Person>& serializer ) const
 	{
-		Document doc = Document::createObject();
-		doc.setStringByPointer( "/name", name );
-		doc.setIntByPointer( "/age", age );
-		doc.setBoolByPointer( "/isActive", isActive );
+		Document doc;
+		doc.set<std::string>( "/name", name );
+		doc.set<int64_t>( "/age", age );
+		doc.set<bool>( "/isActive", isActive );
 
 		if ( email.has_value() )
 		{
-			doc.setStringByPointer( "/email", *email );
+			doc.set<std::string>( "/email", *email );
 		}
 		else if ( serializer.options().includeNullFields )
 		{
-			doc.setNullByPointer( "/email" );
+			doc.setNull( "/email" );
 		}
 
 		// Serialize hobbies array
 		if ( !hobbies.empty() )
 		{
-			Document hobbiesArray = Document::createArray();
+			Document hobbiesArray;
+			hobbiesArray.set<Document::Array>( "" );
+			auto hobbiesArrayRef = hobbiesArray.get<Document::Array>( "" ).value();
 			for ( const auto& hobby : hobbies )
 			{
-				hobbiesArray.addToArray( "", hobby );
+				hobbiesArrayRef.add( hobby );
 			}
-			doc.setDocumentByPointer( "/hobbies", hobbiesArray );
+			doc.set<Document>( "/hobbies", hobbiesArray );
 		}
 
 		return doc;
@@ -119,21 +124,21 @@ struct Person
 	// Custom deserialization method
 	void deserialize( const Serializer<Person>& serializer, const Document& doc )
 	{
-		if ( auto nameVal = doc.getStringByPointer( "/name" ) )
+		if ( auto nameVal = doc.get<std::string>( "/name" ) )
 		{
 			name = *nameVal;
 		}
-		if ( auto ageVal = doc.getIntByPointer( "/age" ) )
+		if ( auto ageVal = doc.get<int64_t>( "/age" ) )
 		{
 			age = static_cast<int>( *ageVal );
 		}
-		if ( auto activeVal = doc.getBoolByPointer( "/isActive" ) )
+		if ( auto activeVal = doc.get<bool>( "/isActive" ) )
 		{
 			isActive = *activeVal;
 		}
 
 		// Handle optional email
-		if ( auto emailVal = doc.getStringByPointer( "/email" ) )
+		if ( auto emailVal = doc.get<std::string>( "/email" ) )
 		{
 			email = *emailVal;
 		}
@@ -144,9 +149,9 @@ struct Person
 
 		// Deserialize hobbies array manually since we have custom deserialization
 		hobbies.clear();
-		if ( auto hobbiesDoc = doc.getDocumentByPointer( "/hobbies" ) )
+		if ( auto hobbiesDoc = doc.get<Document>( "/hobbies" ) )
 		{
-			if ( hobbiesDoc->isArray( "" ) )
+			if ( hobbiesDoc->is<Document::Array>( "" ) )
 			{
 				ArrayEnumerator enumerator( *hobbiesDoc );
 				if ( enumerator.setPointer( "" ) )
@@ -155,7 +160,7 @@ struct Person
 					while ( !enumerator.isEnd() )
 					{
 						Document hobbyDoc = enumerator.currentElement();
-						if ( auto hobbyStr = hobbyDoc.getStringByPointer( "" ) )
+						if ( auto hobbyStr = hobbyDoc.get<std::string>( "" ) )
 						{
 							hobbies.push_back( *hobbyStr );
 						}
@@ -195,36 +200,42 @@ struct Company
 	// Custom serialization method - no parameters (simple case)
 	Document serialize() const
 	{
-		Document doc = Document::createObject();
-		doc.setStringByPointer( "/name", name );
+		Document doc;
+		doc.set<std::string>( "/name", name );
 
 		// Serialize founded date
 		std::string foundedStr = founded.toIso8601Extended();
-		doc.setStringByPointer( "/founded", foundedStr );
+		doc.set<std::string>( "/founded", foundedStr );
 
 		// Serialize employees array using default serialization
 		if ( !employees.empty() )
 		{
-			Document employeesArray = Document::createArray();
+			Document employeesArray;
+			employeesArray.set<Document::Array>( "" );
+			auto employeesArrayWrapper = employeesArray.get<Document::Array>( "" );
 			for ( const auto& employee : employees )
 			{
 				// Use the no-parameter serialize method for simplicity
 				Document employeeDoc = employee.serialize();
-				employeesArray.addDocument( employeeDoc );
+				if ( employeesArrayWrapper.has_value() )
+				{
+					employeesArrayWrapper->add<Document>( employeeDoc );
+				}
 			}
-			doc.setDocumentByPointer( "/employees", employeesArray );
+			doc.set<Document>( "/employees", employeesArray );
 		}
 
 		// Serialize departments map
 		if ( !departments.empty() )
 		{
-			Document departmentsObj = Document::createObject();
+			Document departmentsObj;
+
 			for ( const auto& [deptName, count] : departments )
 			{
 				std::string fieldPath = "/" + deptName;
-				departmentsObj.setIntByPointer( fieldPath, count );
+				departmentsObj.set<int64_t>( fieldPath, count );
 			}
-			doc.setDocumentByPointer( "/departments", departmentsObj );
+			doc.set<Document>( "/departments", departmentsObj );
 		}
 
 		return doc;
@@ -233,38 +244,44 @@ struct Company
 	// Custom serialization method - with serializer (for options and cross-type serialization)
 	Document serialize( Serializer<Company>& companySerializer ) const
 	{
-		Document doc = Document::createObject();
-		doc.setStringByPointer( "/name", name );
+		Document doc;
+		doc.set<std::string>( "/name", name );
 
 		// Serialize founded date
 		std::string foundedStr = founded.toIso8601Extended();
-		doc.setStringByPointer( "/founded", foundedStr );
+		doc.set<std::string>( "/founded", foundedStr );
 
 		// Serialize employees array
 		if ( !employees.empty() )
 		{
-			Document employeesArray = Document::createArray();
+			Document employeesArray;
+			employeesArray.set<Document::Array>( "" );
+			auto employeesArrayWrapper = employeesArray.get<Document::Array>( "" );
 			for ( const auto& employee : employees )
 			{
 				// Create Person serializer with same options as Company serializer
 				auto personOptions = Serializer<Person>::Options::createFrom<Company>( companySerializer.options() );
 				Serializer<Person> personSerializer( personOptions );
 				Document employeeDoc = personSerializer.serialize( employee );
-				employeesArray.addDocument( employeeDoc );
+				if ( employeesArrayWrapper.has_value() )
+				{
+					employeesArrayWrapper->add<Document>( employeeDoc );
+				}
 			}
-			doc.setDocumentByPointer( "/employees", employeesArray );
+			doc.set<Document>( "/employees", employeesArray );
 		}
 
 		// Serialize departments map
 		if ( !departments.empty() )
 		{
-			Document departmentsObj = Document::createObject();
+			Document departmentsObj;
+
 			for ( const auto& [deptName, count] : departments )
 			{
 				std::string fieldPath = "/" + deptName;
-				departmentsObj.setIntByPointer( fieldPath, count );
+				departmentsObj.set<int64_t>( fieldPath, count );
 			}
-			doc.setDocumentByPointer( "/departments", departmentsObj );
+			doc.set<Document>( "/departments", departmentsObj );
 		}
 
 		return doc;
@@ -279,13 +296,13 @@ struct Company
 	// Custom deserialization method
 	void deserialize( const Serializer<Company>& serializer, const Document& doc )
 	{
-		if ( auto nameVal = doc.getStringByPointer( "/name" ) )
+		if ( auto nameVal = doc.get<std::string>( "/name" ) )
 		{
 			name = *nameVal;
 		}
 
 		// Deserialize founded date
-		if ( auto foundedVal = doc.getStringByPointer( "/founded" ) )
+		if ( auto foundedVal = doc.get<std::string>( "/founded" ) )
 		{
 			if ( !nfx::time::DateTime::tryParse( *foundedVal, founded ) )
 			{
@@ -295,7 +312,7 @@ struct Company
 
 		// Deserialize employees array
 		employees.clear();
-		if ( auto employeesArray = doc.getDocumentByPointer( "/employees" ) )
+		if ( auto employeesArray = doc.get<Document>( "/employees" ) )
 		{
 			ArrayEnumerator enumerator( *employeesArray );
 			if ( enumerator.setPointer( "" ) && enumerator.isValid() )
@@ -323,7 +340,7 @@ struct Company
 
 		// Deserialize departments map
 		departments.clear();
-		if ( auto departmentsObj = doc.getDocumentByPointer( "/departments" ) )
+		if ( auto departmentsObj = doc.get<Document>( "/departments" ) )
 		{
 			FieldEnumerator enumerator( *departmentsObj );
 			if ( enumerator.setPointer( "" ) && enumerator.isValid() )
@@ -334,7 +351,7 @@ struct Company
 					std::string deptName = enumerator.currentKey();
 					Document valueDoc = enumerator.currentValue();
 
-					if ( auto countVal = valueDoc.getIntByPointer( "" ) )
+					if ( auto countVal = valueDoc.get<int64_t>( "" ) )
 					{
 						departments[deptName] = static_cast<int>( *countVal );
 					}

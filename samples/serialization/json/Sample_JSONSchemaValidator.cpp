@@ -51,10 +51,11 @@ void demonstrateBasicValidation()
 	// Test Case 1: Valid user data
 	std::cout << "\n--- Test Case 1: Valid User Data ---" << std::endl;
 
-	Document validUser = Document::createObject();
-	validUser.setString( "name", "Alice Johnson" );
-	validUser.setInt( "age", 30 );
-	validUser.setString( "email", "alice@example.com" );
+	Document validUser;
+
+	validUser.set<std::string>( "name", "Alice Johnson" );
+	validUser.set<int64_t>( "age", 30 );
+	validUser.set<std::string>( "email", "alice@example.com" );
 
 	std::cout << "User data: " << validUser.toJsonString( 2 ) << std::endl;
 
@@ -72,8 +73,9 @@ void demonstrateBasicValidation()
 	// Test Case 2: Missing required field
 	std::cout << "\n--- Test Case 2: Missing Required Field ---" << std::endl;
 
-	Document invalidUser = Document::createObject();
-	invalidUser.setString( "email", "bob@example.com" );
+	Document invalidUser;
+
+	invalidUser.set<std::string>( "email", "bob@example.com" );
 	// Missing required "name" and "age"
 
 	std::cout << "User data: " << invalidUser.toJsonString( 2 ) << std::endl;
@@ -92,10 +94,11 @@ void demonstrateBasicValidation()
 	// Test Case 3: Type mismatch
 	std::cout << "\n--- Test Case 3: Type Mismatch ---" << std::endl;
 
-	Document typeError = Document::createObject();
-	typeError.setString( "name", "Charlie" );
-	typeError.setString( "age", "thirty" ); // Should be integer
-	typeError.setString( "email", "charlie@example.com" );
+	Document typeError;
+
+	typeError.set<std::string>( "name", "Charlie" );
+	typeError.set<std::string>( "age", "thirty" ); // Should be integer
+	typeError.set<std::string>( "email", "charlie@example.com" );
 
 	std::cout << "User data: " << typeError.toJsonString( 2 ) << std::endl;
 
@@ -123,8 +126,10 @@ void demonstrateErrorHandling()
 	std::cout << "\n--- Validation Without Schema ---" << std::endl;
 
 	SchemaValidator emptyValidator;
-	Document testDoc = Document::createObject();
-	testDoc.setString( "test", "data" );
+
+	Document testDoc;
+
+	testDoc.set<std::string>( "test", "data" );
 
 	try
 	{

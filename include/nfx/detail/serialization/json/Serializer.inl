@@ -403,22 +403,22 @@ namespace nfx::serialization::json
 		if constexpr ( std::is_same_v<U, bool> )
 		{
 			// Handle bool separately (before is_integral check)
-			doc.setBoolByPointer( "", obj );
+			doc.set<bool>( "", obj );
 		}
 		else if constexpr ( std::is_integral_v<U> )
 		{
 			// Handle integral types (int, long, etc.)
-			doc.setIntByPointer( "", static_cast<int64_t>( obj ) );
+			doc.set<int64_t>( "", static_cast<int64_t>( obj ) );
 		}
 		else if constexpr ( std::is_floating_point_v<U> )
 		{
 			// Handle floating point types
-			doc.setDoubleByPointer( "", static_cast<double>( obj ) );
+			doc.set<double>( "", static_cast<double>( obj ) );
 		}
 		else if constexpr ( std::is_same_v<U, std::string> )
 		{
 			// Handle std::string
-			doc.setStringByPointer( "", obj );
+			doc.set<std::string>( "", obj );
 		}
 		else if constexpr ( detail::is_optional<U>::value )
 		{
@@ -428,7 +428,7 @@ namespace nfx::serialization::json
 			}
 			else
 			{
-				doc.setNullByPointer( "" );
+				doc.setNull( "" );
 			}
 		}
 		else if constexpr ( detail::is_smart_pointer<U>::value )
@@ -439,7 +439,7 @@ namespace nfx::serialization::json
 			}
 			else
 			{
-				doc.setNullByPointer( "" );
+				doc.setNull( "" );
 			}
 		}
 
@@ -447,7 +447,6 @@ namespace nfx::serialization::json
 		{
 			if constexpr ( requires { typename U::mapped_type; } )
 			{ // Map-like containers (std::map, std::unordered_map) - serialize as JSON object
-				doc = Document::createObject();
 				for ( const auto& pair : obj )
 				{
 					std::string key;
@@ -465,40 +464,41 @@ namespace nfx::serialization::json
 
 					// Set field in object using JSON Pointer syntax
 					std::string fieldPath = "/" + key;
-					if ( valueDoc.hasStringByPointer( "" ) )
+					if ( valueDoc.is<std::string>( "" ) )
 					{
-						auto str = valueDoc.getStringByPointer( "" );
-						doc.setStringByPointer( fieldPath, *str );
+						auto str = valueDoc.get<std::string>( "" );
+						doc.set<std::string>( fieldPath, *str );
 					}
-					else if ( valueDoc.hasIntByPointer( "" ) )
+					else if ( valueDoc.is<int>( "" ) )
 					{
-						auto val = valueDoc.getIntByPointer( "" );
-						doc.setIntByPointer( fieldPath, *val );
+						auto val = valueDoc.get<int64_t>( "" );
+						doc.set<int64_t>( fieldPath, *val );
 					}
-					else if ( valueDoc.hasDoubleByPointer( "" ) )
+					else if ( valueDoc.is<double>( "" ) )
 					{
-						auto val = valueDoc.getDoubleByPointer( "" );
-						doc.setDoubleByPointer( fieldPath, *val );
+						auto val = valueDoc.get<double>( "" );
+						doc.set<double>( fieldPath, *val );
 					}
-					else if ( valueDoc.hasBoolByPointer( "" ) )
+					else if ( valueDoc.is<bool>( "" ) )
 					{
-						auto val = valueDoc.getBoolByPointer( "" );
-						doc.setBoolByPointer( fieldPath, *val );
+						auto val = valueDoc.get<bool>( "" );
+						doc.set<bool>( fieldPath, *val );
 					}
-					else if ( valueDoc.hasNullByPointer( "" ) )
+					else if ( valueDoc.isNull( "" ) )
 					{
-						doc.setNullByPointer( fieldPath );
+						doc.setNull( fieldPath );
 					}
-					else if ( valueDoc.hasArrayByPointer( "" ) || valueDoc.hasObjectByPointer( "" ) )
+					else if ( valueDoc.is<Document::Array>( "" ) || valueDoc.is<Document::Object>( "" ) )
 					{
 						// Handle nested arrays and objects (e.g., std::vector<int>, std::map<string, int>)
-						doc.setDocumentByPointer( fieldPath, valueDoc );
+						doc.set<Document>( fieldPath, valueDoc );
 					}
 				}
 			}
 			else
 			{
-				doc = Document::createArray();
+				doc.set<Document::Array>( "" );
+
 				size_t index = 0;
 				for ( const auto& item : obj )
 				{
@@ -509,34 +509,34 @@ namespace nfx::serialization::json
 					// Using 32 bytes for comfortable margin and power-of-2 alignment
 					char arrayPath[32];
 					std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
-					if ( itemDoc.hasStringByPointer( "" ) )
+					if ( itemDoc.is<std::string>( "" ) )
 					{
-						auto str = itemDoc.getStringByPointer( "" );
-						doc.setStringByPointer( arrayPath, *str );
+						auto str = itemDoc.get<std::string>( "" );
+						doc.set<std::string>( arrayPath, *str );
 					}
-					else if ( itemDoc.hasIntByPointer( "" ) )
+					else if ( itemDoc.is<int>( "" ) )
 					{
-						auto val = itemDoc.getIntByPointer( "" );
-						doc.setIntByPointer( arrayPath, *val );
+						auto val = itemDoc.get<int64_t>( "" );
+						doc.set<int64_t>( arrayPath, *val );
 					}
-					else if ( itemDoc.hasDoubleByPointer( "" ) )
+					else if ( itemDoc.is<double>( "" ) )
 					{
-						auto val = itemDoc.getDoubleByPointer( "" );
-						doc.setDoubleByPointer( arrayPath, *val );
+						auto val = itemDoc.get<double>( "" );
+						doc.set<double>( arrayPath, *val );
 					}
-					else if ( itemDoc.hasBoolByPointer( "" ) )
+					else if ( itemDoc.is<bool>( "" ) )
 					{
-						auto val = itemDoc.getBoolByPointer( "" );
-						doc.setBoolByPointer( arrayPath, *val );
+						auto val = itemDoc.get<bool>( "" );
+						doc.set<bool>( arrayPath, *val );
 					}
-					else if ( itemDoc.hasNullByPointer( "" ) )
+					else if ( itemDoc.isNull( "" ) )
 					{
-						doc.setNullByPointer( arrayPath );
+						doc.setNull( arrayPath );
 					}
-					else if ( itemDoc.hasArrayByPointer( "" ) || itemDoc.hasObjectByPointer( "" ) )
+					else if ( itemDoc.is<Document::Array>( "" ) || itemDoc.is<Document::Object>( "" ) )
 					{
 						// Handle nested arrays and objects in array elements
-						doc.setDocumentByPointer( arrayPath, itemDoc );
+						doc.set<Document>( arrayPath, itemDoc );
 					}
 					++index;
 				}
@@ -548,7 +548,6 @@ namespace nfx::serialization::json
 			if constexpr ( requires { typename U::mapped_type; } )
 			{
 				// Map-like nfx containers (HashMap, StringMap)
-				doc = Document::createObject();
 				for ( const auto& pair : obj )
 				{
 					std::string key;
@@ -566,41 +565,42 @@ namespace nfx::serialization::json
 
 					// Set field in object using JSON Pointer syntax
 					std::string fieldPath = "/" + key;
-					if ( valueDoc.hasStringByPointer( "" ) )
+					if ( valueDoc.is<std::string>( "" ) )
 					{
-						auto str = valueDoc.getStringByPointer( "" );
-						doc.setStringByPointer( fieldPath, *str );
+						auto str = valueDoc.get<std::string>( "" );
+						doc.set<std::string>( fieldPath, *str );
 					}
-					else if ( valueDoc.hasIntByPointer( "" ) )
+					else if ( valueDoc.is<int>( "" ) )
 					{
-						auto val = valueDoc.getIntByPointer( "" );
-						doc.setIntByPointer( fieldPath, *val );
+						auto val = valueDoc.get<int64_t>( "" );
+						doc.set<int64_t>( fieldPath, *val );
 					}
-					else if ( valueDoc.hasDoubleByPointer( "" ) )
+					else if ( valueDoc.is<double>( "" ) )
 					{
-						auto val = valueDoc.getDoubleByPointer( "" );
-						doc.setDoubleByPointer( fieldPath, *val );
+						auto val = valueDoc.get<double>( "" );
+						doc.set<double>( fieldPath, *val );
 					}
-					else if ( valueDoc.hasBoolByPointer( "" ) )
+					else if ( valueDoc.is<bool>( "" ) )
 					{
-						auto val = valueDoc.getBoolByPointer( "" );
-						doc.setBoolByPointer( fieldPath, *val );
+						auto val = valueDoc.get<bool>( "" );
+						doc.set<bool>( fieldPath, *val );
 					}
-					else if ( valueDoc.hasNullByPointer( "" ) )
+					else if ( valueDoc.isNull( "" ) )
 					{
-						doc.setNullByPointer( fieldPath );
+						doc.setNull( fieldPath );
 					}
-					else if ( valueDoc.hasArrayByPointer( "" ) || valueDoc.hasObjectByPointer( "" ) )
+					else if ( valueDoc.is<Document::Array>( "" ) || valueDoc.is<Document::Object>( "" ) )
 					{
 						// Handle nested arrays and objects for nfx map containers
-						doc.setDocumentByPointer( fieldPath, valueDoc );
+						doc.set<Document>( fieldPath, valueDoc );
 					}
 				}
 			}
 			else
 			{
 				// Set-like nfx containers
-				doc = Document::createArray();
+				doc.set<Document::Array>( "" );
+
 				size_t index = 0;
 				for ( const auto& item : obj )
 				{
@@ -611,34 +611,34 @@ namespace nfx::serialization::json
 					// Using 32 bytes for comfortable margin and power-of-2 alignment
 					char arrayPath[32];
 					std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
-					if ( itemDoc.hasStringByPointer( "" ) )
+					if ( itemDoc.is<std::string>( "" ) )
 					{
-						auto str = itemDoc.getStringByPointer( "" );
-						doc.setStringByPointer( arrayPath, *str );
+						auto str = itemDoc.get<std::string>( "" );
+						doc.set<std::string>( arrayPath, *str );
 					}
-					else if ( itemDoc.hasIntByPointer( "" ) )
+					else if ( itemDoc.is<int>( "" ) )
 					{
-						auto val = itemDoc.getIntByPointer( "" );
-						doc.setIntByPointer( arrayPath, *val );
+						auto val = itemDoc.get<int64_t>( "" );
+						doc.set<int64_t>( arrayPath, *val );
 					}
-					else if ( itemDoc.hasDoubleByPointer( "" ) )
+					else if ( itemDoc.is<double>( "" ) )
 					{
-						auto val = itemDoc.getDoubleByPointer( "" );
-						doc.setDoubleByPointer( arrayPath, *val );
+						auto val = itemDoc.get<double>( "" );
+						doc.set<double>( arrayPath, *val );
 					}
-					else if ( itemDoc.hasBoolByPointer( "" ) )
+					else if ( itemDoc.is<bool>( "" ) )
 					{
-						auto val = itemDoc.getBoolByPointer( "" );
-						doc.setBoolByPointer( arrayPath, *val );
+						auto val = itemDoc.get<bool>( "" );
+						doc.set<bool>( arrayPath, *val );
 					}
-					else if ( itemDoc.hasNullByPointer( "" ) )
+					else if ( itemDoc.isNull( "" ) )
 					{
-						doc.setNullByPointer( arrayPath );
+						doc.setNull( arrayPath );
 					}
-					else if ( itemDoc.hasArrayByPointer( "" ) || itemDoc.hasObjectByPointer( "" ) )
+					else if ( itemDoc.is<Document::Array>( "" ) || itemDoc.is<Document::Object>( "" ) )
 					{
 						// Handle nested arrays and objects for nfx set containers
-						doc.setDocumentByPointer( arrayPath, itemDoc );
+						doc.set<Document>( arrayPath, itemDoc );
 					}
 					++index;
 				}
@@ -659,28 +659,28 @@ namespace nfx::serialization::json
 		if constexpr ( std::is_same_v<U, bool> )
 		{
 			// Handle bool
-			auto val = doc.getBoolByPointer( "" );
+			auto val = doc.get<bool>( "" );
 			if ( val )
 				obj = *val;
 		}
 		else if constexpr ( std::is_integral_v<U> )
 		{
 			// Handle integral types
-			auto val = doc.getIntByPointer( "" );
+			auto val = doc.get<int64_t>( "" );
 			if ( val )
 				obj = static_cast<U>( *val );
 		}
 		else if constexpr ( std::is_floating_point_v<U> )
 		{
 			// Handle floating point types
-			auto val = doc.getDoubleByPointer( "" );
+			auto val = doc.get<double>( "" );
 			if ( val )
 				obj = static_cast<U>( *val );
 		}
 		else if constexpr ( std::is_same_v<U, std::string> )
 		{
 			// Handle std::string
-			auto val = doc.getStringByPointer( "" );
+			auto val = doc.get<std::string>( "" );
 			if ( val )
 				obj = *val;
 		}
@@ -730,7 +730,7 @@ namespace nfx::serialization::json
 			if constexpr ( requires { typename U::mapped_type; } )
 			{
 				// Map-like containers: only accept JSON objects
-				if ( doc.isObject( "" ) )
+				if ( doc.is<Document::Object>( "" ) )
 				{
 					// Object → map: iterate over object fields using FieldEnumerator
 					FieldEnumerator enumerator( doc );
@@ -767,7 +767,7 @@ namespace nfx::serialization::json
 			else
 			{
 				// Non-map containers: accept arrays and single values
-				if ( doc.isArray( "" ) )
+				if ( doc.is<Document::Array>( "" ) )
 				{
 					// Standard case: JSON array → container using ArrayEnumerator
 					ArrayEnumerator enumerator( doc );
@@ -861,7 +861,7 @@ namespace nfx::serialization::json
 			if constexpr ( requires { typename U::mapped_type; } )
 			{
 				// Map-like nfx containers: only accept JSON objects
-				if ( doc.isObject( "" ) )
+				if ( doc.is<Document::Object>( "" ) )
 				{
 					// Object → nfx map: iterate over object fields using FieldEnumerator
 					FieldEnumerator enumerator( doc );
@@ -910,7 +910,7 @@ namespace nfx::serialization::json
 			else
 			{
 				// Non-map nfx containers: accept arrays and single values
-				if ( doc.isArray( "" ) )
+				if ( doc.is<Document::Array>( "" ) )
 				{
 					// Standard case: JSON array → nfx container using ArrayEnumerator
 					ArrayEnumerator enumerator( doc );

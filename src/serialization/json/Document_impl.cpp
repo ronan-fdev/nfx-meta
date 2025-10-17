@@ -4,6 +4,7 @@
  * @details Provides concrete implementation for the Document facade, wrapping nlohmann::ordered_json.
  */
 
+#include "nfx/serialization/json/Document.h"
 #include "Document_impl.h"
 
 #include <nlohmann/json.hpp>
@@ -24,6 +25,39 @@ namespace nfx::serialization::json
 	{
 		// Using assignment here avoids initializer_list ambiguity with nlohmann::ordered_json
 		m_data = std::move( jsonData );
+	}
+
+	Document_impl::Document_impl( const Document_impl& other )
+	{
+		// Using assignment instead of initializer list to avoid nlohmann::json copy issues
+		m_data = other.m_data;
+		m_lastError = other.m_lastError;
+	}
+
+	Document_impl::Document_impl( Document_impl&& other ) noexcept
+		: m_data{ std::move( other.m_data ) },
+		  m_lastError{ std::move( other.m_lastError ) }
+	{
+	}
+
+	Document_impl& Document_impl::operator=( const Document_impl& other )
+	{
+		if ( this != &other )
+		{
+			m_data = other.m_data;
+			m_lastError = other.m_lastError;
+		}
+		return *this;
+	}
+
+	Document_impl& Document_impl::operator=( Document_impl&& other ) noexcept
+	{
+		if ( this != &other )
+		{
+			m_data = std::move( other.m_data );
+			m_lastError = std::move( other.m_lastError );
+		}
+		return *this;
 	}
 
 	//----------------------------------------------
@@ -315,4 +349,616 @@ namespace nfx::serialization::json
 
 		return true;
 	}
+
+	template <typename T>
+	std::optional<T> Document_impl::getArrayImpl( std::string_view arrayPath, size_t index, const Document* docPtr ) const
+	{
+		if ( !docPtr )
+		{
+			return std::nullopt;
+		}
+
+		// Navigate to the array first
+		const nlohmann::ordered_json* arrayNode = nullptr;
+		if ( arrayPath.empty() )
+		{
+			arrayNode = &m_data;
+		}
+		else if ( arrayPath[0] == '/' )
+		{
+			arrayNode = navigateToJsonPointer( arrayPath );
+		}
+		else
+		{
+			arrayNode = navigateToPath( arrayPath );
+		}
+
+		if ( arrayNode && arrayNode->is_array() && index < arrayNode->size() )
+		{
+			const auto& element = ( *arrayNode )[index];
+
+			// Handle primitive types
+			if constexpr ( std::is_same_v<T, std::string> )
+			{
+				if ( element.is_string() )
+				{
+					return element.get<std::string>();
+				}
+			}
+			else if constexpr ( std::is_same_v<T, std::string_view> )
+			{
+				if ( element.is_string() )
+				{
+					return std::string_view( element.get_ref<const std::string&>() );
+				}
+			}
+			else if constexpr ( std::is_same_v<T, int64_t> )
+			{
+				if ( element.is_number_integer() )
+				{
+					return element.get<int64_t>();
+				}
+			}
+			else if constexpr ( std::is_same_v<T, int32_t> )
+			{
+				if ( element.is_number_integer() )
+				{
+					int64_t val = element.get<int64_t>();
+					if ( val >= std::numeric_limits<int32_t>::min() && val <= std::numeric_limits<int32_t>::max() )
+					{
+						return static_cast<int32_t>( val );
+					}
+				}
+			}
+			else if constexpr ( std::is_same_v<T, double> )
+			{
+				if ( element.is_number_float() )
+				{
+					return element.get<double>();
+				}
+			}
+			else if constexpr ( std::is_same_v<T, bool> )
+			{
+				if ( element.is_boolean() )
+				{
+					return element.get<bool>();
+				}
+			}
+			else if constexpr ( std::is_same_v<T, char> )
+			{
+				if ( element.is_string() )
+				{
+					std::string str = element.get<std::string>();
+					if ( str.length() == 1 )
+					{
+						return str[0];
+					}
+				}
+			}
+			// Handle complex types
+			else if constexpr ( std::is_same_v<T, Document> )
+			{
+				Document result;
+				static_cast<Document_impl*>( result.m_impl )->setData( element );
+				return result;
+			}
+			else if constexpr ( std::is_same_v<T, Document::Array> )
+			{
+				if ( element.is_array() )
+				{
+					std::string elementPath;
+					if ( arrayPath.empty() )
+					{
+						elementPath = "/" + std::to_string( index );
+					}
+					else if ( arrayPath[0] == '/' )
+					{
+						elementPath = std::string( arrayPath ) + "/" + std::to_string( index );
+					}
+					else
+					{
+						elementPath = "/" + std::string( arrayPath ) + "/" + std::to_string( index );
+					}
+					return Document::Array( const_cast<Document*>( docPtr ), elementPath );
+				}
+			}
+			else if constexpr ( std::is_same_v<T, Document::Object> )
+			{
+				if ( element.is_object() )
+				{
+					std::string elementPath;
+					if ( arrayPath.empty() )
+					{
+						elementPath = "/" + std::to_string( index );
+					}
+					else if ( arrayPath[0] == '/' )
+					{
+						elementPath = std::string( arrayPath ) + "/" + std::to_string( index );
+					}
+					else
+					{
+						elementPath = "/" + std::string( arrayPath ) + "/" + std::to_string( index );
+					}
+					return Document::Object( const_cast<Document*>( docPtr ), elementPath );
+				}
+			}
+		}
+
+		return std::nullopt;
+	}
+
+	template <typename T>
+	void Document_impl::setArrayImpl( std::string_view arrayPath, size_t index, T&& value )
+	{
+		// Navigate to the array first
+		nlohmann::ordered_json* arrayNode = nullptr;
+		if ( arrayPath.empty() )
+		{
+			arrayNode = &m_data;
+		}
+		else if ( arrayPath[0] == '/' )
+		{
+			arrayNode = navigateToJsonPointer( arrayPath, true );
+		}
+		else
+		{
+			arrayNode = navigateToPath( arrayPath, true );
+		}
+
+		// Create array if it doesn't exist or is not an array
+		if ( !arrayNode || !arrayNode->is_array() )
+		{
+			if ( arrayNode )
+			{
+				*arrayNode = nlohmann::ordered_json::array();
+			}
+			else
+			{
+				return; // Could not create path
+			}
+		}
+
+		// Expand array if index is beyond current size
+		while ( arrayNode->size() <= index )
+		{
+			arrayNode->push_back( nullptr );
+		}
+
+		// Set the value based on type
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			( *arrayNode )[index] = std::string( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, std::string> )
+		{
+			( *arrayNode )[index] = std::forward<T>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			( *arrayNode )[index] = std::string( 1, value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			( *arrayNode )[index] = static_cast<int64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			( *arrayNode )[index] = std::forward<T>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			( *arrayNode )[index] = std::forward<T>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			( *arrayNode )[index] = std::forward<T>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			( *arrayNode )[index] = static_cast<Document_impl*>( value.m_impl )->data();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
+		{
+			if ( value.m_doc )
+			{
+				const nlohmann::ordered_json* objNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					objNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					objNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					objNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( objNode )
+				{
+					( *arrayNode )[index] = *objNode;
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			if ( value.m_doc )
+			{
+				const nlohmann::ordered_json* arrNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					arrNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					arrNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					arrNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( arrNode )
+				{
+					( *arrayNode )[index] = *arrNode;
+				}
+			}
+		}
+	}
+
+	// Explicit template instantiations for complete getArrayImpl method
+	template std::optional<std::string> Document_impl::getArrayImpl<std::string>( std::string_view arrayPath, size_t index, const Document* docPtr ) const;
+	template std::optional<std::string_view> Document_impl::getArrayImpl<std::string_view>( std::string_view arrayPath, size_t index, const Document* docPtr ) const;
+	template std::optional<int64_t> Document_impl::getArrayImpl<int64_t>( std::string_view arrayPath, size_t index, const Document* docPtr ) const;
+	template std::optional<int32_t> Document_impl::getArrayImpl<int32_t>( std::string_view arrayPath, size_t index, const Document* docPtr ) const;
+	template std::optional<double> Document_impl::getArrayImpl<double>( std::string_view arrayPath, size_t index, const Document* docPtr ) const;
+	template std::optional<bool> Document_impl::getArrayImpl<bool>( std::string_view arrayPath, size_t index, const Document* docPtr ) const;
+	template std::optional<char> Document_impl::getArrayImpl<char>( std::string_view arrayPath, size_t index, const Document* docPtr ) const;
+	template std::optional<Document> Document_impl::getArrayImpl<Document>( std::string_view arrayPath, size_t index, const Document* docPtr ) const;
+	template std::optional<Document::Array> Document_impl::getArrayImpl<Document::Array>( std::string_view arrayPath, size_t index, const Document* docPtr ) const;
+	template std::optional<Document::Object> Document_impl::getArrayImpl<Document::Object>( std::string_view arrayPath, size_t index, const Document* docPtr ) const;
+
+	template <typename T>
+	void Document_impl::addArrayImpl( std::string_view arrayPath, T&& value )
+	{
+		// Navigate to the array first
+		nlohmann::ordered_json* arrayNode = nullptr;
+		if ( arrayPath.empty() )
+		{
+			arrayNode = &m_data;
+		}
+		else if ( arrayPath[0] == '/' )
+		{
+			arrayNode = navigateToJsonPointer( arrayPath, true );
+		}
+		else
+		{
+			arrayNode = navigateToPath( arrayPath, true );
+		}
+
+		// Create array if it doesn't exist or is not an array
+		if ( !arrayNode || !arrayNode->is_array() )
+		{
+			if ( arrayNode )
+			{
+				*arrayNode = nlohmann::ordered_json::array();
+			}
+			else
+			{
+				return; // Could not create path
+			}
+		}
+
+		// Add the value based on type
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			arrayNode->push_back( std::string( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, std::string> )
+		{
+			arrayNode->push_back( std::forward<T>( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			arrayNode->push_back( std::string( 1, value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			arrayNode->push_back( static_cast<int64_t>( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			arrayNode->push_back( std::forward<T>( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			arrayNode->push_back( std::forward<T>( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			arrayNode->push_back( std::forward<T>( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			arrayNode->push_back( static_cast<Document_impl*>( value.m_impl )->data() );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
+		{
+			if ( value.m_doc )
+			{
+				const nlohmann::ordered_json* objNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					objNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					objNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					objNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( objNode )
+				{
+					arrayNode->push_back( *objNode );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			if ( value.m_doc )
+			{
+				const nlohmann::ordered_json* arrNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					arrNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					arrNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					arrNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( arrNode )
+				{
+					arrayNode->push_back( *arrNode );
+				}
+			}
+		}
+	}
+
+	template <typename T>
+	void Document_impl::insertArrayImpl( std::string_view arrayPath, size_t index, T&& value )
+	{
+		// Navigate to the array first
+		nlohmann::ordered_json* arrayNode = nullptr;
+		if ( arrayPath.empty() )
+		{
+			arrayNode = &m_data;
+		}
+		else if ( arrayPath[0] == '/' )
+		{
+			arrayNode = navigateToJsonPointer( arrayPath, true );
+		}
+		else
+		{
+			arrayNode = navigateToPath( arrayPath, true );
+		}
+
+		// Create array if it doesn't exist or is not an array
+		if ( !arrayNode || !arrayNode->is_array() )
+		{
+			if ( arrayNode )
+			{
+				*arrayNode = nlohmann::ordered_json::array();
+			}
+			else
+			{
+				return; // Could not create path
+			}
+		}
+
+		// Insert the value based on type
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string_view> )
+		{
+			if ( index >= arrayNode->size() )
+			{
+				arrayNode->push_back( std::string( value ) );
+			}
+			else
+			{
+				arrayNode->insert( arrayNode->begin() + index, std::string( value ) );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, std::string> )
+		{
+			if ( index >= arrayNode->size() )
+			{
+				arrayNode->push_back( std::forward<T>( value ) );
+			}
+			else
+			{
+				arrayNode->insert( arrayNode->begin() + index, std::forward<T>( value ) );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		{
+			std::string str( 1, value );
+			if ( index >= arrayNode->size() )
+			{
+				arrayNode->push_back( str );
+			}
+			else
+			{
+				arrayNode->insert( arrayNode->begin() + index, str );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			int64_t val = static_cast<int64_t>( value );
+			if ( index >= arrayNode->size() )
+			{
+				arrayNode->push_back( val );
+			}
+			else
+			{
+				arrayNode->insert( arrayNode->begin() + index, val );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			if ( index >= arrayNode->size() )
+			{
+				arrayNode->push_back( std::forward<T>( value ) );
+			}
+			else
+			{
+				arrayNode->insert( arrayNode->begin() + index, std::forward<T>( value ) );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			if ( index >= arrayNode->size() )
+			{
+				arrayNode->push_back( std::forward<T>( value ) );
+			}
+			else
+			{
+				arrayNode->insert( arrayNode->begin() + index, std::forward<T>( value ) );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
+		{
+			if ( index >= arrayNode->size() )
+			{
+				arrayNode->push_back( std::forward<T>( value ) );
+			}
+			else
+			{
+				arrayNode->insert( arrayNode->begin() + index, std::forward<T>( value ) );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
+		{
+			const auto& docData = static_cast<Document_impl*>( value.m_impl )->data();
+			if ( index >= arrayNode->size() )
+			{
+				arrayNode->push_back( docData );
+			}
+			else
+			{
+				arrayNode->insert( arrayNode->begin() + index, docData );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
+		{
+			if ( value.m_doc )
+			{
+				const nlohmann::ordered_json* objNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					objNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					objNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					objNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( objNode )
+				{
+					if ( index >= arrayNode->size() )
+					{
+						arrayNode->push_back( *objNode );
+					}
+					else
+					{
+						arrayNode->insert( arrayNode->begin() + index, *objNode );
+					}
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			if ( value.m_doc )
+			{
+				const nlohmann::ordered_json* arrNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					arrNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					arrNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					arrNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( arrNode )
+				{
+					if ( index >= arrayNode->size() )
+					{
+						arrayNode->push_back( *arrNode );
+					}
+					else
+					{
+						arrayNode->insert( arrayNode->begin() + index, *arrNode );
+					}
+				}
+			}
+		}
+	}
+
+	// Explicit template instantiations for setArrayImpl method
+	template void Document_impl::setArrayImpl<std::string>( std::string_view arrayPath, size_t index, std::string&& value );
+	template void Document_impl::setArrayImpl<const std::string&>( std::string_view arrayPath, size_t index, const std::string& value );
+	template void Document_impl::setArrayImpl<std::string_view>( std::string_view arrayPath, size_t index, std::string_view&& value );
+	template void Document_impl::setArrayImpl<int64_t>( std::string_view arrayPath, size_t index, int64_t&& value );
+	template void Document_impl::setArrayImpl<int32_t>( std::string_view arrayPath, size_t index, int32_t&& value );
+	template void Document_impl::setArrayImpl<double>( std::string_view arrayPath, size_t index, double&& value );
+	template void Document_impl::setArrayImpl<bool>( std::string_view arrayPath, size_t index, bool&& value );
+	template void Document_impl::setArrayImpl<char>( std::string_view arrayPath, size_t index, char&& value );
+	template void Document_impl::setArrayImpl<Document>( std::string_view arrayPath, size_t index, Document&& value );
+	template void Document_impl::setArrayImpl<const Document&>( std::string_view arrayPath, size_t index, const Document& value );
+	template void Document_impl::setArrayImpl<Document::Array>( std::string_view arrayPath, size_t index, Document::Array&& value );
+	template void Document_impl::setArrayImpl<const Document::Array&>( std::string_view arrayPath, size_t index, const Document::Array& value );
+	template void Document_impl::setArrayImpl<Document::Object>( std::string_view arrayPath, size_t index, Document::Object&& value );
+	template void Document_impl::setArrayImpl<const Document::Object&>( std::string_view arrayPath, size_t index, const Document::Object& value );
+
+	// Explicit template instantiations for addArrayImpl method
+	template void Document_impl::addArrayImpl<std::string>( std::string_view arrayPath, std::string&& value );
+	template void Document_impl::addArrayImpl<const std::string&>( std::string_view arrayPath, const std::string& value );
+	template void Document_impl::addArrayImpl<std::string_view>( std::string_view arrayPath, std::string_view&& value );
+	template void Document_impl::addArrayImpl<int64_t>( std::string_view arrayPath, int64_t&& value );
+	template void Document_impl::addArrayImpl<int32_t>( std::string_view arrayPath, int32_t&& value );
+	template void Document_impl::addArrayImpl<double>( std::string_view arrayPath, double&& value );
+	template void Document_impl::addArrayImpl<bool>( std::string_view arrayPath, bool&& value );
+	template void Document_impl::addArrayImpl<char>( std::string_view arrayPath, char&& value );
+	template void Document_impl::addArrayImpl<Document>( std::string_view arrayPath, Document&& value );
+	template void Document_impl::addArrayImpl<const Document&>( std::string_view arrayPath, const Document& value );
+	template void Document_impl::addArrayImpl<Document::Array>( std::string_view arrayPath, Document::Array&& value );
+	template void Document_impl::addArrayImpl<const Document::Array&>( std::string_view arrayPath, const Document::Array& value );
+	template void Document_impl::addArrayImpl<Document::Object>( std::string_view arrayPath, Document::Object&& value );
+	template void Document_impl::addArrayImpl<const Document::Object&>( std::string_view arrayPath, const Document::Object& value );
+
+	// Explicit template instantiations for insertArrayImpl method
+	template void Document_impl::insertArrayImpl<std::string>( std::string_view arrayPath, size_t index, std::string&& value );
+	template void Document_impl::insertArrayImpl<const std::string&>( std::string_view arrayPath, size_t index, const std::string& value );
+	template void Document_impl::insertArrayImpl<std::string_view>( std::string_view arrayPath, size_t index, std::string_view&& value );
+	template void Document_impl::insertArrayImpl<int64_t>( std::string_view arrayPath, size_t index, int64_t&& value );
+	template void Document_impl::insertArrayImpl<int32_t>( std::string_view arrayPath, size_t index, int32_t&& value );
+	template void Document_impl::insertArrayImpl<double>( std::string_view arrayPath, size_t index, double&& value );
+	template void Document_impl::insertArrayImpl<bool>( std::string_view arrayPath, size_t index, bool&& value );
+	template void Document_impl::insertArrayImpl<char>( std::string_view arrayPath, size_t index, char&& value );
+	template void Document_impl::insertArrayImpl<Document>( std::string_view arrayPath, size_t index, Document&& value );
+	template void Document_impl::insertArrayImpl<const Document&>( std::string_view arrayPath, size_t index, const Document& value );
+	template void Document_impl::insertArrayImpl<Document::Array>( std::string_view arrayPath, size_t index, Document::Array&& value );
+	template void Document_impl::insertArrayImpl<const Document::Array&>( std::string_view arrayPath, size_t index, const Document::Array& value );
+	template void Document_impl::insertArrayImpl<Document::Object>( std::string_view arrayPath, size_t index, Document::Object&& value );
+	template void Document_impl::insertArrayImpl<const Document::Object&>( std::string_view arrayPath, size_t index, const Document::Object& value );
 } // namespace nfx::serialization::json
