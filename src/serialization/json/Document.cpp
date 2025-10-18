@@ -315,8 +315,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -372,39 +379,18 @@ namespace nfx::serialization::json
 		}
 
 		// Type-specific extraction using if constexpr
-		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> )
-		{
-			if ( node->is_string() )
-			{
-				return node->get<std::string>();
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, std::string_view> )
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string_view> )
 		{
 			if ( node->is_string() )
 			{
 				return std::string_view( node->get<std::string>() );
 			}
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, std::string> )
 		{
-			if ( node->is_number_integer() )
+			if ( node->is_string() )
 			{
-				return node->get<int64_t>();
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
-		{
-			if ( node->is_number_integer() )
-			{
-				return static_cast<int32_t>( node->get<int64_t>() );
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
-		{
-			if ( node->is_number_float() )
-			{
-				return node->get<double>();
+				return node->get<std::string>();
 			}
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
@@ -419,6 +405,96 @@ namespace nfx::serialization::json
 			if ( node->is_string() && node->get<std::string>().length() == 1 )
 			{
 				return node->get<std::string>()[0];
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int8_t> )
+		{
+			if ( node->is_number_integer() )
+			{
+				int64_t val = node->get<int64_t>();
+				if ( val >= std::numeric_limits<int8_t>::min() && val <= std::numeric_limits<int8_t>::max() )
+				{
+					return static_cast<int8_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int16_t> )
+		{
+			if ( node->is_number_integer() )
+			{
+				int64_t val = node->get<int64_t>();
+				if ( val >= std::numeric_limits<int16_t>::min() && val <= std::numeric_limits<int16_t>::max() )
+				{
+					return static_cast<int16_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			if ( node->is_number_integer() )
+			{
+				return static_cast<int32_t>( node->get<int64_t>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			if ( node->is_number_integer() )
+			{
+				return node->get<int64_t>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint8_t> )
+		{
+			if ( node->is_number_unsigned() )
+			{
+				uint64_t val = node->get<uint64_t>();
+				if ( val <= std::numeric_limits<uint8_t>::max() )
+				{
+					return static_cast<uint8_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint16_t> )
+		{
+			if ( node->is_number_unsigned() )
+			{
+				uint64_t val = node->get<uint64_t>();
+				if ( val <= std::numeric_limits<uint16_t>::max() )
+				{
+					return static_cast<uint16_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint32_t> )
+		{
+			if ( node->is_number_unsigned() )
+			{
+				uint64_t val = node->get<uint64_t>();
+				if ( val <= std::numeric_limits<uint32_t>::max() )
+				{
+					return static_cast<uint32_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint64_t> )
+		{
+			if ( node->is_number_unsigned() )
+			{
+				return node->get<uint64_t>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, float> )
+		{
+			if ( node->is_number_float() )
+			{
+				return static_cast<float>( node->get<double>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			if ( node->is_number_float() )
+			{
+				return node->get<double>();
 			}
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
@@ -449,12 +525,19 @@ namespace nfx::serialization::json
 	template std::optional<std::string> Document::get<std::string>( std::string_view path ) const;
 	template std::optional<char> Document::get<char>( std::string_view path ) const;
 	template std::optional<bool> Document::get<bool>( std::string_view path ) const;
+	template std::optional<int8_t> Document::get<int8_t>( std::string_view path ) const;
+	template std::optional<int16_t> Document::get<int16_t>( std::string_view path ) const;
 	template std::optional<int32_t> Document::get<int32_t>( std::string_view path ) const;
 	template std::optional<int64_t> Document::get<int64_t>( std::string_view path ) const;
+	template std::optional<uint8_t> Document::get<uint8_t>( std::string_view path ) const;
+	template std::optional<uint16_t> Document::get<uint16_t>( std::string_view path ) const;
+	template std::optional<uint32_t> Document::get<uint32_t>( std::string_view path ) const;
+	template std::optional<uint64_t> Document::get<uint64_t>( std::string_view path ) const;
+	template std::optional<float> Document::get<float>( std::string_view path ) const;
 	template std::optional<double> Document::get<double>( std::string_view path ) const;
 	template std::optional<Document> Document::get<Document>( std::string_view path ) const;
-	template std::optional<Document::Array> Document::get<Document::Array>( std::string_view path ) const;
 	template std::optional<Document::Object> Document::get<Document::Object>( std::string_view path ) const;
+	template std::optional<Document::Array> Document::get<Document::Array>( std::string_view path ) const;
 
 	//----------------------------------------------
 	// Value modification
@@ -467,8 +550,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -506,13 +596,25 @@ namespace nfx::serialization::json
 		{
 			*node = value;
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int8_t> || std::is_same_v<std::decay_t<T>, int16_t> || std::is_same_v<std::decay_t<T>, int32_t> )
 		{
 			*node = static_cast<int64_t>( value );
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
 		{
 			*node = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint8_t> || std::is_same_v<std::decay_t<T>, uint16_t> || std::is_same_v<std::decay_t<T>, uint32_t> )
+		{
+			*node = static_cast<uint64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint64_t> )
+		{
+			*node = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, float> )
+		{
+			*node = static_cast<double>( value );
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
 		{
@@ -522,11 +624,11 @@ namespace nfx::serialization::json
 		{
 			*node = static_cast<Document_impl*>( value.m_impl )->data();
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
 		{
 			*node = static_cast<Document_impl*>( value.m_doc->m_impl )->data();
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
 		{
 			*node = static_cast<Document_impl*>( value.m_doc->m_impl )->data();
 		}
@@ -536,12 +638,19 @@ namespace nfx::serialization::json
 	template void Document::set<std::string>( std::string_view path, const std::string& );
 	template void Document::set<char>( std::string_view path, const char& );
 	template void Document::set<bool>( std::string_view path, const bool& );
+	template void Document::set<int8_t>( std::string_view path, const int8_t& );
+	template void Document::set<int16_t>( std::string_view path, const int16_t& );
 	template void Document::set<int32_t>( std::string_view path, const int32_t& );
 	template void Document::set<int64_t>( std::string_view path, const int64_t& );
+	template void Document::set<uint8_t>( std::string_view path, const uint8_t& );
+	template void Document::set<uint16_t>( std::string_view path, const uint16_t& );
+	template void Document::set<uint32_t>( std::string_view path, const uint32_t& );
+	template void Document::set<uint64_t>( std::string_view path, const uint64_t& );
+	template void Document::set<float>( std::string_view path, const float& );
 	template void Document::set<double>( std::string_view path, const double& );
 	template void Document::set<Document>( std::string_view path, const Document& );
-	template void Document::set<Document::Array>( std::string_view path, const Array& );
 	template void Document::set<Document::Object>( std::string_view path, const Document::Object& );
+	template void Document::set<Document::Array>( std::string_view path, const Document::Array& );
 
 	// Move version
 	template <typename T>
@@ -550,8 +659,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -589,13 +705,25 @@ namespace nfx::serialization::json
 		{
 			*node = value;
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int8_t> || std::is_same_v<std::decay_t<T>, int16_t> || std::is_same_v<std::decay_t<T>, int32_t> )
 		{
 			*node = static_cast<int64_t>( value );
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
 		{
 			*node = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint8_t> || std::is_same_v<std::decay_t<T>, uint16_t> || std::is_same_v<std::decay_t<T>, uint32_t> )
+		{
+			*node = static_cast<uint64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint64_t> )
+		{
+			*node = value;
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, float> )
+		{
+			*node = static_cast<double>( value );
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
 		{
@@ -605,11 +733,11 @@ namespace nfx::serialization::json
 		{
 			*node = std::move( static_cast<Document_impl*>( value.m_impl )->data() );
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
 		{
 			*node = std::move( static_cast<Document_impl*>( value.m_doc->m_impl )->data() );
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
 		{
 			*node = std::move( static_cast<Document_impl*>( value.m_doc->m_impl )->data() );
 		}
@@ -619,12 +747,19 @@ namespace nfx::serialization::json
 	template void Document::set<std::string>( std::string_view path, std::string&& );
 	template void Document::set<char>( std::string_view path, char&& );
 	template void Document::set<bool>( std::string_view path, bool&& );
+	template void Document::set<int8_t>( std::string_view path, int8_t&& );
+	template void Document::set<int16_t>( std::string_view path, int16_t&& );
 	template void Document::set<int32_t>( std::string_view path, int32_t&& );
 	template void Document::set<int64_t>( std::string_view path, int64_t&& );
+	template void Document::set<uint8_t>( std::string_view path, uint8_t&& );
+	template void Document::set<uint16_t>( std::string_view path, uint16_t&& );
+	template void Document::set<uint32_t>( std::string_view path, uint32_t&& );
+	template void Document::set<uint64_t>( std::string_view path, uint64_t&& );
+	template void Document::set<float>( std::string_view path, float&& );
 	template void Document::set<double>( std::string_view path, double&& );
 	template void Document::set<Document>( std::string_view path, Document&& );
-	template void Document::set<Document::Array>( std::string_view path, Array&& );
 	template void Document::set<Document::Object>( std::string_view path, Document::Object&& );
+	template void Document::set<Document::Array>( std::string_view path, Document::Array&& );
 
 	//-----------------------------
 	// Type-only creation
@@ -706,10 +841,16 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
-			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
 			std::is_same_v<std::decay_t<T>, Document::Array> )
 	bool Document::is( std::string_view path ) const
@@ -737,27 +878,35 @@ namespace nfx::serialization::json
 		{
 			return node->is_string();
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> || std::is_same_v<std::decay_t<T>, int64_t> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
 		{
-			return node->is_number_integer();
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
-		{
-			return node->is_number_float();
+			return node->is_string() && node->get<std::string>().length() == 1;
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
 		{
 			return node->is_boolean();
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int8_t> || std::is_same_v<std::decay_t<T>, int16_t> || std::is_same_v<std::decay_t<T>, int32_t> || std::is_same_v<std::decay_t<T>, int64_t> )
 		{
-			return node->is_string() && node->get<std::string>().length() == 1;
+			return node->is_number_integer();
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint8_t> || std::is_same_v<std::decay_t<T>, uint16_t> || std::is_same_v<std::decay_t<T>, uint32_t> || std::is_same_v<std::decay_t<T>, uint64_t> )
+		{
+			return node->is_number_integer() || node->is_number_unsigned();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, float> )
+		{
+			return node->is_number_float();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			return node->is_number_float();
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
 		{
 			return node->is_object();
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
 		{
 			return node->is_array();
 		}
@@ -769,11 +918,18 @@ namespace nfx::serialization::json
 	template bool Document::is<std::string>( std::string_view path ) const;
 	template bool Document::is<char>( std::string_view path ) const;
 	template bool Document::is<bool>( std::string_view path ) const;
+	template bool Document::is<int8_t>( std::string_view path ) const;
+	template bool Document::is<int16_t>( std::string_view path ) const;
 	template bool Document::is<int32_t>( std::string_view path ) const;
 	template bool Document::is<int64_t>( std::string_view path ) const;
+	template bool Document::is<uint8_t>( std::string_view path ) const;
+	template bool Document::is<uint16_t>( std::string_view path ) const;
+	template bool Document::is<uint32_t>( std::string_view path ) const;
+	template bool Document::is<uint64_t>( std::string_view path ) const;
+	template bool Document::is<float>( std::string_view path ) const;
 	template bool Document::is<double>( std::string_view path ) const;
-	template bool Document::is<Document::Array>( std::string_view path ) const;
 	template bool Document::is<Document::Object>( std::string_view path ) const;
+	template bool Document::is<Document::Array>( std::string_view path ) const;
 
 	bool Document::isNull( std::string_view path ) const
 	{
@@ -1139,8 +1295,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -1218,25 +1381,11 @@ namespace nfx::serialization::json
 				return std::string_view( targetNode->get<std::string>() );
 			}
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
 		{
-			if ( targetNode->is_number_integer() )
+			if ( targetNode->is_string() && targetNode->get<std::string>().length() == 1 )
 			{
-				return targetNode->get<int64_t>();
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
-		{
-			if ( targetNode->is_number_integer() )
-			{
-				return static_cast<int32_t>( targetNode->get<int64_t>() );
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
-		{
-			if ( targetNode->is_number_float() )
-			{
-				return targetNode->get<double>();
+				return targetNode->get<std::string>()[0];
 			}
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
@@ -1246,11 +1395,94 @@ namespace nfx::serialization::json
 				return targetNode->get<bool>();
 			}
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int8_t> )
 		{
-			if ( targetNode->is_string() && targetNode->get<std::string>().length() == 1 )
+			if ( targetNode->is_number_integer() )
 			{
-				return targetNode->get<std::string>()[0];
+				int64_t val = targetNode->get<int64_t>();
+				if ( val >= std::numeric_limits<int8_t>::min() && val <= std::numeric_limits<int8_t>::max() )
+				{
+					return static_cast<int8_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int16_t> )
+		{
+			if ( targetNode->is_number_integer() )
+			{
+				int64_t val = targetNode->get<int64_t>();
+				if ( val >= std::numeric_limits<int16_t>::min() && val <= std::numeric_limits<int16_t>::max() )
+				{
+					return static_cast<int16_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			if ( targetNode->is_number_integer() )
+			{
+				return static_cast<int32_t>( targetNode->get<int64_t>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			if ( targetNode->is_number_integer() )
+			{
+				return targetNode->get<int64_t>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint8_t> )
+		{
+			if ( targetNode->is_number_unsigned() )
+			{
+				uint64_t val = targetNode->get<uint64_t>();
+				if ( val <= std::numeric_limits<uint8_t>::max() )
+				{
+					return static_cast<uint8_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint16_t> )
+		{
+			if ( targetNode->is_number_unsigned() )
+			{
+				uint64_t val = targetNode->get<uint64_t>();
+				if ( val <= std::numeric_limits<uint16_t>::max() )
+				{
+					return static_cast<uint16_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint32_t> )
+		{
+			if ( targetNode->is_number_unsigned() )
+			{
+				uint64_t val = targetNode->get<uint64_t>();
+				if ( val <= std::numeric_limits<uint32_t>::max() )
+				{
+					return static_cast<uint32_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint64_t> )
+		{
+			if ( targetNode->is_number_unsigned() )
+			{
+				return targetNode->get<uint64_t>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, float> )
+		{
+			if ( targetNode->is_number_float() )
+			{
+				return static_cast<float>( targetNode->get<double>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			if ( targetNode->is_number_float() )
+			{
+				return targetNode->get<double>();
 			}
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
@@ -1258,15 +1490,6 @@ namespace nfx::serialization::json
 			Document newDoc;
 			static_cast<Document_impl*>( newDoc.m_impl )->setData( *targetNode );
 			return newDoc;
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
-		{
-			if ( targetNode->is_array() )
-			{
-				Document arrayDoc;
-				static_cast<Document_impl*>( arrayDoc.m_impl )->setData( *targetNode );
-				return Document::Array( &arrayDoc, "" );
-			}
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
 		{
@@ -1278,6 +1501,16 @@ namespace nfx::serialization::json
 			}
 		}
 
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			if ( targetNode->is_array() )
+			{
+				Document arrayDoc;
+				static_cast<Document_impl*>( arrayDoc.m_impl )->setData( *targetNode );
+				return Document::Array( &arrayDoc, "" );
+			}
+		}
+
 		return std::nullopt;
 	}
 
@@ -1285,12 +1518,19 @@ namespace nfx::serialization::json
 	template std::optional<std::string> Document::Object::get<std::string>( std::string_view path ) const;
 	template std::optional<char> Document::Object::get<char>( std::string_view path ) const;
 	template std::optional<bool> Document::Object::get<bool>( std::string_view path ) const;
+	template std::optional<int8_t> Document::Object::get<int8_t>( std::string_view path ) const;
+	template std::optional<int16_t> Document::Object::get<int16_t>( std::string_view path ) const;
 	template std::optional<int32_t> Document::Object::get<int32_t>( std::string_view path ) const;
 	template std::optional<int64_t> Document::Object::get<int64_t>( std::string_view path ) const;
+	template std::optional<uint8_t> Document::Object::get<uint8_t>( std::string_view path ) const;
+	template std::optional<uint16_t> Document::Object::get<uint16_t>( std::string_view path ) const;
+	template std::optional<uint32_t> Document::Object::get<uint32_t>( std::string_view path ) const;
+	template std::optional<uint64_t> Document::Object::get<uint64_t>( std::string_view path ) const;
+	template std::optional<float> Document::Object::get<float>( std::string_view path ) const;
 	template std::optional<double> Document::Object::get<double>( std::string_view path ) const;
 	template std::optional<Document> Document::Object::get<Document>( std::string_view path ) const;
-	template std::optional<Document::Array> Document::Object::get<Document::Array>( std::string_view path ) const;
 	template std::optional<Document::Object> Document::Object::get<Document::Object>( std::string_view path ) const;
+	template std::optional<Document::Array> Document::Object::get<Document::Array>( std::string_view path ) const;
 
 	//-----------------------------
 	// Field modification
@@ -1303,8 +1543,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -1372,27 +1619,58 @@ namespace nfx::serialization::json
 		{
 			*targetNode = std::string{ value };
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> || std::is_same_v<std::decay_t<T>, int32_t> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
 		{
-			*targetNode = static_cast<int64_t>( value );
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
-		{
-			*targetNode = value;
+			*targetNode = std::string( 1, value );
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
 		{
 			*targetNode = value;
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> || std::is_same_v<std::decay_t<T>, int32_t> || std::is_same_v<std::decay_t<T>, int16_t> || std::is_same_v<std::decay_t<T>, int8_t> )
 		{
-			*targetNode = std::string( 1, value );
+			*targetNode = static_cast<int64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint64_t> || std::is_same_v<std::decay_t<T>, uint32_t> || std::is_same_v<std::decay_t<T>, uint16_t> || std::is_same_v<std::decay_t<T>, uint8_t> )
+		{
+			*targetNode = static_cast<uint64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, float> )
+		{
+			*targetNode = static_cast<double>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			*targetNode = value;
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
 		{
 			if ( value.m_impl )
 			{
 				*targetNode = static_cast<Document_impl*>( value.m_impl )->data();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
+		{
+			if ( value.m_doc && value.m_doc->m_impl )
+			{
+				const nlohmann::ordered_json* objectNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					objectNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( objectNode )
+				{
+					*targetNode = *objectNode;
+				}
 			}
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
@@ -1418,51 +1696,41 @@ namespace nfx::serialization::json
 				}
 			}
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
-		{
-			if ( value.m_doc && value.m_doc->m_impl )
-			{
-				const nlohmann::ordered_json* objectNode = nullptr;
-				if ( value.m_path.empty() )
-				{
-					objectNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
-				}
-				else if ( value.m_path[0] == '/' )
-				{
-					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
-				}
-				else
-				{
-					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
-				}
-				if ( objectNode )
-				{
-					*targetNode = *objectNode;
-				}
-			}
-		}
 	}
 
 	template void Document::Object::set<std::string_view>( std::string_view path, const std::string_view& );
 	template void Document::Object::set<std::string>( std::string_view path, const std::string& );
 	template void Document::Object::set<char>( std::string_view path, const char& );
 	template void Document::Object::set<bool>( std::string_view path, const bool& );
+	template void Document::Object::set<int8_t>( std::string_view path, const int8_t& );
+	template void Document::Object::set<int16_t>( std::string_view path, const int16_t& );
 	template void Document::Object::set<int32_t>( std::string_view path, const int32_t& );
 	template void Document::Object::set<int64_t>( std::string_view path, const int64_t& );
+	template void Document::Object::set<uint8_t>( std::string_view path, const uint8_t& );
+	template void Document::Object::set<uint16_t>( std::string_view path, const uint16_t& );
+	template void Document::Object::set<uint32_t>( std::string_view path, const uint32_t& );
+	template void Document::Object::set<uint64_t>( std::string_view path, const uint64_t& );
+	template void Document::Object::set<float>( std::string_view path, const float& );
 	template void Document::Object::set<double>( std::string_view path, const double& );
 	template void Document::Object::set<Document>( std::string_view path, const Document& );
-	template void Document::Object::set<Document::Array>( std::string_view path, const Document::Array& );
 	template void Document::Object::set<Document::Object>( std::string_view path, const Document::Object& );
+	template void Document::Object::set<Document::Array>( std::string_view path, const Document::Array& );
 
-	// Move version
 	template <typename T>
 		requires(
 			std::is_same_v<std::decay_t<T>, std::string_view> ||
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -1530,27 +1798,58 @@ namespace nfx::serialization::json
 		{
 			*targetNode = std::string{ std::move( value ) };
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> || std::is_same_v<std::decay_t<T>, int32_t> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
 		{
-			*targetNode = static_cast<int64_t>( std::move( value ) );
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
-		{
-			*targetNode = std::move( value );
+			*targetNode = std::string( 1, std::move( value ) );
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
 		{
 			*targetNode = std::move( value );
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> || std::is_same_v<std::decay_t<T>, int32_t> || std::is_same_v<std::decay_t<T>, int16_t> || std::is_same_v<std::decay_t<T>, int8_t> )
 		{
-			*targetNode = std::string( 1, std::move( value ) );
+			*targetNode = static_cast<int64_t>( std::move( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint64_t> || std::is_same_v<std::decay_t<T>, uint32_t> || std::is_same_v<std::decay_t<T>, uint16_t> || std::is_same_v<std::decay_t<T>, uint8_t> )
+		{
+			*targetNode = static_cast<uint64_t>( std::move( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, float> )
+		{
+			*targetNode = static_cast<double>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			*targetNode = std::move( value );
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
 		{
 			if ( value.m_impl )
 			{
 				*targetNode = std::move( static_cast<Document_impl*>( value.m_impl )->data() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
+		{
+			if ( value.m_doc && value.m_doc->m_impl )
+			{
+				const nlohmann::ordered_json* objectNode = nullptr;
+				if ( value.m_path.empty() )
+				{
+					objectNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+				}
+				else if ( value.m_path[0] == '/' )
+				{
+					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+				}
+				else
+				{
+					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+				}
+				if ( objectNode )
+				{
+					*targetNode = *objectNode; // Note: nlohmann::json doesn't have move semantics for this operation ?
+				}
 			}
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
@@ -1576,37 +1875,21 @@ namespace nfx::serialization::json
 				}
 			}
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
-		{
-			if ( value.m_doc && value.m_doc->m_impl )
-			{
-				const nlohmann::ordered_json* objectNode = nullptr;
-				if ( value.m_path.empty() )
-				{
-					objectNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
-				}
-				else if ( value.m_path[0] == '/' )
-				{
-					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
-				}
-				else
-				{
-					objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
-				}
-				if ( objectNode )
-				{
-					*targetNode = *objectNode; // Note: nlohmann::json doesn't have move semantics for this operation ?
-				}
-			}
-		}
 	}
 
 	template void Document::Object::set<std::string_view>( std::string_view path, std::string_view&& );
 	template void Document::Object::set<std::string>( std::string_view path, std::string&& );
 	template void Document::Object::set<char>( std::string_view path, char&& );
 	template void Document::Object::set<bool>( std::string_view path, bool&& );
+	template void Document::Object::set<int8_t>( std::string_view path, int8_t&& );
+	template void Document::Object::set<int16_t>( std::string_view path, int16_t&& );
 	template void Document::Object::set<int32_t>( std::string_view path, int32_t&& );
 	template void Document::Object::set<int64_t>( std::string_view path, int64_t&& );
+	template void Document::Object::set<uint8_t>( std::string_view path, uint8_t&& );
+	template void Document::Object::set<uint16_t>( std::string_view path, uint16_t&& );
+	template void Document::Object::set<uint32_t>( std::string_view path, uint32_t&& );
+	template void Document::Object::set<uint64_t>( std::string_view path, uint64_t&& );
+	template void Document::Object::set<float>( std::string_view path, float&& );
 	template void Document::Object::set<double>( std::string_view path, double&& );
 	template void Document::Object::set<Document>( std::string_view path, Document&& );
 	template void Document::Object::set<Document::Array>( std::string_view path, Document::Array&& );
@@ -1984,8 +2267,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -2004,12 +2294,19 @@ namespace nfx::serialization::json
 	template std::optional<std::string> Document::Array::get<std::string>( size_t index ) const;
 	template std::optional<char> Document::Array::get<char>( size_t index ) const;
 	template std::optional<bool> Document::Array::get<bool>( size_t index ) const;
+	template std::optional<int8_t> Document::Array::get<int8_t>( size_t index ) const;
+	template std::optional<int16_t> Document::Array::get<int16_t>( size_t index ) const;
 	template std::optional<int32_t> Document::Array::get<int32_t>( size_t index ) const;
 	template std::optional<int64_t> Document::Array::get<int64_t>( size_t index ) const;
+	template std::optional<uint8_t> Document::Array::get<uint8_t>( size_t index ) const;
+	template std::optional<uint16_t> Document::Array::get<uint16_t>( size_t index ) const;
+	template std::optional<uint32_t> Document::Array::get<uint32_t>( size_t index ) const;
+	template std::optional<uint64_t> Document::Array::get<uint64_t>( size_t index ) const;
+	template std::optional<float> Document::Array::get<float>( size_t index ) const;
 	template std::optional<double> Document::Array::get<double>( size_t index ) const;
 	template std::optional<Document> Document::Array::get<Document>( size_t index ) const;
-	template std::optional<Document::Array> Document::Array::get<Document::Array>( size_t index ) const;
 	template std::optional<Document::Object> Document::Array::get<Document::Object>( size_t index ) const;
+	template std::optional<Document::Array> Document::Array::get<Document::Array>( size_t index ) const;
 
 	//-----------------------------
 	// Nested element access
@@ -2021,8 +2318,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -2094,25 +2398,11 @@ namespace nfx::serialization::json
 				return std::string_view( targetNode->get<std::string>() );
 			}
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
 		{
-			if ( targetNode->is_number_integer() )
+			if ( targetNode->is_string() && targetNode->get<std::string>().length() == 1 )
 			{
-				return targetNode->get<int64_t>();
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
-		{
-			if ( targetNode->is_number_integer() )
-			{
-				return static_cast<int32_t>( targetNode->get<int64_t>() );
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
-		{
-			if ( targetNode->is_number_float() )
-			{
-				return targetNode->get<double>();
+				return targetNode->get<std::string>()[0];
 			}
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
@@ -2122,11 +2412,95 @@ namespace nfx::serialization::json
 				return targetNode->get<bool>();
 			}
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int8_t> )
 		{
-			if ( targetNode->is_string() && targetNode->get<std::string>().length() == 1 )
+			if ( targetNode->is_number_integer() )
 			{
-				return targetNode->get<std::string>()[0];
+				int64_t val = targetNode->get<int64_t>();
+				if ( val >= std::numeric_limits<int8_t>::min() && val <= std::numeric_limits<int8_t>::max() )
+				{
+					return static_cast<int8_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int16_t> )
+		{
+			if ( targetNode->is_number_integer() )
+			{
+				int64_t val = targetNode->get<int64_t>();
+				if ( val >= std::numeric_limits<int16_t>::min() && val <= std::numeric_limits<int16_t>::max() )
+				{
+					return static_cast<int16_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int32_t> )
+		{
+			if ( targetNode->is_number_integer() )
+			{
+				return static_cast<int32_t>( targetNode->get<int64_t>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			if ( targetNode->is_number_integer() )
+			{
+				return targetNode->get<int64_t>();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint8_t> )
+		{
+			if ( targetNode->is_number_unsigned() )
+			{
+				uint64_t val = targetNode->get<uint64_t>();
+				if ( val <= std::numeric_limits<uint8_t>::max() )
+				{
+					return static_cast<uint8_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint16_t> )
+		{
+			if ( targetNode->is_number_unsigned() )
+			{
+				uint64_t val = targetNode->get<uint64_t>();
+				if ( val <= std::numeric_limits<uint16_t>::max() )
+				{
+					return static_cast<uint16_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint32_t> )
+		{
+			if ( targetNode->is_number_unsigned() )
+			{
+				uint64_t val = targetNode->get<uint64_t>();
+				if ( val <= std::numeric_limits<uint32_t>::max() )
+				{
+					return static_cast<uint32_t>( val );
+				}
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint64_t> )
+		{
+			if ( targetNode->is_number_unsigned() )
+			{
+				return targetNode->get<uint64_t>();
+			}
+		}
+
+		else if constexpr ( std::is_same_v<std::decay_t<T>, float> )
+		{
+			if ( targetNode->is_number_float() )
+			{
+				return static_cast<float>( targetNode->get<double>() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			if ( targetNode->is_number_float() )
+			{
+				return targetNode->get<double>();
 			}
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
@@ -2135,22 +2509,22 @@ namespace nfx::serialization::json
 			static_cast<Document_impl*>( newDoc.m_impl )->setData( *targetNode );
 			return newDoc;
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
-		{
-			if ( targetNode->is_array() )
-			{
-				Document arrayDoc;
-				static_cast<Document_impl*>( arrayDoc.m_impl )->setData( *targetNode );
-				return Array( &arrayDoc, "" );
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
 		{
 			if ( targetNode->is_object() )
 			{
 				Document objDoc;
 				static_cast<Document_impl*>( objDoc.m_impl )->setData( *targetNode );
 				return Object( &objDoc, "" );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			if ( targetNode->is_array() )
+			{
+				Document arrayDoc;
+				static_cast<Document_impl*>( arrayDoc.m_impl )->setData( *targetNode );
+				return Array( &arrayDoc, "" );
 			}
 		}
 
@@ -2161,12 +2535,19 @@ namespace nfx::serialization::json
 	template std::optional<std::string> Document::Array::get<std::string>( std::string_view path ) const;
 	template std::optional<char> Document::Array::get<char>( std::string_view path ) const;
 	template std::optional<bool> Document::Array::get<bool>( std::string_view path ) const;
+	template std::optional<int8_t> Document::Array::get<int8_t>( std::string_view path ) const;
+	template std::optional<int16_t> Document::Array::get<int16_t>( std::string_view path ) const;
 	template std::optional<int32_t> Document::Array::get<int32_t>( std::string_view path ) const;
 	template std::optional<int64_t> Document::Array::get<int64_t>( std::string_view path ) const;
+	template std::optional<uint8_t> Document::Array::get<uint8_t>( std::string_view path ) const;
+	template std::optional<uint16_t> Document::Array::get<uint16_t>( std::string_view path ) const;
+	template std::optional<uint32_t> Document::Array::get<uint32_t>( std::string_view path ) const;
+	template std::optional<uint64_t> Document::Array::get<uint64_t>( std::string_view path ) const;
+	template std::optional<float> Document::Array::get<float>( std::string_view path ) const;
 	template std::optional<double> Document::Array::get<double>( std::string_view path ) const;
 	template std::optional<Document> Document::Array::get<Document>( std::string_view path ) const;
-	template std::optional<Document::Array> Document::Array::get<Document::Array>( std::string_view path ) const;
 	template std::optional<Document::Object> Document::Array::get<Document::Object>( std::string_view path ) const;
+	template std::optional<Document::Array> Document::Array::get<Document::Array>( std::string_view path ) const;
 
 	//-----------------------------
 	// Element modification
@@ -2179,8 +2560,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -2197,12 +2585,19 @@ namespace nfx::serialization::json
 	template void Document::Array::set<std::string>( size_t index, const std::string& );
 	template void Document::Array::set<char>( size_t index, const char& );
 	template void Document::Array::set<bool>( size_t index, const bool& );
+	template void Document::Array::set<int8_t>( size_t index, const int8_t& );
+	template void Document::Array::set<int16_t>( size_t index, const int16_t& );
 	template void Document::Array::set<int32_t>( size_t index, const int32_t& );
 	template void Document::Array::set<int64_t>( size_t index, const int64_t& );
+	template void Document::Array::set<uint8_t>( size_t index, const uint8_t& );
+	template void Document::Array::set<uint16_t>( size_t index, const uint16_t& );
+	template void Document::Array::set<uint32_t>( size_t index, const uint32_t& );
+	template void Document::Array::set<uint64_t>( size_t index, const uint64_t& );
+	template void Document::Array::set<float>( size_t index, const float& );
 	template void Document::Array::set<double>( size_t index, const double& );
 	template void Document::Array::set<Document>( size_t index, const Document& );
-	template void Document::Array::set<Document::Array>( size_t index, const Array& );
 	template void Document::Array::set<Document::Object>( size_t index, const Document::Object& );
+	template void Document::Array::set<Document::Array>( size_t index, const Array& );
 
 	// Move version
 	template <typename T>
@@ -2211,8 +2606,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -2229,12 +2631,19 @@ namespace nfx::serialization::json
 	template void Document::Array::set<std::string>( size_t index, std::string&& );
 	template void Document::Array::set<char>( size_t index, char&& );
 	template void Document::Array::set<bool>( size_t index, bool&& );
+	template void Document::Array::set<int8_t>( size_t index, int8_t&& );
+	template void Document::Array::set<int16_t>( size_t index, int16_t&& );
 	template void Document::Array::set<int32_t>( size_t index, int32_t&& );
 	template void Document::Array::set<int64_t>( size_t index, int64_t&& );
+	template void Document::Array::set<uint8_t>( size_t index, uint8_t&& );
+	template void Document::Array::set<uint16_t>( size_t index, uint16_t&& );
+	template void Document::Array::set<uint32_t>( size_t index, uint32_t&& );
+	template void Document::Array::set<uint64_t>( size_t index, uint64_t&& );
+	template void Document::Array::set<float>( size_t index, float&& );
 	template void Document::Array::set<double>( size_t index, double&& );
 	template void Document::Array::set<Document>( size_t index, Document&& );
-	template void Document::Array::set<Document::Array>( size_t index, Array&& );
 	template void Document::Array::set<Document::Object>( size_t index, Document::Object&& );
+	template void Document::Array::set<Document::Array>( size_t index, Array&& );
 
 	//-----------------------------
 	// Nested element modification
@@ -2247,8 +2656,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -2310,40 +2726,48 @@ namespace nfx::serialization::json
 		{
 			*targetNode = std::string{ value };
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> || std::is_same_v<std::decay_t<T>, int32_t> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
 		{
-			*targetNode = static_cast<int64_t>( value );
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
-		{
-			*targetNode = value;
+			*targetNode = std::string( 1, value );
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
 		{
 			*targetNode = value;
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, char> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int8_t> || std::is_same_v<std::decay_t<T>, int16_t> || std::is_same_v<std::decay_t<T>, int32_t> || std::is_same_v<std::decay_t<T>, int64_t> )
 		{
-			*targetNode = std::string( 1, value );
+			*targetNode = static_cast<int64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint8_t> || std::is_same_v<std::decay_t<T>, uint16_t> || std::is_same_v<std::decay_t<T>, uint32_t> || std::is_same_v<std::decay_t<T>, uint64_t> )
+		{
+			*targetNode = static_cast<uint64_t>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, float> )
+		{
+			*targetNode = static_cast<double>( value );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			*targetNode = value;
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
 		{
 			*targetNode = static_cast<Document_impl*>( value.m_impl )->data();
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
-		{
-			if ( value.m_doc )
-			{
-				Document arrDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
-				*targetNode = static_cast<Document_impl*>( arrDoc.m_impl )->data();
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
 		{
 			if ( value.m_doc )
 			{
 				Document objDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
 				*targetNode = static_cast<Document_impl*>( objDoc.m_impl )->data();
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			if ( value.m_doc )
+			{
+				Document arrDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
+				*targetNode = static_cast<Document_impl*>( arrDoc.m_impl )->data();
 			}
 		}
 	}
@@ -2352,12 +2776,19 @@ namespace nfx::serialization::json
 	template void Document::Array::set<std::string>( std::string_view path, const std::string& );
 	template void Document::Array::set<char>( std::string_view path, const char& );
 	template void Document::Array::set<bool>( std::string_view path, const bool& );
+	template void Document::Array::set<int8_t>( std::string_view path, const int8_t& );
+	template void Document::Array::set<int16_t>( std::string_view path, const int16_t& );
 	template void Document::Array::set<int32_t>( std::string_view path, const int32_t& );
 	template void Document::Array::set<int64_t>( std::string_view path, const int64_t& );
+	template void Document::Array::set<uint8_t>( std::string_view path, const uint8_t& );
+	template void Document::Array::set<uint16_t>( std::string_view path, const uint16_t& );
+	template void Document::Array::set<uint32_t>( std::string_view path, const uint32_t& );
+	template void Document::Array::set<uint64_t>( std::string_view path, const uint64_t& );
+	template void Document::Array::set<float>( std::string_view path, const float& );
 	template void Document::Array::set<double>( std::string_view path, const double& );
 	template void Document::Array::set<Document>( std::string_view path, const Document& );
-	template void Document::Array::set<Document::Array>( std::string_view path, const Array& );
 	template void Document::Array::set<Document::Object>( std::string_view path, const Document::Object& );
+	template void Document::Array::set<Document::Array>( std::string_view path, const Document::Array& );
 
 	// Move version
 	template <typename T>
@@ -2366,8 +2797,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -2424,18 +2862,9 @@ namespace nfx::serialization::json
 		{
 			return;
 		}
-
 		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> || std::is_same_v<std::decay_t<T>, std::string_view> )
 		{
 			*targetNode = std::string{ std::move( value ) };
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, int64_t> || std::is_same_v<std::decay_t<T>, int32_t> )
-		{
-			*targetNode = static_cast<int64_t>( std::move( value ) );
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
-		{
-			*targetNode = std::move( value );
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, bool> )
 		{
@@ -2445,24 +2874,40 @@ namespace nfx::serialization::json
 		{
 			*targetNode = std::string( 1, std::move( value ) );
 		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, int8_t> || std::is_same_v<std::decay_t<T>, int16_t> || std::is_same_v<std::decay_t<T>, int32_t> || std::is_same_v<std::decay_t<T>, int64_t> )
+		{
+			*targetNode = static_cast<int64_t>( std::move( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, uint8_t> || std::is_same_v<std::decay_t<T>, uint16_t> || std::is_same_v<std::decay_t<T>, uint32_t> || std::is_same_v<std::decay_t<T>, uint64_t> )
+		{
+			*targetNode = static_cast<uint64_t>( std::move( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, float> )
+		{
+			*targetNode = static_cast<double>( std::move( value ) );
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, double> )
+		{
+			*targetNode = std::move( value );
+		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
 		{
 			*targetNode = std::move( static_cast<Document_impl*>( value.m_impl )->data() );
 		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
-		{
-			if ( value.m_doc )
-			{
-				Document arrDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
-				*targetNode = std::move( static_cast<Document_impl*>( arrDoc.m_impl )->data() );
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
 		{
 			if ( value.m_doc )
 			{
 				Document objDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
 				*targetNode = std::move( static_cast<Document_impl*>( objDoc.m_impl )->data() );
+			}
+		}
+		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
+		{
+			if ( value.m_doc )
+			{
+				Document arrDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
+				*targetNode = std::move( static_cast<Document_impl*>( arrDoc.m_impl )->data() );
 			}
 		}
 	}
@@ -2471,12 +2916,19 @@ namespace nfx::serialization::json
 	template void Document::Array::set<std::string>( std::string_view path, std::string&& );
 	template void Document::Array::set<char>( std::string_view path, char&& );
 	template void Document::Array::set<bool>( std::string_view path, bool&& );
+	template void Document::Array::set<int8_t>( std::string_view path, int8_t&& );
+	template void Document::Array::set<int16_t>( std::string_view path, int16_t&& );
 	template void Document::Array::set<int32_t>( std::string_view path, int32_t&& );
 	template void Document::Array::set<int64_t>( std::string_view path, int64_t&& );
+	template void Document::Array::set<uint8_t>( std::string_view path, uint8_t&& );
+	template void Document::Array::set<uint16_t>( std::string_view path, uint16_t&& );
+	template void Document::Array::set<uint32_t>( std::string_view path, uint32_t&& );
+	template void Document::Array::set<uint64_t>( std::string_view path, uint64_t&& );
+	template void Document::Array::set<float>( std::string_view path, float&& );
 	template void Document::Array::set<double>( std::string_view path, double&& );
 	template void Document::Array::set<Document>( std::string_view path, Document&& );
-	template void Document::Array::set<Document::Array>( std::string_view path, Array&& );
 	template void Document::Array::set<Document::Object>( std::string_view path, Document::Object&& );
+	template void Document::Array::set<Document::Array>( std::string_view path, Document::Array&& );
 
 	// Copy version
 	template <typename T>
@@ -2485,8 +2937,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -2503,12 +2962,19 @@ namespace nfx::serialization::json
 	template void Document::Array::add<std::string>( const std::string& );
 	template void Document::Array::add<char>( const char& );
 	template void Document::Array::add<bool>( const bool& );
+	template void Document::Array::add<int8_t>( const int8_t& );
+	template void Document::Array::add<int16_t>( const int16_t& );
 	template void Document::Array::add<int32_t>( const int32_t& );
 	template void Document::Array::add<int64_t>( const int64_t& );
+	template void Document::Array::add<uint8_t>( const uint8_t& );
+	template void Document::Array::add<uint16_t>( const uint16_t& );
+	template void Document::Array::add<uint32_t>( const uint32_t& );
+	template void Document::Array::add<uint64_t>( const uint64_t& );
+	template void Document::Array::add<float>( const float& );
 	template void Document::Array::add<double>( const double& );
 	template void Document::Array::add<Document>( const Document& );
-	template void Document::Array::add<Document::Array>( const Document::Array& );
 	template void Document::Array::add<Document::Object>( const Document::Object& );
+	template void Document::Array::add<Document::Array>( const Document::Array& );
 
 	// Move version
 	template <typename T>
@@ -2517,8 +2983,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -2535,12 +3008,19 @@ namespace nfx::serialization::json
 	template void Document::Array::add<std::string>( std::string&& );
 	template void Document::Array::add<char>( char&& );
 	template void Document::Array::add<bool>( bool&& );
+	template void Document::Array::add<int8_t>( int8_t&& );
+	template void Document::Array::add<int16_t>( int16_t&& );
 	template void Document::Array::add<int32_t>( int32_t&& );
 	template void Document::Array::add<int64_t>( int64_t&& );
+	template void Document::Array::add<uint8_t>( uint8_t&& );
+	template void Document::Array::add<uint16_t>( uint16_t&& );
+	template void Document::Array::add<uint32_t>( uint32_t&& );
+	template void Document::Array::add<uint64_t>( uint64_t&& );
+	template void Document::Array::add<float>( float&& );
 	template void Document::Array::add<double>( double&& );
 	template void Document::Array::add<Document>( Document&& );
-	template void Document::Array::add<Document::Array>( Document::Array&& );
 	template void Document::Array::add<Document::Object>( Document::Object&& );
+	template void Document::Array::add<Document::Array>( Document::Array&& );
 
 	// Reference versions (for non-const lvalue matching) - delegate to copy version
 	void Document::Array::add( Document& value )
@@ -2565,8 +3045,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -2580,12 +3067,19 @@ namespace nfx::serialization::json
 	template void Document::Array::insert<std::string>( size_t index, const std::string& );
 	template void Document::Array::insert<char>( size_t index, const char& );
 	template void Document::Array::insert<bool>( size_t index, const bool& );
+	template void Document::Array::insert<int8_t>( size_t index, const int8_t& );
+	template void Document::Array::insert<int16_t>( size_t index, const int16_t& );
 	template void Document::Array::insert<int32_t>( size_t index, const int32_t& );
 	template void Document::Array::insert<int64_t>( size_t index, const int64_t& );
+	template void Document::Array::insert<uint8_t>( size_t index, const uint8_t& );
+	template void Document::Array::insert<uint16_t>( size_t index, const uint16_t& );
+	template void Document::Array::insert<uint32_t>( size_t index, const uint32_t& );
+	template void Document::Array::insert<uint64_t>( size_t index, const uint64_t& );
+	template void Document::Array::insert<float>( size_t index, const float& );
 	template void Document::Array::insert<double>( size_t index, const double& );
 	template void Document::Array::insert<Document>( size_t index, const Document& );
-	template void Document::Array::insert<Document::Array>( size_t index, const Array& );
 	template void Document::Array::insert<Document::Object>( size_t index, const Document::Object& );
+	template void Document::Array::insert<Document::Array>( size_t index, const Document::Array& );
 
 	// Move version
 	template <typename T>
@@ -2594,8 +3088,15 @@ namespace nfx::serialization::json
 			std::is_same_v<std::decay_t<T>, std::string> ||
 			std::is_same_v<std::decay_t<T>, char> ||
 			std::is_same_v<std::decay_t<T>, bool> ||
+			std::is_same_v<std::decay_t<T>, int8_t> ||
+			std::is_same_v<std::decay_t<T>, int16_t> ||
 			std::is_same_v<std::decay_t<T>, int32_t> ||
 			std::is_same_v<std::decay_t<T>, int64_t> ||
+			std::is_same_v<std::decay_t<T>, uint8_t> ||
+			std::is_same_v<std::decay_t<T>, uint16_t> ||
+			std::is_same_v<std::decay_t<T>, uint32_t> ||
+			std::is_same_v<std::decay_t<T>, uint64_t> ||
+			std::is_same_v<std::decay_t<T>, float> ||
 			std::is_same_v<std::decay_t<T>, double> ||
 			std::is_same_v<std::decay_t<T>, Document> ||
 			std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -2609,12 +3110,19 @@ namespace nfx::serialization::json
 	template void Document::Array::insert<std::string>( size_t index, std::string&& );
 	template void Document::Array::insert<char>( size_t index, char&& );
 	template void Document::Array::insert<bool>( size_t index, bool&& );
+	template void Document::Array::insert<int8_t>( size_t index, int8_t&& );
+	template void Document::Array::insert<int16_t>( size_t index, int16_t&& );
 	template void Document::Array::insert<int32_t>( size_t index, int32_t&& );
 	template void Document::Array::insert<int64_t>( size_t index, int64_t&& );
+	template void Document::Array::insert<uint8_t>( size_t index, uint8_t&& );
+	template void Document::Array::insert<uint16_t>( size_t index, uint16_t&& );
+	template void Document::Array::insert<uint32_t>( size_t index, uint32_t&& );
+	template void Document::Array::insert<uint64_t>( size_t index, uint64_t&& );
+	template void Document::Array::insert<float>( size_t index, float&& );
 	template void Document::Array::insert<double>( size_t index, double&& );
 	template void Document::Array::insert<Document>( size_t index, Document&& );
-	template void Document::Array::insert<Document::Array>( size_t index, Array&& );
 	template void Document::Array::insert<Document::Object>( size_t index, Document::Object&& );
+	template void Document::Array::insert<Document::Array>( size_t index, Array&& );
 
 	// Reference versions (for non-const lvalue matching) - delegate to copy version
 	void Document::Array::insert( size_t index, Document& value )

@@ -31,6 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.4.1] - 2025-10-18
+
+### Added
+
+#### JSON Document API Enhancement
+
+- **Complete Integer Type Support**: Added support for all integer types (`int8_t`, `int16_t`, `uint8_t`, `uint16_t`, `uint32_t`, `uint64_t`) in template constraints and implementations
+- **Floating-Point Type Support**: Added native `float` type support alongside existing `double` support across all JSON Document APIs
+
 ## [0.4.0] - 2025-10-17
 
 > **WORK IN PROGRESS**: This release introduces a major API modernization that is still undergoing refinement, stabilization, and documentation updates.

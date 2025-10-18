@@ -451,6 +451,223 @@ namespace nfx::serialization::json::test
 	}
 
 	//----------------------------------------------
+	// Integer Types
+	//----------------------------------------------
+
+	TEST( DocumentTest, AllIntegerTypes )
+	{
+		Document doc;
+
+		// Test values for each integer type
+		int8_t val_i8 = -127;
+		int16_t val_i16 = -32767;
+		int32_t val_i32 = -2147483647;
+		int64_t val_i64 = -9223372036854775807LL;
+		uint8_t val_u8 = 255;
+		uint16_t val_u16 = 65535;
+		uint32_t val_u32 = 4294967295U;
+		uint64_t val_u64 = 18446744073709551615ULL;
+
+		// Test Document-level set/get for all integer types
+		doc.set<int8_t>( "signed/i8", val_i8 );
+		doc.set<int16_t>( "signed/i16", val_i16 );
+		doc.set<int32_t>( "signed/i32", val_i32 );
+		doc.set<int64_t>( "signed/i64", val_i64 );
+		doc.set<uint8_t>( "unsigned/u8", val_u8 );
+		doc.set<uint16_t>( "unsigned/u16", val_u16 );
+		doc.set<uint32_t>( "unsigned/u32", val_u32 );
+		doc.set<uint64_t>( "unsigned/u64", val_u64 );
+
+		// Test Document-level get for all integer types
+		EXPECT_EQ( doc.get<int8_t>( "signed/i8" ).value(), val_i8 );
+		EXPECT_EQ( doc.get<int16_t>( "signed/i16" ).value(), val_i16 );
+		EXPECT_EQ( doc.get<int32_t>( "signed/i32" ).value(), val_i32 );
+		EXPECT_EQ( doc.get<int64_t>( "signed/i64" ).value(), val_i64 );
+		EXPECT_EQ( doc.get<uint8_t>( "unsigned/u8" ).value(), val_u8 );
+		EXPECT_EQ( doc.get<uint16_t>( "unsigned/u16" ).value(), val_u16 );
+		EXPECT_EQ( doc.get<uint32_t>( "unsigned/u32" ).value(), val_u32 );
+		EXPECT_EQ( doc.get<uint64_t>( "unsigned/u64" ).value(), val_u64 );
+
+		// Test Object-level set/get for all integer types
+		doc.set<std::string>( "/testObject/dummy", "temp" );
+		auto obj = doc.get<Document::Object>( "/testObject" );
+		ASSERT_TRUE( obj.has_value() );
+		obj->set<int8_t>( "signed/i8", val_i8 );
+		obj->set<int16_t>( "signed/i16", val_i16 );
+		obj->set<int32_t>( "signed/i32", val_i32 );
+		obj->set<int64_t>( "signed/i64", val_i64 );
+		obj->set<uint8_t>( "unsigned/u8", val_u8 );
+		obj->set<uint16_t>( "unsigned/u16", val_u16 );
+		obj->set<uint32_t>( "unsigned/u32", val_u32 );
+		obj->set<uint64_t>( "unsigned/u64", val_u64 );
+
+		EXPECT_EQ( obj->get<int8_t>( "signed/i8" ).value(), val_i8 );
+		EXPECT_EQ( obj->get<int16_t>( "signed/i16" ).value(), val_i16 );
+		EXPECT_EQ( obj->get<int32_t>( "signed/i32" ).value(), val_i32 );
+		EXPECT_EQ( obj->get<int64_t>( "signed/i64" ).value(), val_i64 );
+		EXPECT_EQ( obj->get<uint8_t>( "unsigned/u8" ).value(), val_u8 );
+		EXPECT_EQ( obj->get<uint16_t>( "unsigned/u16" ).value(), val_u16 );
+		EXPECT_EQ( obj->get<uint32_t>( "unsigned/u32" ).value(), val_u32 );
+		EXPECT_EQ( obj->get<uint64_t>( "unsigned/u64" ).value(), val_u64 );
+
+		// Test Array-level add/get for all integer types
+		doc.set<Document::Array>( "/testArray" );
+		auto arr = doc.get<Document::Array>( "/testArray" );
+		ASSERT_TRUE( arr.has_value() );
+		arr->add<int8_t>( val_i8 );	   // index 0
+		arr->add<int16_t>( val_i16 );  // index 1
+		arr->add<int32_t>( val_i32 );  // index 2
+		arr->add<int64_t>( val_i64 );  // index 3
+		arr->add<uint8_t>( val_u8 );   // index 4
+		arr->add<uint16_t>( val_u16 ); // index 5
+		arr->add<uint32_t>( val_u32 ); // index 6
+		arr->add<uint64_t>( val_u64 ); // index 7
+
+		EXPECT_EQ( arr->get<int8_t>( 0 ).value(), val_i8 );
+		EXPECT_EQ( arr->get<int16_t>( 1 ).value(), val_i16 );
+		EXPECT_EQ( arr->get<int32_t>( 2 ).value(), val_i32 );
+		EXPECT_EQ( arr->get<int64_t>( 3 ).value(), val_i64 );
+		EXPECT_EQ( arr->get<uint8_t>( 4 ).value(), val_u8 );
+		EXPECT_EQ( arr->get<uint16_t>( 5 ).value(), val_u16 );
+		EXPECT_EQ( arr->get<uint32_t>( 6 ).value(), val_u32 );
+		EXPECT_EQ( arr->get<uint64_t>( 7 ).value(), val_u64 );
+
+		// Test Array-level set for all integer types
+		arr->set<int8_t>( 0, static_cast<int8_t>( -100 ) );
+		arr->set<int16_t>( 1, static_cast<int16_t>( -30000 ) );
+		arr->set<int32_t>( 2, static_cast<int32_t>( -2000000000 ) );
+		arr->set<int64_t>( 3, static_cast<int64_t>( -8000000000000000000LL ) );
+		arr->set<uint8_t>( 4, static_cast<uint8_t>( 200 ) );
+		arr->set<uint16_t>( 5, static_cast<uint16_t>( 60000 ) );
+		arr->set<uint32_t>( 6, static_cast<uint32_t>( 3000000000U ) );
+		arr->set<uint64_t>( 7, static_cast<uint64_t>( 15000000000000000000ULL ) );
+
+		EXPECT_EQ( arr->get<int8_t>( 0 ).value(), -100 );
+		EXPECT_EQ( arr->get<int16_t>( 1 ).value(), -30000 );
+		EXPECT_EQ( arr->get<int32_t>( 2 ).value(), -2000000000 );
+		EXPECT_EQ( arr->get<int64_t>( 3 ).value(), -8000000000000000000LL );
+		EXPECT_EQ( arr->get<uint8_t>( 4 ).value(), 200 );
+		EXPECT_EQ( arr->get<uint16_t>( 5 ).value(), 60000 );
+		EXPECT_EQ( arr->get<uint32_t>( 6 ).value(), 3000000000U );
+		EXPECT_EQ( arr->get<uint64_t>( 7 ).value(), 15000000000000000000ULL );
+
+		// Test Array-level insert for all integer types
+		doc.set<Document::Array>( "/insertArray" );
+		auto insertArr = doc.get<Document::Array>( "/insertArray" );
+		ASSERT_TRUE( insertArr.has_value() );
+		insertArr->insert<int8_t>( 0, val_i8 );
+		insertArr->insert<int16_t>( 1, val_i16 );
+		insertArr->insert<int32_t>( 2, val_i32 );
+		insertArr->insert<int64_t>( 3, val_i64 );
+		insertArr->insert<uint8_t>( 4, val_u8 );
+		insertArr->insert<uint16_t>( 5, val_u16 );
+		insertArr->insert<uint32_t>( 6, val_u32 );
+		insertArr->insert<uint64_t>( 7, val_u64 );
+
+		EXPECT_EQ( insertArr->get<int8_t>( 0 ).value(), val_i8 );
+		EXPECT_EQ( insertArr->get<int16_t>( 1 ).value(), val_i16 );
+		EXPECT_EQ( insertArr->get<int32_t>( 2 ).value(), val_i32 );
+		EXPECT_EQ( insertArr->get<int64_t>( 3 ).value(), val_i64 );
+		EXPECT_EQ( insertArr->get<uint8_t>( 4 ).value(), val_u8 );
+		EXPECT_EQ( insertArr->get<uint16_t>( 5 ).value(), val_u16 );
+		EXPECT_EQ( insertArr->get<uint32_t>( 6 ).value(), val_u32 );
+		EXPECT_EQ( insertArr->get<uint64_t>( 7 ).value(), val_u64 );
+
+		// Test range validation for smaller integer types
+		// Test that values outside the range return nullopt
+		doc.set( "overflow_test", static_cast<int64_t>( 300 ) ); // Out of int8_t range
+		EXPECT_FALSE( doc.get<int8_t>( "overflow_test" ).has_value() );
+
+		doc.set( "overflow_test", static_cast<int64_t>( 70000 ) ); // Out of int16_t range
+		EXPECT_FALSE( doc.get<int16_t>( "overflow_test" ).has_value() );
+
+		doc.set( "overflow_test", static_cast<uint64_t>( 300 ) ); // Out of uint8_t range
+		EXPECT_FALSE( doc.get<uint8_t>( "overflow_test" ).has_value() );
+
+		doc.set( "overflow_test", static_cast<uint64_t>( 70000 ) ); // Out of uint16_t range
+		EXPECT_FALSE( doc.get<uint16_t>( "overflow_test" ).has_value() );
+
+		// Test edge values
+		doc.set( "edge/i8_min", std::numeric_limits<int8_t>::min() );
+		doc.set( "edge/i8_max", std::numeric_limits<int8_t>::max() );
+		doc.set( "edge/u8_max", std::numeric_limits<uint8_t>::max() );
+
+		EXPECT_EQ( doc.get<int8_t>( "edge/i8_min" ).value(), std::numeric_limits<int8_t>::min() );
+		EXPECT_EQ( doc.get<int8_t>( "edge/i8_max" ).value(), std::numeric_limits<int8_t>::max() );
+		EXPECT_EQ( doc.get<uint8_t>( "edge/u8_max" ).value(), std::numeric_limits<uint8_t>::max() );
+	}
+
+	//----------------------------------------------
+	// Floating-Point Types
+	//----------------------------------------------
+
+	TEST( DocumentTest, AllFloatingPointTypes )
+	{
+		Document doc;
+
+		// Test values
+		float val_float = 3.14159f;
+		double val_double = 2.718281828459045;
+
+		// Set floating-point values
+		doc.set<float>( "floats/float_val", val_float );
+		doc.set<double>( "floats/double_val", val_double );
+
+		// Test retrieval
+		EXPECT_EQ( doc.get<float>( "floats/float_val" ).value(), val_float );
+		EXPECT_EQ( doc.get<double>( "floats/double_val" ).value(), val_double );
+
+		// Test type checking
+		EXPECT_TRUE( doc.is<float>( "floats/float_val" ) );
+		EXPECT_TRUE( doc.is<double>( "floats/double_val" ) );
+
+		// Test cross-type compatibility (float to double, double to float)
+		EXPECT_TRUE( doc.is<double>( "floats/float_val" ) ); // float should also be valid as double
+		EXPECT_TRUE( doc.is<float>( "floats/double_val" ) ); // double should also be valid as float
+
+		// Test array operations with floating-point types
+		doc.set<Document::Array>( "float_array" );
+		Document::Array floatArray = doc.get<Document::Array>( "float_array" ).value();
+		floatArray.add<float>( val_float );
+		floatArray.add<double>( val_double );
+
+		EXPECT_EQ( floatArray.size(), 2 );
+		EXPECT_EQ( floatArray.get<float>( 0 ).value(), val_float );
+		EXPECT_EQ( floatArray.get<double>( 1 ).value(), val_double );
+
+		// Test edge cases
+		float float_zero = 0.0f;
+		float float_negative = -123.456f;
+		double double_large = 1.7976931348623157e+308; // Near max double
+		double double_small = 2.2250738585072014e-308; // Near min positive double
+
+		doc.set<float>( "edge/float_zero", float_zero );
+		doc.set<float>( "edge/float_negative", float_negative );
+		doc.set<double>( "edge/double_large", double_large );
+		doc.set<double>( "edge/double_small", double_small );
+
+		EXPECT_EQ( doc.get<float>( "edge/float_zero" ).value(), float_zero );
+		EXPECT_EQ( doc.get<float>( "edge/float_negative" ).value(), float_negative );
+		EXPECT_EQ( doc.get<double>( "edge/double_large" ).value(), double_large );
+		EXPECT_EQ( doc.get<double>( "edge/double_small" ).value(), double_small );
+
+		// Test JSON Pointer syntax
+		doc.set<float>( "/json_pointer/float", val_float );
+		doc.set<double>( "/json_pointer/double", val_double );
+
+		EXPECT_EQ( doc.get<float>( "/json_pointer/float" ).value(), val_float );
+		EXPECT_EQ( doc.get<double>( "/json_pointer/double" ).value(), val_double );
+
+		// Test serialization round-trip
+		std::string jsonStr = doc.toJsonString();
+		auto docFromJson = Document::fromJsonString( jsonStr );
+		ASSERT_TRUE( docFromJson.has_value() );
+
+		EXPECT_EQ( docFromJson->get<float>( "floats/float_val" ).value(), val_float );
+		EXPECT_EQ( docFromJson->get<double>( "floats/double_val" ).value(), val_double );
+	}
+
+	//----------------------------------------------
 	// Advanced Document operations
 	//----------------------------------------------
 

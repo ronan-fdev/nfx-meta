@@ -193,8 +193,15 @@ namespace nfx::serialization::json
 				std::is_same_v<std::decay_t<T>, std::string> ||
 				std::is_same_v<std::decay_t<T>, char> ||
 				std::is_same_v<std::decay_t<T>, bool> ||
+				std::is_same_v<std::decay_t<T>, int8_t> ||
+				std::is_same_v<std::decay_t<T>, int16_t> ||
 				std::is_same_v<std::decay_t<T>, int32_t> ||
 				std::is_same_v<std::decay_t<T>, int64_t> ||
+				std::is_same_v<std::decay_t<T>, uint8_t> ||
+				std::is_same_v<std::decay_t<T>, uint16_t> ||
+				std::is_same_v<std::decay_t<T>, uint32_t> ||
+				std::is_same_v<std::decay_t<T>, uint64_t> ||
+				std::is_same_v<std::decay_t<T>, float> ||
 				std::is_same_v<std::decay_t<T>, double> ||
 				std::is_same_v<std::decay_t<T>, Document> ||
 				std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -217,8 +224,15 @@ namespace nfx::serialization::json
 				std::is_same_v<std::decay_t<T>, std::string> ||
 				std::is_same_v<std::decay_t<T>, char> ||
 				std::is_same_v<std::decay_t<T>, bool> ||
+				std::is_same_v<std::decay_t<T>, int8_t> ||
+				std::is_same_v<std::decay_t<T>, int16_t> ||
 				std::is_same_v<std::decay_t<T>, int32_t> ||
 				std::is_same_v<std::decay_t<T>, int64_t> ||
+				std::is_same_v<std::decay_t<T>, uint8_t> ||
+				std::is_same_v<std::decay_t<T>, uint16_t> ||
+				std::is_same_v<std::decay_t<T>, uint32_t> ||
+				std::is_same_v<std::decay_t<T>, uint64_t> ||
+				std::is_same_v<std::decay_t<T>, float> ||
 				std::is_same_v<std::decay_t<T>, double> ||
 				std::is_same_v<std::decay_t<T>, Document> ||
 				std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -237,8 +251,15 @@ namespace nfx::serialization::json
 				std::is_same_v<std::decay_t<T>, std::string> ||
 				std::is_same_v<std::decay_t<T>, char> ||
 				std::is_same_v<std::decay_t<T>, bool> ||
+				std::is_same_v<std::decay_t<T>, int8_t> ||
+				std::is_same_v<std::decay_t<T>, int16_t> ||
 				std::is_same_v<std::decay_t<T>, int32_t> ||
 				std::is_same_v<std::decay_t<T>, int64_t> ||
+				std::is_same_v<std::decay_t<T>, uint8_t> ||
+				std::is_same_v<std::decay_t<T>, uint16_t> ||
+				std::is_same_v<std::decay_t<T>, uint32_t> ||
+				std::is_same_v<std::decay_t<T>, uint64_t> ||
+				std::is_same_v<std::decay_t<T>, float> ||
 				std::is_same_v<std::decay_t<T>, double> ||
 				std::is_same_v<std::decay_t<T>, Document> ||
 				std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -287,10 +308,16 @@ namespace nfx::serialization::json
 				std::is_same_v<std::decay_t<T>, std::string> ||
 				std::is_same_v<std::decay_t<T>, char> ||
 				std::is_same_v<std::decay_t<T>, bool> ||
+				std::is_same_v<std::decay_t<T>, int8_t> ||
+				std::is_same_v<std::decay_t<T>, int16_t> ||
 				std::is_same_v<std::decay_t<T>, int32_t> ||
 				std::is_same_v<std::decay_t<T>, int64_t> ||
+				std::is_same_v<std::decay_t<T>, uint8_t> ||
+				std::is_same_v<std::decay_t<T>, uint16_t> ||
+				std::is_same_v<std::decay_t<T>, uint32_t> ||
+				std::is_same_v<std::decay_t<T>, uint64_t> ||
+				std::is_same_v<std::decay_t<T>, float> ||
 				std::is_same_v<std::decay_t<T>, double> ||
-				std::is_same_v<std::decay_t<T>, Document> ||
 				std::is_same_v<std::decay_t<T>, Document::Object> ||
 				std::is_same_v<std::decay_t<T>, Document::Array> )
 		bool is( std::string_view path ) const;
@@ -349,13 +376,13 @@ namespace nfx::serialization::json
 			 * @brief Default constructor - creates invalid object
 			 */
 			Object();
-			
+
 			/**
 			 * @brief Copy constructor
 			 * @param other Object to copy from
 			 */
 			Object( const Document::Object& other );
-			
+
 			/**
 			 * @brief Move constructor
 			 * @param other Object to move from
@@ -379,7 +406,7 @@ namespace nfx::serialization::json
 			 * @return Reference to this object
 			 */
 			Document::Object& operator=( const Document::Object& other );
-			
+
 			/**
 			 * @brief Move assignment operator
 			 * @param other Object to move from
@@ -479,8 +506,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -503,8 +537,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -523,8 +564,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -717,8 +765,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -741,8 +796,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -765,8 +827,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -785,8 +854,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -809,8 +885,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -829,8 +912,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -852,8 +942,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -871,8 +968,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -913,8 +1017,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -933,8 +1044,15 @@ namespace nfx::serialization::json
 					std::is_same_v<std::decay_t<T>, std::string> ||
 					std::is_same_v<std::decay_t<T>, char> ||
 					std::is_same_v<std::decay_t<T>, bool> ||
+					std::is_same_v<std::decay_t<T>, int8_t> ||
+					std::is_same_v<std::decay_t<T>, int16_t> ||
 					std::is_same_v<std::decay_t<T>, int32_t> ||
 					std::is_same_v<std::decay_t<T>, int64_t> ||
+					std::is_same_v<std::decay_t<T>, uint8_t> ||
+					std::is_same_v<std::decay_t<T>, uint16_t> ||
+					std::is_same_v<std::decay_t<T>, uint32_t> ||
+					std::is_same_v<std::decay_t<T>, uint64_t> ||
+					std::is_same_v<std::decay_t<T>, float> ||
 					std::is_same_v<std::decay_t<T>, double> ||
 					std::is_same_v<std::decay_t<T>, Document> ||
 					std::is_same_v<std::decay_t<T>, Document::Object> ||
@@ -947,14 +1065,14 @@ namespace nfx::serialization::json
 			 * @param value Document reference to insert
 			 */
 			void insert( size_t index, Document& value );
-			
+
 			/**
 			 * @brief Insert Array at index (reference version)
 			 * @param index Position to insert at
 			 * @param value Array reference to insert
 			 */
 			void insert( size_t index, Document::Array& value );
-			
+
 			/**
 			 * @brief Insert Object at index (reference version)
 			 * @param index Position to insert at
