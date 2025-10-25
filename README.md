@@ -10,7 +10,7 @@
 
 [![Linux GCC](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-linux-gcc.yml?branch=main&label=Linux%20GCC&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-linux-gcc.yml) [![Linux Clang](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-linux-clang.yml?branch=main&label=Linux%20Clang&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-linux-clang.yml) [![Windows MinGW](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-windows-mingw.yml?branch=main&label=Windows%20MinGW&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-windows-mingw.yml) [![Windows MSVC](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-windows-msvc.yml?branch=main&label=Windows%20MSVC&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-windows-msvc.yml)
 
-> A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, and high-precision temporal calculations
+> A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, and JSON serialization.
 
 > **⚠️ WARNING: API NOT STABLE - LIBRARY UNDER ACTIVE DEVELOPMENT**  
 > This library is in active development and the API may change without notice. Use with caution in production environments.
@@ -58,12 +58,6 @@ Originally developed as foundational infrastructure for the C++ port of the [DNV
 - **ArrayEnumerator/FieldEnumerator**: Efficient JSON traversal with stateful positioning and type-safe access
 - **SchemaValidator**: JSON Schema Draft 7 validation with detailed error reporting
 - **SerializationTraits<T>**: Extensible framework for custom type serialization with cross-platform compatibility
-
-### 🕒 Temporal Processing (ISO 8601 compliant)
-
-- **DateTime**: High-precision date and time handling
-- **DateTimeOffset**: Timezone-aware temporal calculations
-- **TimeSpan**: Duration and interval arithmetic
 
 ## Quick Start
 
@@ -485,8 +479,7 @@ nfx-core/
 │   ├── memory/            # LruCache with sliding expiration
 │   ├── serialization/     # JSON Document, Serializer, SchemaValidator
 │   │   └── json/          # JSON serialization framework
-│   ├── string/            # StringBuilderPool, Splitter, Utils
-│   └── time/              # DateTime, DateTimeOffset, TimeSpan
+│   └──string/            # StringBuilderPool, Splitter, Utils
 ├── licenses/              # Third-party license files
 ├── samples/               # Example usage and demonstrations
 ├── src/                   # Implementation files

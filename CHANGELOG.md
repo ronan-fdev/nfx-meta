@@ -31,6 +31,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.5.0] - 2025-10-25
+
+### Changed
+
+#### DateTime Module Externalization
+
+- **DateTime Module Migration**: Moved the entire `nfx::time` namespace to external dependency `nfx-datetime`
+  - DateTime functionality now available as optional external dependency via `NFX_CORE_WITH_TIME` option
+  - External dependency: `https://github.com/ronan-fdev/nfx-datetime.git` (v1.0.0)
+  - Removed internal implementation files:
+    - `include/nfx/time/DateTime.h`
+    - `include/nfx/time/constants/DateTimeConstants.h`
+    - `include/nfx/detail/time/DateTime.inl`
+    - `src/time/DateTime.cpp`
+    - `samples/time/Sample_DateTime.cpp`
+    - `test/time/TESTS_DateTime.cpp`
+
+#### Configuration and Build System Updates
+
+- Updated project configuration and build system files
+- Enhanced JSON serialization traits and test coverage
+- Updated sample applications to remove DateTime dependencies
+- Refined CMake configuration and dependency management
+
 ## [0.4.1] - 2025-10-18
 
 ### Added

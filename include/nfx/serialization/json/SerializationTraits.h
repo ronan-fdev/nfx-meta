@@ -23,7 +23,8 @@
 #include "nfx/datatypes/Decimal.h"
 
 // nfx time support
-#include "nfx/time/DateTime.h"
+#include <nfx/datetime/DateTime.h>
+#include <nfx/datetime/DateTimeOffset.h>
 
 #include "nfx/serialization/json/Document.h"
 #include "nfx/serialization/json/FieldEnumerator.h"
@@ -210,17 +211,17 @@ namespace nfx::serialization::json
 	};
 
 	/**
-	 * @brief Specialization for nfx::time::TimeSpan
+	 * @brief Specialization for nfx::datetime::TimeSpan
 	 */
 	template <>
-	struct SerializationTraits<nfx::time::TimeSpan>
+	struct SerializationTraits<nfx::datetime::TimeSpan>
 	{
 		/**
 		 * @brief Serialize TimeSpan to JSON document using platform-optimized methods
 		 * @param obj The TimeSpan object to serialize
 		 * @param doc The document to serialize into
 		 */
-		static void serialize( const nfx::time::TimeSpan& obj, Document& doc )
+		static void serialize( const nfx::datetime::TimeSpan& obj, Document& doc )
 		{
 			doc.set<int64_t>( "", obj.ticks() );
 		}
@@ -230,14 +231,14 @@ namespace nfx::serialization::json
 		 * @param obj The TimeSpan object to deserialize into
 		 * @param doc The document to deserialize from
 		 */
-		static void deserialize( nfx::time::TimeSpan& obj, const Document& doc )
+		static void deserialize( nfx::datetime::TimeSpan& obj, const Document& doc )
 		{
 			if ( doc.is<int>( "" ) )
 			{
 				auto ticksVal = doc.get<int64_t>( "" );
 				if ( ticksVal.has_value() )
 				{
-					obj = nfx::time::TimeSpan( ticksVal.value() );
+					obj = nfx::datetime::TimeSpan( ticksVal.value() );
 				}
 			}
 			else
@@ -248,17 +249,17 @@ namespace nfx::serialization::json
 	};
 
 	/**
-	 * @brief Specialization for nfx::time::DateTime
+	 * @brief Specialization for nfx::datetime::DateTime
 	 */
 	template <>
-	struct SerializationTraits<nfx::time::DateTime>
+	struct SerializationTraits<nfx::datetime::DateTime>
 	{
 		/**
 		 * @brief Serialize DateTime to JSON document using platform-optimized methods
 		 * @param obj The DateTime object to serialize
 		 * @param doc The document to serialize into
 		 */
-		static void serialize( const nfx::time::DateTime& obj, Document& doc )
+		static void serialize( const nfx::datetime::DateTime& obj, Document& doc )
 		{
 			std::string value = obj.toIso8601Extended();
 			doc.set<std::string>( "", value );
@@ -269,14 +270,14 @@ namespace nfx::serialization::json
 		 * @param obj The DateTime object to deserialize into
 		 * @param doc The document to deserialize from
 		 */
-		static void deserialize( nfx::time::DateTime& obj, const Document& doc )
+		static void deserialize( nfx::datetime::DateTime& obj, const Document& doc )
 		{
 			if ( doc.is<std::string>( "" ) )
 			{
 				auto val = doc.get<std::string>( "" );
 				if ( val.has_value() && !val.value().empty() )
 				{
-					if ( !nfx::time::DateTime::tryParse( val.value(), obj ) )
+					if ( !nfx::datetime::DateTime::tryParse( val.value(), obj ) )
 					{
 						throw std::runtime_error( "Invalid DateTime format: expected ISO 8601 string" );
 					}
@@ -286,17 +287,17 @@ namespace nfx::serialization::json
 	};
 
 	/**
-	 * @brief Specialization for nfx::time::DateTimeOffset
+	 * @brief Specialization for nfx::datetime::DateTimeOffset
 	 */
 	template <>
-	struct SerializationTraits<nfx::time::DateTimeOffset>
+	struct SerializationTraits<nfx::datetime::DateTimeOffset>
 	{
 		/**
 		 * @brief Serialize DateTimeOffset to JSON document using platform-optimized methods
 		 * @param obj The DateTimeOffset object to serialize
 		 * @param doc The document to serialize into
 		 */
-		static void serialize( const nfx::time::DateTimeOffset& obj, Document& doc )
+		static void serialize( const nfx::datetime::DateTimeOffset& obj, Document& doc )
 		{
 			std::string value = obj.toIso8601Extended();
 			doc.set<std::string>( "", value );
@@ -307,14 +308,14 @@ namespace nfx::serialization::json
 		 * @param obj The DateTimeOffset object to deserialize into
 		 * @param doc The document to deserialize from
 		 */
-		static void deserialize( nfx::time::DateTimeOffset& obj, const Document& doc )
+		static void deserialize( nfx::datetime::DateTimeOffset& obj, const Document& doc )
 		{
 			if ( doc.is<std::string>( "" ) )
 			{
 				auto val = doc.get<std::string>( "" );
 				if ( val.has_value() && !val.value().empty() )
 				{
-					if ( !nfx::time::DateTimeOffset::tryParse( val.value(), obj ) )
+					if ( !nfx::datetime::DateTimeOffset::tryParse( val.value(), obj ) )
 					{
 						throw std::runtime_error( "Invalid DateTimeOffset format: expected ISO 8601 string with offset" );
 					}

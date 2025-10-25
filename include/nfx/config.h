@@ -101,28 +101,3 @@
 /** @brief Includes code only when native 128-bit integer support is NOT available */
 #	define NFX_CORE_IF_NO_INT128( code ) code
 #endif
-
-//----------------------------------------------
-// Cross-platform time functions
-//----------------------------------------------
-
-/** @brief Cross-platform thread-safe time conversion functions */
-#if defined( _WIN32 )
-// Windows uses gmtime_s and localtime_s (different parameter order than POSIX)
-/** @brief Thread-safe UTC time conversion wrapper for Windows gmtime_s */
-#	define NFX_CORE_GMTIME_R( timer, result ) ( gmtime_s( ( result ), ( timer ) ) == 0 )
-/** @brief Thread-safe local time conversion wrapper for Windows localtime_s */
-#	define NFX_CORE_LOCALTIME_R( timer, result ) ( localtime_s( ( result ), ( timer ) ) == 0 )
-#elif defined( __GNUC__ ) || defined( __clang__ )
-// POSIX systems use gmtime_r and localtime_r
-/** @brief Thread-safe UTC time conversion wrapper for POSIX gmtime_r */
-#	define NFX_CORE_GMTIME_R( timer, result ) ( gmtime_r( ( timer ), ( result ) ) != nullptr )
-/** @brief Thread-safe local time conversion wrapper for POSIX localtime_r */
-#	define NFX_CORE_LOCALTIME_R( timer, result ) ( localtime_r( ( timer ), ( result ) ) != nullptr )
-#else
-// Fallback to non-thread-safe versions
-/** @brief Fallback UTC time conversion using non-thread-safe gmtime */
-#	define NFX_CORE_GMTIME_R( timer, result ) ( ( *( result ) = *gmtime( timer ) ), true )
-/** @brief Fallback local time conversion using non-thread-safe localtime */
-#	define NFX_CORE_LOCALTIME_R( timer, result ) ( ( *( result ) = *localtime( timer ) ), true )
-#endif

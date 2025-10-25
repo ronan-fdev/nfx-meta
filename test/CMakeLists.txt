@@ -80,12 +80,6 @@ if(NFX_CORE_WITH_STRING)
 	)
 endif()
 
-if(NFX_CORE_WITH_TIME)
-	list(APPEND TEST_SOURCES
-		time/TESTS_DateTime.cpp
-	)
-endif()
-
 #----------------------------------------------
 # Configure test executables
 #----------------------------------------------
@@ -215,11 +209,13 @@ foreach(test_source ${TEST_SOURCES})
 		if(NFX_CORE_BUILD_STATIC)
 			target_link_libraries(${test_target_name} PRIVATE
 				nfx-core::static
+				nfx-datetime::static
 				GTest::gtest_main
 			)
 		else()
 			target_link_libraries(${test_target_name} PRIVATE
 				nfx-core::nfx-core
+				nfx-datetime::nfx-datetime
 				GTest::gtest_main
 			)
 		endif()

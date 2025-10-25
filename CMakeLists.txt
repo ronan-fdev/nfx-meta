@@ -9,8 +9,8 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(nfx-core
-	VERSION 0.4.1
-	DESCRIPTION "A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, high-precision temporal calculations, and JSON serialization."
+	VERSION 0.5.0
+	DESCRIPTION "A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, and JSON serialization."
 	HOMEPAGE_URL "https://github.com/ronan-fdev/nfx-core"
 	LANGUAGES CXX
 )
@@ -41,7 +41,7 @@ else()
 	set(NFX_CORE_STANDALONE_PROJECT OFF)
 endif()
 
-option(NFX_CORE_DEVELOPER_MODE "Enable developer mode" OFF)
+option(NFX_CORE_DEVELOPER_MODE "Enable developer mode" ON)
 
 #----------------------------------------------
 # Testing setup
@@ -75,8 +75,8 @@ set(NFX_CORE_DEVELOPER_DEFAULT_DOCS        ${NFX_CORE_STANDALONE_PROJECT})
 if(NFX_CORE_DEVELOPER_MODE)
 	set(NFX_CORE_DEVELOPER_DEFAULT_SHARED      OFF )
 	set(NFX_CORE_DEVELOPER_DEFAULT_TESTS       ON  )
-	set(NFX_CORE_DEVELOPER_DEFAULT_SAMPLES     OFF )
-	set(NFX_CORE_DEVELOPER_DEFAULT_BENCHMARKS  OFF )
+	set(NFX_CORE_DEVELOPER_DEFAULT_SAMPLES     ON )
+	set(NFX_CORE_DEVELOPER_DEFAULT_BENCHMARKS  ON )
 	set(NFX_CORE_DEVELOPER_DEFAULT_DOCS        OFF )
 endif()
 

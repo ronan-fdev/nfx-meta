@@ -18,7 +18,7 @@
 
 #include <nfx/datatypes/Int128.h>
 #include <nfx/datatypes/Decimal.h>
-#include <nfx/time/DateTime.h>
+#include <nfx/datetime/DateTime.h>
 
 // Trade structure for financial operations
 struct Trade
@@ -26,7 +26,7 @@ struct Trade
 	std::string symbol;
 	nfx::datatypes::Decimal quantity;
 	nfx::datatypes::Decimal price;
-	nfx::time::DateTime timestamp;
+	nfx::datetime::DateTime timestamp;
 	std::string side; // "BUY" or "SELL"
 
 	nfx::datatypes::Decimal value() const
@@ -41,8 +41,8 @@ struct Position
 	std::string symbol;
 	nfx::datatypes::Decimal quantity;
 	nfx::datatypes::Decimal avg_cost;
-	nfx::time::DateTime first_trade;
-	nfx::time::DateTime last_update;
+	nfx::datetime::DateTime first_trade;
+	nfx::datetime::DateTime last_update;
 
 	nfx::datatypes::Decimal market_value( const nfx::datatypes::Decimal& current_price ) const
 	{
@@ -72,7 +72,7 @@ int main()
 	std::cout << "=== NFX C++ Core - Financial Trading & Portfolio Management ===" << std::endl;
 	std::cout << std::endl;
 
-	auto trading_session_start = nfx::time::DateTime::now();
+	auto trading_session_start = nfx::datetime::DateTime::now();
 	std::cout << "Trading session started at: " << trading_session_start.toString() << std::endl;
 	std::cout << std::endl;
 
@@ -87,25 +87,25 @@ int main()
 	trades.push_back( { "AAPL",
 		nfx::datatypes::Decimal{ "1000" },
 		nfx::datatypes::Decimal{ "175.50" },
-		nfx::time::DateTime::now(),
+		nfx::datetime::DateTime::now(),
 		"BUY" } );
 
 	// Simulate some processing time
-	auto trade_2_time = nfx::time::DateTime::now() + nfx::time::TimeSpan::fromMilliseconds( 1.5 );
+	auto trade_2_time = nfx::datetime::DateTime::now() + nfx::datetime::TimeSpan::fromMilliseconds( 1.5 );
 	trades.push_back( { "MSFT",
 		nfx::datatypes::Decimal{ "500" },
 		nfx::datatypes::Decimal{ "328.75" },
 		trade_2_time,
 		"BUY" } );
 
-	auto trade_3_time = nfx::time::DateTime::now() + nfx::time::TimeSpan::fromMilliseconds( 3.2 );
+	auto trade_3_time = nfx::datetime::DateTime::now() + nfx::datetime::TimeSpan::fromMilliseconds( 3.2 );
 	trades.push_back( { "GOOGL",
 		nfx::datatypes::Decimal{ "200" },
 		nfx::datatypes::Decimal{ "2650.25" },
 		trade_3_time,
 		"BUY" } );
 
-	auto trade_4_time = nfx::time::DateTime::now() + nfx::time::TimeSpan::fromMilliseconds( 4.8 );
+	auto trade_4_time = nfx::datetime::DateTime::now() + nfx::datetime::TimeSpan::fromMilliseconds( 4.8 );
 	trades.push_back( { "AAPL",
 		nfx::datatypes::Decimal{ "500" },
 		nfx::datatypes::Decimal{ "176.25" },
@@ -205,7 +205,7 @@ int main()
 		{ "GOOGL", nfx::datatypes::Decimal{ "2645.80" } } // Down $4.45
 	};
 
-	auto valuation_time = nfx::time::DateTime::now();
+	auto valuation_time = nfx::datetime::DateTime::now();
 	std::cout << "Market valuation as of: " << valuation_time.toString() << std::endl;
 	std::cout << std::endl;
 
@@ -252,8 +252,8 @@ int main()
 	nfx::datatypes::Decimal annual_interest_rate{ "0.0475" }; // 4.75% annual
 
 	// Calculate interest for different time periods
-	auto interest_start_date = nfx::time::DateTime{ 2025, 1, 1, 0, 0, 0 };
-	auto current_date = nfx::time::DateTime::now();
+	auto interest_start_date = nfx::datetime::DateTime{ 2025, 1, 1, 0, 0, 0 };
+	auto current_date = nfx::datetime::DateTime::now();
 	auto days_elapsed_span = current_date - interest_start_date;
 	auto days_elapsed = nfx::datatypes::Decimal{ std::to_string( days_elapsed_span.totalDays() ) };
 
@@ -276,7 +276,7 @@ int main()
 
 	std::cout << "--- Performance Analytics ---" << std::endl;
 
-	auto analytics_start = nfx::time::DateTime::now();
+	auto analytics_start = nfx::datetime::DateTime::now();
 
 	// Calculate various performance metrics
 	auto total_portfolio_value = total_market_value + cash_balance + accrued_interest;
@@ -302,7 +302,7 @@ int main()
 
 	auto concentration_risk = ( largest_position_value / total_portfolio_value ) * nfx::datatypes::Decimal{ "100" };
 
-	auto analytics_end = nfx::time::DateTime::now();
+	auto analytics_end = nfx::datetime::DateTime::now();
 	auto analytics_duration = analytics_end - analytics_start;
 
 	// Format numbers for clean financial display (round to reasonable precision)
@@ -336,7 +336,7 @@ int main()
 	// Trading session summary with timing
 	//=========================================================================
 
-	auto trading_session_end = nfx::time::DateTime::now();
+	auto trading_session_end = nfx::datetime::DateTime::now();
 	auto total_session_time = trading_session_end - trading_session_start;
 
 	std::cout << "--- Trading Session Summary ---" << std::endl;

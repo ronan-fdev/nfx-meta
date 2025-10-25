@@ -54,18 +54,6 @@ if(NFX_CORE_WITH_STRING)
 	)
 endif()
 
-if(NFX_CORE_WITH_TIME)
-	list(APPEND SAMPLE_SOURCES
-		time/Sample_DateTime.cpp
-	)
-endif()
-
-if(NFX_CORE_WITH_DATATYPES AND NFX_CORE_WITH_TIME)
-	list(APPEND SAMPLE_SOURCES
-		realworld/Sample_FinancialWithTimestamps.cpp
-	)
-endif()
-
 #----------------------------------------------
 # Configure samples executables
 #----------------------------------------------
@@ -191,10 +179,12 @@ foreach(sample_source ${SAMPLE_SOURCES})
 		if(NFX_CORE_BUILD_STATIC)
 			target_link_libraries(${sample_target_name} PRIVATE
 				nfx-core::static
+				nfx-datetime::static
 			)
 		else()
 			target_link_libraries(${sample_target_name} PRIVATE
 				nfx-core::nfx-core
+				nfx-datetime::nfx-datetime
 			)
 		endif()
 

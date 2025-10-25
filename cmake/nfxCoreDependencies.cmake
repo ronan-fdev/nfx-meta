@@ -41,6 +41,15 @@ set(NFX_CORE_BENCHMARK_MIN_VERSION      "1.9.1" )
 # Dependency declarations
 #----------------------------
 
+if(NFX_CORE_WITH_TIME)
+	FetchContent_Declare(
+		nfx-datetime
+		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-datetime.git
+		GIT_TAG        1.0.0
+		GIT_SHALLOW    TRUE
+)
+endif()
+
 # --- nlohmann/json ---
 if(NFX_CORE_WITH_JSON)
 	find_package(nlohmann_json ${NFX_CORE_NLOHMANN_JSON_MIN_VERSION} QUIET)
@@ -116,6 +125,11 @@ endif()
 #----------------------------
 # Dependency fetching
 #----------------------------
+
+if(NFX_CORE_WITH_TIME)
+	FetchContent_MakeAvailable(nfx-datetime)
+endif()
+
 
 if(NFX_CORE_WITH_JSON)
 	if(NOT nlohmann_json_FOUND)

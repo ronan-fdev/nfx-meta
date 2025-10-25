@@ -27,8 +27,7 @@
 #include <nfx/containers/StringSet.h>
 #include <nfx/datatypes/Int128.h>
 #include <nfx/datatypes/Decimal.h>
-#include <nfx/time/DateTime.h>
-#include <nfx/time/DateTime.h>
+#include <nfx/datetime/DateTime.h>
 
 using namespace nfx::serialization::json;
 
@@ -189,7 +188,7 @@ struct Company
 	std::string name;
 	std::vector<Person> employees;
 	std::map<std::string, int> departments;
-	nfx::time::DateTime founded;
+	nfx::datetime::DateTime founded;
 
 	bool operator==( const Company& other ) const
 	{
@@ -304,7 +303,7 @@ struct Company
 		// Deserialize founded date
 		if ( auto foundedVal = doc.get<std::string>( "/founded" ) )
 		{
-			if ( !nfx::time::DateTime::tryParse( *foundedVal, founded ) )
+			if ( !nfx::datetime::DateTime::tryParse( *foundedVal, founded ) )
 			{
 				throw std::runtime_error( "Invalid DateTime format in Company::founded" );
 			}
@@ -477,20 +476,20 @@ void demonstrateTimeTypes()
 	std::cout << "=== NFX Time Types Serialization ===" << std::endl;
 
 	// TimeSpan
-	nfx::time::TimeSpan duration = nfx::time::TimeSpan::fromHours( 25.5 );
-	std::string json = Serializer<nfx::time::TimeSpan>::toJson( duration );
+	nfx::datetime::TimeSpan duration = nfx::datetime::TimeSpan::fromHours( 25.5 );
+	std::string json = Serializer<nfx::datetime::TimeSpan>::toJson( duration );
 	std::cout << "TimeSpan: " << json << std::endl;
-	auto deserializedDuration = Serializer<nfx::time::TimeSpan>::fromJson( json );
+	auto deserializedDuration = Serializer<nfx::datetime::TimeSpan>::fromJson( json );
 	std::cout << "Roundtrip successful: " << ( duration == deserializedDuration ? "YES" : "NO" ) << std::endl;
 
 	// DateTime
-	nfx::time::DateTime date{ 2024, 12, 31, 23, 59, 59, 999 };
-	json = Serializer<nfx::time::DateTime>::toJson( date );
+	nfx::datetime::DateTime date{ 2024, 12, 31, 23, 59, 59, 999 };
+	json = Serializer<nfx::datetime::DateTime>::toJson( date );
 	std::cout << "DateTime: " << json << std::endl;
 
 	// DateTimeOffset
-	nfx::time::DateTimeOffset dateOffset{ nfx::time::DateTime{ 2024, 6, 15, 18, 30, 45 }, nfx::time::TimeSpan::fromHours( -8 ) };
-	json = Serializer<nfx::time::DateTimeOffset>::toJson( dateOffset );
+	nfx::datetime::DateTimeOffset dateOffset{ nfx::datetime::DateTime{ 2024, 6, 15, 18, 30, 45 }, nfx::datetime::TimeSpan::fromHours( -8 ) };
+	json = Serializer<nfx::datetime::DateTimeOffset>::toJson( dateOffset );
 	std::cout << "DateTimeOffset: " << json << std::endl;
 
 	std::cout << std::endl;
@@ -573,7 +572,7 @@ void demonstrateComplexNesting()
 	// Create a company with employees
 	Company company;
 	company.name = "Tech Innovations Inc.";
-	company.founded = nfx::time::DateTime{ 2010, 3, 15 };
+	company.founded = nfx::datetime::DateTime{ 2010, 3, 15 };
 
 	// Add employees
 	Person ceo;

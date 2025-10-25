@@ -141,22 +141,6 @@ if(NFX_CORE_WITH_STRING)
 	)
 endif()
 
-# --- Temporal components ---
-if(NFX_CORE_WITH_TIME)
-	list(APPEND PUBLIC_HEADERS
-		# --- Time handling headers ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/time/constants/DateTimeConstants.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/time/DateTime.h
-
-		# --- Time handling implementations ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/time/DateTime.inl
-	)
-	list(APPEND PRIVATE_SOURCES
-		# --- Time handling source files ---
-		${NFX_CORE_SOURCE_DIR}/time/DateTime.cpp
-	)
-endif()
-
 # --- Show what components are being built ---
 message(STATUS "Enabled components:")
 if(NFX_CORE_WITH_CONTAINERS)
@@ -174,10 +158,6 @@ endif()
 if(NFX_CORE_WITH_JSON)
     message(STATUS "  - Serialization (JSON Document)")
 endif()
-if(NFX_CORE_WITH_TIME)
-	message(STATUS "  - Time utilities (DateTime, DateTimeOffset, TimeSpan)")
-endif()
-
 
 #----------------------------------------------
 # Library definition

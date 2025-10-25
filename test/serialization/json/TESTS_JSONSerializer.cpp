@@ -117,7 +117,7 @@ namespace nfx::serialization::json::test
 
 	TEST_F( JSONSerializerTest, TimeSpanTypes )
 	{
-		using nfx::time::TimeSpan;
+		using nfx::datetime::TimeSpan;
 
 		// Test basic TimeSpan values
 		testRoundTrip( TimeSpan{ 0 } );					  // Zero
@@ -131,7 +131,7 @@ namespace nfx::serialization::json::test
 
 	TEST_F( JSONSerializerTest, DateTimeTypes )
 	{
-		using nfx::time::DateTime;
+		using nfx::datetime::DateTime;
 
 		// Test basic DateTime values
 		testRoundTrip( DateTime::epoch() );							// Unix epoch
@@ -144,9 +144,9 @@ namespace nfx::serialization::json::test
 
 	TEST_F( JSONSerializerTest, DateTimeOffsetTypes )
 	{
-		using nfx::time::DateTime;
-		using nfx::time::DateTimeOffset;
-		using nfx::time::TimeSpan;
+		using nfx::datetime::DateTime;
+		using nfx::datetime::DateTimeOffset;
+		using nfx::datetime::TimeSpan;
 
 		// Test basic DateTimeOffset values
 		testRoundTrip( DateTimeOffset::unixEpoch() );													   // Unix epoch UTC
@@ -589,9 +589,9 @@ namespace nfx::serialization::json::test
 
 		// Test with nfx time types
 		{
-			using nfx::time::TimeSpan;
-			using nfx::time::DateTime;
-			using nfx::time::DateTimeOffset;
+			using nfx::datetime::TimeSpan;
+			using nfx::datetime::DateTime;
+			using nfx::datetime::DateTimeOffset;
 
 			// Test TimeSpan convenience functions
 			TimeSpan originalTimeSpan = TimeSpan::fromHours( 25.5 );
@@ -850,9 +850,9 @@ namespace nfx::serialization::json::test
 		using nfx::containers::HashMap;
 		using nfx::datatypes::Int128;
 		using nfx::datatypes::Decimal;
-		using nfx::time::DateTime;
-		using nfx::time::TimeSpan;
-		using nfx::time::DateTimeOffset;
+		using nfx::datetime::DateTime;
+		using nfx::datetime::TimeSpan;
+		using nfx::datetime::DateTimeOffset;
 
 		// Test 1: StringMap with nfx datatypes
 		{
@@ -934,7 +934,7 @@ namespace nfx::serialization::json::test
 		using nfx::containers::HashMap;
 		using nfx::datatypes::Int128;
 		using nfx::datatypes::Decimal;
-		using nfx::time::DateTime;
+		using nfx::datetime::DateTime;
 
 		// Test 1: Nested StringMaps with different value types
 		{
@@ -1158,9 +1158,9 @@ namespace nfx::serialization::json::test
 		using nfx::containers::ChdHashMap;
 		using nfx::datatypes::Int128;
 		using nfx::datatypes::Decimal;
-		using nfx::time::DateTime;
-		using nfx::time::TimeSpan;
-		using nfx::time::DateTimeOffset;
+		using nfx::datetime::DateTime;
+		using nfx::datetime::TimeSpan;
+		using nfx::datetime::DateTimeOffset;
 
 		// Test 1: ChdHashMap with single character keys
 		{
@@ -1403,7 +1403,7 @@ namespace nfx::serialization::json::test
 		using nfx::containers::StringMap;
 		using nfx::containers::HashMap;
 		using nfx::datatypes::Decimal;
-		using nfx::time::DateTime;
+		using nfx::datetime::DateTime;
 
 		// Test 1: Large StringMap with many entries
 		{
