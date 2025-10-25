@@ -13,7 +13,6 @@
 
 #include "nfx/serialization/json/Document.h"
 #include "nfx/serialization/json/FieldEnumerator.h"
-#include "nfx/string/Utils.h"
 
 namespace nfx::serialization::json
 {

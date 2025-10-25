@@ -49,8 +49,6 @@ endif()
 if(NFX_CORE_WITH_STRING)
 	list(APPEND SAMPLE_SOURCES
 		string/Sample_StringBuilder.cpp
-		string/Sample_StringSplitter.cpp
-		string/Sample_StringUtils.cpp
 	)
 endif()
 

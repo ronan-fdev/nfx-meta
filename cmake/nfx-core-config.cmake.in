@@ -31,6 +31,12 @@ endforeach()
 # Find dependencies
 include(CMakeFindDependencyMacro)
 
+# DateTime support dependency (always required)
+find_dependency(nfx-datetime 1.0.0)
+
+# String utilities dependency (always required)
+find_dependency(nfx-stringutils 1.0.0)
+
 # JSON support dependency
 if("json" IN_LIST nfx-core_FIND_COMPONENTS OR NOT nfx-core_FIND_COMPONENTS)
     find_dependency(nlohmann_json @NFX_CORE_NLOHMANN_JSON_MIN_VERSION@)
@@ -38,6 +44,32 @@ endif()
 
 # Include the exported targets
 include(${CMAKE_CURRENT_LIST_DIR}/nfx-core-targets.cmake)
+
+# Link external dependencies to nfx-core targets
+# These were excluded from export to avoid transitive export issues
+if(TARGET nfx-core::nfx-core)
+    if(TARGET nfx-datetime::static)
+        target_link_libraries(nfx-core::nfx-core INTERFACE nfx-datetime::static)
+    elseif(TARGET nfx-datetime::nfx-datetime)
+        target_link_libraries(nfx-core::nfx-core INTERFACE nfx-datetime::nfx-datetime)
+    endif()
+    
+    if(TARGET nfx-stringutils::nfx-stringutils)
+        target_link_libraries(nfx-core::nfx-core INTERFACE nfx-stringutils::nfx-stringutils)
+    endif()
+endif()
+
+if(TARGET nfx-core::static)
+    if(TARGET nfx-datetime::static)
+        target_link_libraries(nfx-core::static INTERFACE nfx-datetime::static)
+    elseif(TARGET nfx-datetime::nfx-datetime)
+        target_link_libraries(nfx-core::static INTERFACE nfx-datetime::nfx-datetime)
+    endif()
+    
+    if(TARGET nfx-stringutils::nfx-stringutils)
+        target_link_libraries(nfx-core::static INTERFACE nfx-stringutils::nfx-stringutils)
+    endif()
+endif()
 
 # Set component-found variables
 foreach(_comp ${_nfx_core_supported_components})

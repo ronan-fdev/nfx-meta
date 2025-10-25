@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "nfx/config.h"
-#include "nfx/string/Splitter.h"
 
 // nfx container support
 #include "nfx/containers/ChdHashMap.h"

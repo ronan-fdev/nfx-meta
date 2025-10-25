@@ -31,6 +31,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.5.1] - 2025-10-25
+
+### Changed
+
+#### String Utilities Externalization
+
+- **String Utilities Module Migration**: Moved string utilities (`Utils.h`, `Splitter.h`) to external dependency `nfx-stringutils`
+  - String utility functions now available as optional external dependency via `NFX_CORE_WITH_STRING` option
+  - External dependency: `https://github.com/ronan-fdev/nfx-stringutils.git` (v1.0.0)
+  - Removed internal implementation files:
+    - `include/nfx/string/Utils.h`
+    - `include/nfx/string/Splitter.h`
+    - `include/nfx/detail/string/Utils.inl`
+    - `include/nfx/detail/string/Splitter.inl`
+    - `samples/string/Sample_StringUtils.cpp`
+    - `samples/string/Sample_StringSplitter.cpp`
+    - `test/string/TESTS_StringUtils.cpp`
+    - `test/string/TESTS_StringSplitter.cpp`
+    - `benchmark/string/BM_StringUtilities.cpp`
+    - `benchmark/string/BM_Splitter.cpp`
+
 ## [0.5.0] - 2025-10-25
 
 ### Changed

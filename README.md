@@ -479,7 +479,7 @@ nfx-core/
 │   ├── memory/            # LruCache with sliding expiration
 │   ├── serialization/     # JSON Document, Serializer, SchemaValidator
 │   │   └── json/          # JSON serialization framework
-│   └──string/            # StringBuilderPool, Splitter, Utils
+│   └──string/            # StringBuilderPool
 ├── licenses/              # Third-party license files
 ├── samples/               # Example usage and demonstrations
 ├── src/                   # Implementation files

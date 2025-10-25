@@ -75,8 +75,6 @@ endif()
 if(NFX_CORE_WITH_STRING)
 	list(APPEND TEST_SOURCES
 		string/TESTS_StringBuilderPool.cpp
-		string/TESTS_StringSplitter.cpp
-		string/TESTS_StringUtils.cpp
 	)
 endif()
 

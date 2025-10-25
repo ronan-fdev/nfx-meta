@@ -122,13 +122,9 @@ if(NFX_CORE_WITH_STRING)
 	list(APPEND PUBLIC_HEADERS
 		# --- String processing headers ---
 		${NFX_CORE_INCLUDE_DIR}/nfx/string/StringBuilderPool.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/string/Splitter.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/string/Utils.h
 
 		# --- String processing implementations ---
 		${NFX_CORE_INCLUDE_DIR}/nfx/detail/string/StringBuilderPool.inl
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/string/Splitter.inl
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/string/Utils.inl
 	)
 	list(APPEND PRIVATE_HEADERS
 		# --- String processing private headers ---
@@ -153,7 +149,7 @@ if(NFX_CORE_WITH_MEMORY)
 	message(STATUS "  - Memory (LruCache)")
 endif()
 if(NFX_CORE_WITH_STRING)
-	message(STATUS "  - String utilities (StringBuilderPool, Splitter, Utils)")
+	message(STATUS "  - String utilities (StringBuilderPool)")
 endif()
 if(NFX_CORE_WITH_JSON)
     message(STATUS "  - Serialization (JSON Document)")
@@ -217,6 +213,21 @@ function(configure_target target_name)
 	if(NFX_CORE_WITH_JSON)
 		if(DEFINED nlohmann_json_SOURCE_DIR)
 			target_include_directories(${target_name} PRIVATE ${nlohmann_json_SOURCE_DIR}/include)
+		endif()
+	endif()
+
+	# --- Link external component libraries ---
+	if(NFX_CORE_WITH_TIME)
+		if(TARGET nfx-datetime::static)
+			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-datetime::static>)
+		elseif(TARGET nfx-datetime::nfx-datetime)
+			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-datetime::nfx-datetime>)
+		endif()
+	endif()
+
+	if(NFX_CORE_WITH_STRING)
+		if(TARGET nfx-stringutils::nfx-stringutils)
+			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-stringutils::nfx-stringutils>)
 		endif()
 	endif()
 

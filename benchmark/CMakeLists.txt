@@ -35,9 +35,7 @@ endif()
 
 if(NFX_CORE_WITH_STRING)
 	list(APPEND BENCHMARK_SOURCES
-		string/BM_Splitter.cpp
 		string/BM_StringBuilderPool.cpp
-		string/BM_StringUtilities.cpp
 	)
 endif()
 
