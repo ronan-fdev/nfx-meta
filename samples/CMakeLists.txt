@@ -23,12 +23,6 @@ if(NFX_CORE_WITH_CONTAINERS)
 	)
 endif()
 
-if(NFX_CORE_WITH_DATATYPES)
-	list(APPEND SAMPLE_SOURCES
-		datatypes/Sample_Datatypes.cpp
-	)
-endif()
-
 if(NFX_CORE_WITH_MEMORY)
 	list(APPEND SAMPLE_SOURCES
 		memory/Sample_LruCache.cpp
@@ -177,12 +171,10 @@ foreach(sample_source ${SAMPLE_SOURCES})
 		if(NFX_CORE_BUILD_STATIC)
 			target_link_libraries(${sample_target_name} PRIVATE
 				nfx-core::static
-				nfx-datetime::static
 			)
 		else()
 			target_link_libraries(${sample_target_name} PRIVATE
 				nfx-core::nfx-core
-				nfx-datetime::nfx-datetime
 			)
 		endif()
 

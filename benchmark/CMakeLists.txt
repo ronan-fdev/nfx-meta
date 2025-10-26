@@ -169,13 +169,11 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 		if(NFX_CORE_BUILD_STATIC)
 			target_link_libraries(${benchmark_target_name} PRIVATE
 				nfx-core::static
-				nfx-datetime::static
 				benchmark::benchmark
 			)
 		else()
 			target_link_libraries(${benchmark_target_name} PRIVATE
 				nfx-core::nfx-core
-				nfx-datetime::nfx-datetime
 				benchmark::benchmark
 			)
 		endif()

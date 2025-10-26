@@ -48,26 +48,6 @@ if(NFX_CORE_WITH_CONTAINERS)
 	)
 endif()
 
-# --- Datatype components ---
-if(NFX_CORE_WITH_DATATYPES)
-	list(APPEND PUBLIC_HEADERS
-		# --- Datatype headers ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/datatypes/constants/DecimalConstants.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/datatypes/constants/Int128Constants.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/datatypes/Decimal.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/datatypes/Int128.h
-
-		# --- Datatype implementations ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/datatypes/Decimal.inl
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/datatypes/Int128.inl
-	)
-	list(APPEND PRIVATE_SOURCES
-		# --- Datatype source files ---
-		${NFX_CORE_SOURCE_DIR}/datatypes/Decimal.cpp
-		${NFX_CORE_SOURCE_DIR}/datatypes/Int128.cpp
-	)
-endif()
-
 # --- Container components ---
 if(NFX_CORE_WITH_MEMORY)
 	list(APPEND PUBLIC_HEADERS
@@ -228,6 +208,14 @@ function(configure_target target_name)
 	if(NFX_CORE_WITH_STRING)
 		if(TARGET nfx-stringutils::nfx-stringutils)
 			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-stringutils::nfx-stringutils>)
+		endif()
+	endif()
+
+	if(NFX_CORE_WITH_DATATYPES)
+		if(TARGET nfx-datatypes::static)
+			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-datatypes::static>)
+		elseif(TARGET nfx-datatypes::nfx-datatypes)
+			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-datatypes::nfx-datatypes>)
 		endif()
 	endif()
 

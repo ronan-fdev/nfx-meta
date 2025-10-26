@@ -37,6 +37,9 @@ find_dependency(nfx-datetime 1.0.0)
 # String utilities dependency (always required)
 find_dependency(nfx-stringutils 1.0.0)
 
+# Datatypes dependency (always required)
+find_dependency(nfx-datatypes 1.0.0)
+
 # JSON support dependency
 if("json" IN_LIST nfx-core_FIND_COMPONENTS OR NOT nfx-core_FIND_COMPONENTS)
     find_dependency(nlohmann_json @NFX_CORE_NLOHMANN_JSON_MIN_VERSION@)
@@ -57,6 +60,12 @@ if(TARGET nfx-core::nfx-core)
     if(TARGET nfx-stringutils::nfx-stringutils)
         target_link_libraries(nfx-core::nfx-core INTERFACE nfx-stringutils::nfx-stringutils)
     endif()
+    
+    if(TARGET nfx-datatypes::static)
+        target_link_libraries(nfx-core::nfx-core INTERFACE nfx-datatypes::static)
+    elseif(TARGET nfx-datatypes::nfx-datatypes)
+        target_link_libraries(nfx-core::nfx-core INTERFACE nfx-datatypes::nfx-datatypes)
+    endif()
 endif()
 
 if(TARGET nfx-core::static)
@@ -68,6 +77,12 @@ if(TARGET nfx-core::static)
     
     if(TARGET nfx-stringutils::nfx-stringutils)
         target_link_libraries(nfx-core::static INTERFACE nfx-stringutils::nfx-stringutils)
+    endif()
+    
+    if(TARGET nfx-datatypes::static)
+        target_link_libraries(nfx-core::static INTERFACE nfx-datatypes::static)
+    elseif(TARGET nfx-datatypes::nfx-datatypes)
+        target_link_libraries(nfx-core::static INTERFACE nfx-datatypes::nfx-datatypes)
     endif()
 endif()
 

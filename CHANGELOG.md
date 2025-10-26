@@ -31,6 +31,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.5.2] - 2025-10-26
+
+### Changed
+
+#### Datatypes Module Externalization
+
+- **Datatypes Module Migration**: Moved datatypes (`Int128`, `Decimal`) to external dependency `nfx-datatypes`
+  - Datatypes now available as optional external dependency via `NFX_CORE_WITH_DATATYPES` option
+  - External dependency: `https://github.com/ronan-fdev/nfx-datatypes.git` (v1.0.0)
+  - Removed internal implementation files:
+    - `include/nfx/datatypes/Int128.h`
+    - `include/nfx/datatypes/Decimal.h`
+    - `include/nfx/datatypes/constants/Int128Constants.h`
+    - `include/nfx/datatypes/constants/DecimalConstants.h`
+    - `include/nfx/detail/datatypes/Int128.inl`
+    - `include/nfx/detail/datatypes/Decimal.inl`
+    - `src/datatypes/Int128.cpp`
+    - `src/datatypes/Decimal.cpp`
+    - `samples/datatypes/Sample_Datatypes.cpp`
+    - `test/datatypes/TESTS_Int128.cpp`
+    - `test/datatypes/TESTS_Decimal.cpp`
+
 ## [0.5.1] - 2025-10-25
 
 ### Changed

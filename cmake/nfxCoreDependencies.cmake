@@ -59,6 +59,15 @@ if(NFX_CORE_WITH_STRING)
 )
 endif()
 
+if(NFX_CORE_WITH_DATATYPES)
+	FetchContent_Declare(
+		nfx-datatypes
+		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-datatypes.git
+		GIT_TAG        1.0.0
+		GIT_SHALLOW    TRUE
+)
+endif()
+
 # --- nlohmann/json ---
 if(NFX_CORE_WITH_JSON)
 	find_package(nlohmann_json ${NFX_CORE_NLOHMANN_JSON_MIN_VERSION} QUIET)
@@ -141,6 +150,10 @@ endif()
 
 if(NFX_CORE_WITH_STRING)
 	FetchContent_MakeAvailable(nfx-stringutils)
+endif()
+
+if(NFX_CORE_WITH_DATATYPES)
+	FetchContent_MakeAvailable(nfx-datatypes)
 endif()
 
 if(NFX_CORE_WITH_JSON)

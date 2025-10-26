@@ -47,13 +47,6 @@ if(NFX_CORE_WITH_CONTAINERS)
 	)
 endif()
 
-if(NFX_CORE_WITH_DATATYPES)
-	list(APPEND TEST_SOURCES
-		datatypes/TESTS_Decimal.cpp
-		datatypes/TESTS_Int128.cpp
-	)
-endif()
-
 if(NFX_CORE_WITH_MEMORY)
 	list(APPEND TEST_SOURCES
 		memory/TESTS_LruCache.cpp
@@ -207,13 +200,11 @@ foreach(test_source ${TEST_SOURCES})
 		if(NFX_CORE_BUILD_STATIC)
 			target_link_libraries(${test_target_name} PRIVATE
 				nfx-core::static
-				nfx-datetime::static
 				GTest::gtest_main
 			)
 		else()
 			target_link_libraries(${test_target_name} PRIVATE
 				nfx-core::nfx-core
-				nfx-datetime::nfx-datetime
 				GTest::gtest_main
 			)
 		endif()
