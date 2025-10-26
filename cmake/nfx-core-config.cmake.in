@@ -37,6 +37,9 @@ find_dependency(nfx-datetime 1.0.0)
 # String utilities dependency (always required)
 find_dependency(nfx-stringutils 1.0.0)
 
+# String splitter dependency (always required)
+find_dependency(nfx-stringsplitter 1.0.0)
+
 # Datatypes dependency (always required)
 find_dependency(nfx-datatypes 1.0.0)
 
@@ -61,6 +64,10 @@ if(TARGET nfx-core::nfx-core)
         target_link_libraries(nfx-core::nfx-core INTERFACE nfx-stringutils::nfx-stringutils)
     endif()
     
+    if(TARGET nfx-stringsplitter::nfx-stringsplitter)
+        target_link_libraries(nfx-core::nfx-core INTERFACE nfx-stringsplitter::nfx-stringsplitter)
+    endif()
+    
     if(TARGET nfx-datatypes::static)
         target_link_libraries(nfx-core::nfx-core INTERFACE nfx-datatypes::static)
     elseif(TARGET nfx-datatypes::nfx-datatypes)
@@ -77,6 +84,10 @@ if(TARGET nfx-core::static)
     
     if(TARGET nfx-stringutils::nfx-stringutils)
         target_link_libraries(nfx-core::static INTERFACE nfx-stringutils::nfx-stringutils)
+    endif()
+    
+    if(TARGET nfx-stringsplitter::nfx-stringsplitter)
+        target_link_libraries(nfx-core::static INTERFACE nfx-stringsplitter::nfx-stringsplitter)
     endif()
     
     if(TARGET nfx-datatypes::static)

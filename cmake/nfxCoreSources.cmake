@@ -209,6 +209,10 @@ function(configure_target target_name)
 		if(TARGET nfx-stringutils::nfx-stringutils)
 			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-stringutils::nfx-stringutils>)
 		endif()
+		
+		if(TARGET nfx-stringsplitter::nfx-stringsplitter)
+			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-stringsplitter::nfx-stringsplitter>)
+		endif()
 	endif()
 
 	if(NFX_CORE_WITH_DATATYPES)

@@ -31,6 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.5.3] - 2025-10-26
+
+### Changed
+
+#### String Splitter Module Externalization
+
+- **String Splitter Module Split**: Separated `Splitter` from `nfx-stringutils` to dedicated `nfx-stringsplitter` repository
+  - String splitter now available as separate optional dependency
+  - External dependency: `https://github.com/ronan-fdev/nfx-stringsplitter.git` (v1.0.0)
+  - Enables granular dependency management for string processing components
+
 ## [0.5.2] - 2025-10-26
 
 ### Changed

@@ -47,7 +47,7 @@ if(NFX_CORE_WITH_TIME)
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-datetime.git
 		GIT_TAG        1.0.0
 		GIT_SHALLOW    TRUE
-)
+	)
 endif()
 
 if(NFX_CORE_WITH_STRING)
@@ -56,7 +56,13 @@ if(NFX_CORE_WITH_STRING)
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-stringutils.git
 		GIT_TAG        1.0.0
 		GIT_SHALLOW    TRUE
-)
+	)
+	FetchContent_Declare(
+		nfx-stringsplitter
+		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-stringsplitter.git
+		GIT_TAG        1.0.0
+		GIT_SHALLOW    TRUE
+	)
 endif()
 
 if(NFX_CORE_WITH_DATATYPES)
@@ -65,7 +71,7 @@ if(NFX_CORE_WITH_DATATYPES)
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-datatypes.git
 		GIT_TAG        1.0.0
 		GIT_SHALLOW    TRUE
-)
+	)
 endif()
 
 # --- nlohmann/json ---
@@ -149,7 +155,7 @@ if(NFX_CORE_WITH_TIME)
 endif()
 
 if(NFX_CORE_WITH_STRING)
-	FetchContent_MakeAvailable(nfx-stringutils)
+	FetchContent_MakeAvailable(nfx-stringutils nfx-stringsplitter)
 endif()
 
 if(NFX_CORE_WITH_DATATYPES)
