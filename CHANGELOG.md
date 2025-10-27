@@ -31,6 +31,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.5.4] - 2025-10-27
+
+### Changed
+
+#### Memory Module Externalization
+
+- **Memory Module Migration**: Moved LRU Cache to external dependency `nfx-lrucache`
+  - Memory component now available as optional external dependency via `NFX_CORE_WITH_MEMORY` option
+  - External dependency: `https://github.com/ronan-fdev/nfx-lrucache.git` (v1.0.5)
+  - Removed internal implementation files:
+    - `include/nfx/memory/LruCache.h`
+    - `include/nfx/detail/memory/LruCache.inl`
+    - `samples/memory/Sample_LruCache.cpp`
+    - `test/memory/TESTS_LruCache.cpp`
+
 ## [0.5.3] - 2025-10-26
 
 ### Changed

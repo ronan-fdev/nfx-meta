@@ -48,19 +48,6 @@ if(NFX_CORE_WITH_CONTAINERS)
 	)
 endif()
 
-# --- Container components ---
-if(NFX_CORE_WITH_MEMORY)
-	list(APPEND PUBLIC_HEADERS
-		# --- Memory management headers ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/memory/LruCache.h
-
-		# --- Memory management implementations ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/memory/LruCache.inl
-	)
-	list(APPEND PRIVATE_SOURCES
-	)
-endif()
-
 # --- Serialization components ---
 if(NFX_CORE_WITH_JSON)
 	list(APPEND PUBLIC_HEADERS
@@ -220,6 +207,12 @@ function(configure_target target_name)
 			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-datatypes::static>)
 		elseif(TARGET nfx-datatypes::nfx-datatypes)
 			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-datatypes::nfx-datatypes>)
+		endif()
+	endif()
+
+	if(NFX_CORE_WITH_MEMORY)
+		if(TARGET nfx-lrucache::nfx-lrucache)
+			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-lrucache::nfx-lrucache>)
 		endif()
 	endif()
 

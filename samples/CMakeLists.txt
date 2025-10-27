@@ -23,12 +23,6 @@ if(NFX_CORE_WITH_CONTAINERS)
 	)
 endif()
 
-if(NFX_CORE_WITH_MEMORY)
-	list(APPEND SAMPLE_SOURCES
-		memory/Sample_LruCache.cpp
-	)
-endif()
-
 if(NFX_CORE_WITH_JSON)
 	list(APPEND SAMPLE_SOURCES
 		serialization/json/Sample_JSONArrayEnumerator.cpp

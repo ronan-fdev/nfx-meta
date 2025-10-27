@@ -47,12 +47,6 @@ if(NFX_CORE_WITH_CONTAINERS)
 	)
 endif()
 
-if(NFX_CORE_WITH_MEMORY)
-	list(APPEND TEST_SOURCES
-		memory/TESTS_LruCache.cpp
-	)
-endif()
-
 if(NFX_CORE_WITH_JSON)
 	list(APPEND TEST_SOURCES
 		serialization/json/TESTS_JSONArrayEnumerator.cpp

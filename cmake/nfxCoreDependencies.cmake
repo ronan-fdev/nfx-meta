@@ -74,6 +74,15 @@ if(NFX_CORE_WITH_DATATYPES)
 	)
 endif()
 
+if(NFX_CORE_WITH_MEMORY)
+	FetchContent_Declare(
+		nfx-lrucache
+		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-lrucache.git
+		GIT_TAG        1.0.6
+		GIT_SHALLOW    TRUE
+	)
+endif()
+
 # --- nlohmann/json ---
 if(NFX_CORE_WITH_JSON)
 	find_package(nlohmann_json ${NFX_CORE_NLOHMANN_JSON_MIN_VERSION} QUIET)
@@ -162,6 +171,10 @@ if(NFX_CORE_WITH_DATATYPES)
 	FetchContent_MakeAvailable(nfx-datatypes)
 endif()
 
+if(NFX_CORE_WITH_MEMORY)
+	FetchContent_MakeAvailable(nfx-lrucache)
+endif()
+
 if(NFX_CORE_WITH_JSON)
 	if(NOT nlohmann_json_FOUND)
 		FetchContent_MakeAvailable(nlohmann_json)
@@ -181,6 +194,40 @@ if(NFX_CORE_BUILD_BENCHMARKS)
 		FetchContent_MakeAvailable(
 			googlebenchmark
 		)
+	endif()
+endif()
+
+#----------------------------
+# Dependencies Summary
+#----------------------------
+
+message(STATUS "NFX Dependencies:")
+if(NFX_CORE_WITH_TIME)
+	message(STATUS "  nfx-datetime      : ${NFX_DATETIME_VERSION}")
+endif()
+if(NFX_CORE_WITH_STRING)
+	message(STATUS "  nfx-stringutils   : ${NFX_STRINGUTILS_VERSION}")
+	message(STATUS "  nfx-stringsplitter: ${NFX_STRINGSPLITTER_VERSION}")
+endif()
+if(NFX_CORE_WITH_DATATYPES)
+	message(STATUS "  nfx-datatypes     : ${NFX_DATATYPES_VERSION}")
+endif()
+if(NFX_CORE_WITH_MEMORY)
+	message(STATUS "  nfx-lrucache      : ${NFX_LRUCACHE_VERSION}")
+endif()
+if(NFX_CORE_WITH_JSON)
+	if(nlohmann_json_FOUND)
+		message(STATUS "  nlohmann_json     : ${nlohmann_json_VERSION} (system)")
+	else()
+		file(READ "${nlohmann_json_SOURCE_DIR}/single_include/nlohmann/json.hpp" NLOHMANN_JSON_HEADER)
+		string(REGEX MATCH "#define NLOHMANN_JSON_VERSION_MAJOR ([0-9]+)" _ "${NLOHMANN_JSON_HEADER}")
+		set(NLOHMANN_JSON_VERSION_MAJOR ${CMAKE_MATCH_1})
+		string(REGEX MATCH "#define NLOHMANN_JSON_VERSION_MINOR ([0-9]+)" _ "${NLOHMANN_JSON_HEADER}")
+		set(NLOHMANN_JSON_VERSION_MINOR ${CMAKE_MATCH_1})
+		string(REGEX MATCH "#define NLOHMANN_JSON_VERSION_PATCH ([0-9]+)" _ "${NLOHMANN_JSON_HEADER}")
+		set(NLOHMANN_JSON_VERSION_PATCH ${CMAKE_MATCH_1})
+		set(NLOHMANN_JSON_DETECTED_VERSION "${NLOHMANN_JSON_VERSION_MAJOR}.${NLOHMANN_JSON_VERSION_MINOR}.${NLOHMANN_JSON_VERSION_PATCH}")
+		message(STATUS "  nlohmann_json     : ${NLOHMANN_JSON_DETECTED_VERSION}")
 	endif()
 endif()
 
