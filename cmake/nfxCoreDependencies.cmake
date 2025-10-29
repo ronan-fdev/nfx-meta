@@ -54,7 +54,7 @@ if(NFX_CORE_WITH_STRING)
 	FetchContent_Declare(
 		nfx-stringutils
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-stringutils.git
-		GIT_TAG        1.0.0
+		GIT_TAG        1.0.1
 		GIT_SHALLOW    TRUE
 	)
 	FetchContent_Declare(
@@ -69,7 +69,7 @@ if(NFX_CORE_WITH_DATATYPES)
 	FetchContent_Declare(
 		nfx-datatypes
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-datatypes.git
-		GIT_TAG        1.0.0
+		GIT_TAG        1.0.1
 		GIT_SHALLOW    TRUE
 	)
 endif()
