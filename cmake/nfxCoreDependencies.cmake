@@ -54,7 +54,7 @@ if(NFX_CORE_WITH_STRING)
 	FetchContent_Declare(
 		nfx-stringutils
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-stringutils.git
-		GIT_TAG        1.0.2
+		GIT_TAG        1.0.3
 		GIT_SHALLOW    TRUE
 	)
 	FetchContent_Declare(
