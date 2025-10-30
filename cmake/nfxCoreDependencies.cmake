@@ -54,13 +54,7 @@ if(NFX_CORE_WITH_STRING)
 	FetchContent_Declare(
 		nfx-stringutils
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-stringutils.git
-		GIT_TAG        1.0.3
-		GIT_SHALLOW    TRUE
-	)
-	FetchContent_Declare(
-		nfx-stringsplitter
-		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-stringsplitter.git
-		GIT_TAG        1.0.2
+		GIT_TAG        1.1.0
 		GIT_SHALLOW    TRUE
 	)
 endif()
@@ -164,7 +158,7 @@ if(NFX_CORE_WITH_TIME)
 endif()
 
 if(NFX_CORE_WITH_STRING)
-	FetchContent_MakeAvailable(nfx-stringutils nfx-stringsplitter)
+	FetchContent_MakeAvailable(nfx-stringutils)
 endif()
 
 if(NFX_CORE_WITH_DATATYPES)
@@ -207,7 +201,6 @@ if(NFX_CORE_WITH_TIME)
 endif()
 if(NFX_CORE_WITH_STRING)
 	message(STATUS "  nfx-stringutils   : ${NFX_STRINGUTILS_VERSION}")
-	message(STATUS "  nfx-stringsplitter: ${NFX_STRINGSPLITTER_VERSION}")
 endif()
 if(NFX_CORE_WITH_DATATYPES)
 	message(STATUS "  nfx-datatypes     : ${NFX_DATATYPES_VERSION}")
