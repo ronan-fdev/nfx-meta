@@ -31,6 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.5.6] - 2025-10-30
+
+### Changed
+
+- **External Dependency Updates**: Updated external library dependencies to latest versions
+  - `nfx-datetime`: 1.0.0 → 1.0.1
+  - `nfx-stringutils`: 1.0.1 → 1.0.2
+  - `nfx-stringsplitter`: 1.0.0 → 1.0.2
+  - `nfx-datatypes`: 1.0.1 → 1.0.2
+  - `nfx-lrucache`: 1.0.6 → 1.0.7
+
 ## [0.5.5] - 2025-10-29
 
 ### Changed

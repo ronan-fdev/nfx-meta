@@ -45,7 +45,7 @@ if(NFX_CORE_WITH_TIME)
 	FetchContent_Declare(
 		nfx-datetime
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-datetime.git
-		GIT_TAG        1.0.0
+		GIT_TAG        1.0.1
 		GIT_SHALLOW    TRUE
 	)
 endif()
@@ -54,13 +54,13 @@ if(NFX_CORE_WITH_STRING)
 	FetchContent_Declare(
 		nfx-stringutils
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-stringutils.git
-		GIT_TAG        1.0.1
+		GIT_TAG        1.0.2
 		GIT_SHALLOW    TRUE
 	)
 	FetchContent_Declare(
 		nfx-stringsplitter
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-stringsplitter.git
-		GIT_TAG        1.0.0
+		GIT_TAG        1.0.2
 		GIT_SHALLOW    TRUE
 	)
 endif()
@@ -69,7 +69,7 @@ if(NFX_CORE_WITH_DATATYPES)
 	FetchContent_Declare(
 		nfx-datatypes
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-datatypes.git
-		GIT_TAG        1.0.1
+		GIT_TAG        1.0.2
 		GIT_SHALLOW    TRUE
 	)
 endif()
@@ -78,7 +78,7 @@ if(NFX_CORE_WITH_MEMORY)
 	FetchContent_Declare(
 		nfx-lrucache
 		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-lrucache.git
-		GIT_TAG        1.0.6
+		GIT_TAG        1.0.7
 		GIT_SHALLOW    TRUE
 	)
 endif()
