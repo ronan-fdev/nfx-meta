@@ -32,7 +32,7 @@ int main()
 
 	// Acquire a lease from the pool
 	auto lease{ StringBuilderPool::lease() };
-	auto builder{ lease.builder() };
+	auto builder{ lease.create() };
 
 	// Basic string building
 	builder.append( "Hello" );
@@ -67,7 +67,7 @@ int main()
 	auto startSb{ std::chrono::high_resolution_clock::now() };
 	{
 		auto perfLease{ StringBuilderPool::lease() };
-		auto perfBuilder{ perfLease.builder() };
+		auto perfBuilder{ perfLease.create() };
 
 		// Reserve capacity for better performance
 		perfLease.buffer().reserve( iterations * segment.size() );
@@ -144,19 +144,19 @@ int main()
 	// Create several leases to demonstrate pooling
 	{
 		auto lease1{ StringBuilderPool::lease() };
-		lease1.builder().append( "First lease content" );
+		lease1.create().append( "First lease content" );
 		std::cout << "Lease 1: " << lease1.toString() << std::endl;
 	} // lease1 returns to pool
 
 	{
 		auto lease2{ StringBuilderPool::lease() };
-		lease2.builder().append( "Second lease content" );
+		lease2.create().append( "Second lease content" );
 		std::cout << "Lease 2: " << lease2.toString() << std::endl;
 	} // lease2 returns to pool
 
 	{
 		auto lease3{ StringBuilderPool::lease() };
-		lease3.builder().append( "Third lease content" );
+		lease3.create().append( "Third lease content" );
 		std::cout << "Lease 3: " << lease3.toString() << std::endl;
 	} // lease3 returns to pool
 
@@ -181,7 +181,7 @@ int main()
 	// JSON-like object construction
 	{
 		auto jsonLease{ StringBuilderPool::lease() };
-		auto jsonBuilder{ jsonLease.builder() };
+		auto jsonBuilder{ jsonLease.create() };
 
 		jsonBuilder << "{\n";
 		jsonBuilder << "  \"name\": \"StringBuilderPool\",\n";
@@ -201,7 +201,7 @@ int main()
 	// SQL query building
 	{
 		auto sqlLease{ StringBuilderPool::lease() };
-		auto sqlBuilder{ sqlLease.builder() };
+		auto sqlBuilder{ sqlLease.create() };
 
 		std::vector<std::string> columns{ "id", "name", "email", "created_at" };
 		std::vector<std::string> conditions{ "active = 1", "age > 18", "country = 'US'" };
@@ -232,7 +232,7 @@ int main()
 	// Log message formatting
 	{
 		auto logLease{ StringBuilderPool::lease() };
-		auto logBuilder{ logLease.builder() };
+		auto logBuilder{ logLease.create() };
 
 		logBuilder << "[2025-08-31 14:30:00 UTC] ";
 		logBuilder << "INFO: StringBuilderPool sample running successfully. ";
@@ -251,7 +251,7 @@ int main()
 
 	{
 		auto iterLease{ StringBuilderPool::lease() };
-		auto iterBuilder{ iterLease.builder() };
+		auto iterBuilder{ iterLease.create() };
 		iterBuilder.append( "Iterator Demo" );
 
 		std::cout << "Original content: " << iterLease.toString() << std::endl;
@@ -290,7 +290,7 @@ int main()
 	{
 		auto memLease{ StringBuilderPool::lease() };
 		auto& memBuffer{ memLease.buffer() };
-		auto memBuilder{ memLease.builder() };
+		auto memBuilder{ memLease.create() };
 
 		std::cout << "Initial capacity: " << memBuffer.capacity() << std::endl;
 
@@ -340,7 +340,7 @@ int main()
 	{
 		threads.emplace_back( [t, &results]() {
 			auto threadLease{ StringBuilderPool::lease() };
-			auto threadBuilder{ threadLease.builder() };
+			auto threadBuilder{ threadLease.create() };
 
 			threadBuilder << "Thread " << std::to_string( t ) << " processing: ";
 			for ( int i{ 0 }; i < 10; ++i )
@@ -393,7 +393,7 @@ int main()
 		{ "Desk Chair", 199.99, 25, "Furniture" } };
 
 	auto csvLease{ StringBuilderPool::lease() };
-	auto csvBuilder{ csvLease.builder() };
+	auto csvBuilder{ csvLease.create() };
 
 	// CSV header
 	csvBuilder << "Name,Price,Quantity,Category,Total Value\n";

@@ -209,7 +209,7 @@ namespace nfx::string
 	// Public interface implementations
 	//----------------------------------------------
 
-	NFX_CORE_INLINE StringBuilder StringBuilderLease::builder()
+	NFX_CORE_INLINE StringBuilder StringBuilderLease::create()
 	{
 		if ( !m_valid )
 		{

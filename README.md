@@ -413,7 +413,7 @@ int main()
 
 	// High-performance string building with pooling
 	auto builderLease = nfx::string::StringBuilderPool::lease();
-	auto builder = builderLease.builder();
+	auto builder = builderLease.create();
 	builder << "Result: " << preciseCalc.toString();
 	std::string finalResult = builderLease.toString();
 	std::cout << "String building: " << finalResult << std::endl;

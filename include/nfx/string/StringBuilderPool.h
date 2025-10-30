@@ -15,7 +15,7 @@
  * │  ┌─────────────────────────────────────────────────────┐    │
  * │  │            StringBuilderLease (RAII)                │    │ ← Automatic cleanup
  * │  │  ┌─────────────────────────────────────────────┐    │    │
- * │  │  │  builder() → StringBuilder                  │    │    │ ← Fluent interface
+ * │  │  │  create()  → StringBuilder                  │    │    │ ← Fluent interface
  * │  │  │  buffer()  → DynamicStringBuffer            │    │    │ ← Direct access
  * │  │  │  toString() → std::string                   │    │    │ ← Conversion
  * │  │  └─────────────────────────────────────────────┘    │    │
@@ -36,8 +36,8 @@
  * │  // 1. Acquire lease (automatic pooling)                    │
  * │  auto lease = StringBuilderPool::lease();                   │
  * │                            ↓                                │
- * │  // 2. Get builder for fluent operations                    │
- * │  auto builder = lease.builder();                            │
+ * │  // 2. Create builder for fluent operations                 │
+ * │  auto builder = lease.create();                             │
  * │                            ↓                                │
  * │  // 3. Build string with zero allocations                   │
  * │  builder << "Hello" << ", " << "World" << "!";              │
@@ -728,7 +728,7 @@ namespace nfx::string
 		 * @return StringBuilder instance wrapping the leased buffer
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE StringBuilder builder();
+		[[nodiscard]] NFX_CORE_INLINE StringBuilder create();
 
 		/**
 		 * @brief Provides direct access to underlying memory buffer

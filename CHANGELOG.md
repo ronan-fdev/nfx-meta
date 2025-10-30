@@ -31,6 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.5.7] - 2025-10-30
+
+### Changed
+
+- **StringBuilderLease API Improvement**: Renamed `builder()` method to `create()` for better semantic clarity
+  - `StringBuilderLease::builder()` → `StringBuilderLease::create()`
+  - More accurately reflects that the method creates a new `StringBuilder` wrapper instance
+  - Updated all samples, tests, and benchmarks to use the new method name
+
 ## [0.5.6] - 2025-10-30
 
 ### Changed

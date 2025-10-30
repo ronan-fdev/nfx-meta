@@ -35,7 +35,7 @@ namespace nfx::string::test
 		auto lease{ string::StringBuilderPool::lease() };
 
 		// Access to StringBuilder and DynamicStringBuffer
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 		static_cast<void>( builder );
 		auto& buffer{ lease.buffer() };
 
@@ -57,7 +57,7 @@ namespace nfx::string::test
 		lease3 = std::move( lease2 );
 
 		// Should be able to use lease3
-		auto builder{ lease3.builder() };
+		auto builder{ lease3.create() };
 		EXPECT_NO_THROW( builder.append( "test" ) );
 	}
 
@@ -67,7 +67,7 @@ namespace nfx::string::test
 
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			auto builder{ lease.builder() };
+			auto builder{ lease.create() };
 			builder.append( "Test content" );
 			// StringBuilder should be in use
 		}
@@ -97,7 +97,7 @@ namespace nfx::string::test
 		// Acquire lease and check stats
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			auto builder{ lease.builder() };
+			auto builder{ lease.create() };
 			builder.append( "Test statistics" );
 		}
 
@@ -108,7 +108,7 @@ namespace nfx::string::test
 		// Acquire another lease (should potentially hit cache)
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			auto builder{ lease.builder() };
+			auto builder{ lease.create() };
 			builder.append( "Second test" );
 		}
 
@@ -148,19 +148,19 @@ namespace nfx::string::test
 		// Use and release sequentially to test reuse
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			lease.builder().append( "test1" );
+			lease.create().append( "test1" );
 		} // Returns to thread-local cache
 
 		{
 			auto lease{ string::StringBuilderPool::lease() };
 			EXPECT_EQ( lease.toString(), "" ); // Should be cleared
-			lease.builder().append( "test2" );
+			lease.create().append( "test2" );
 		} // Returns to thread-local cache
 
 		{
 			auto lease{ string::StringBuilderPool::lease() };
 			EXPECT_EQ( lease.toString(), "" ); // Should be cleared
-			lease.builder().append( "test3" );
+			lease.create().append( "test3" );
 		}
 
 		const auto& stats{ string::StringBuilderPool::stats() };
@@ -179,7 +179,7 @@ namespace nfx::string::test
 		for ( int i{ 0 }; i < iterations; ++i )
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			auto builder{ lease.builder() };
+			auto builder{ lease.create() };
 			builder.append( "iteration " );
 			builder.append( std::to_string( i ) );
 
@@ -212,7 +212,7 @@ namespace nfx::string::test
 		for ( int i{ 0 }; i < count; ++i )
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			auto builder{ lease.builder() };
+			auto builder{ lease.create() };
 			builder.append( "stats test " );
 			builder.append( std::to_string( i ) );
 		}
@@ -240,7 +240,7 @@ namespace nfx::string::test
 		for ( size_t i{ 0 }; i < maxLeases; ++i )
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			auto builder{ lease.builder() };
+			auto builder{ lease.create() };
 			builder.append( "lease " );
 			builder.append( std::to_string( i ) );
 			leases.push_back( std::move( lease ) );
@@ -271,7 +271,7 @@ namespace nfx::string::test
 	TEST( StringBuilderAdvanced, BasicConstruction )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Test initial state
 		EXPECT_EQ( builder.length(), 0 );
@@ -281,7 +281,7 @@ namespace nfx::string::test
 	TEST( StringBuilderAdvanced, CopyConstructor )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder1{ lease.builder() };
+		auto builder1{ lease.create() };
 		builder1.append( "Original" );
 
 		// Test copy constructor
@@ -298,7 +298,7 @@ namespace nfx::string::test
 	TEST( StringBuilderAdvanced, ConstArrayAccess )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 		builder.append( "const" );
 
 		const auto& constBuilder{ builder };
@@ -314,7 +314,7 @@ namespace nfx::string::test
 	TEST( StringBuilderAdvanced, AppendStringView )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		std::string_view testStr{ "Hello, World!" };
 		builder.append( testStr );
@@ -326,7 +326,7 @@ namespace nfx::string::test
 	TEST( StringBuilderAdvanced, AppendStdString )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		std::string testStr{ "C++ StringBuilder" };
 		builder.append( testStr );
@@ -338,7 +338,7 @@ namespace nfx::string::test
 	TEST( StringBuilderAdvanced, AppendCString )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		const char* testStr{ "Null-terminated" };
 		builder.append( testStr );
@@ -350,7 +350,7 @@ namespace nfx::string::test
 	TEST( StringBuilderAdvanced, AppendNullCString )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Should handle null pointer gracefully
 		builder.append( static_cast<const char*>( nullptr ) );
@@ -366,7 +366,7 @@ namespace nfx::string::test
 	TEST( StringBuilderBasicOperations, AppendOperations )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// String view append
 		builder.append( "Hello" );
@@ -393,7 +393,7 @@ namespace nfx::string::test
 	TEST( StringBuilderBasicOperations, StreamOperators )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Fluent interface with stream operators
 		builder << "Hello" << " " << "World" << "!";
@@ -415,7 +415,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		size_t initialCapacity{ buffer.capacity() };
 		EXPECT_GT( initialCapacity, 0 );
@@ -435,7 +435,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		builder.append( "Test Data" );
 
@@ -466,7 +466,7 @@ namespace nfx::string::test
 	TEST( StringBuilderIterator, BasicIteration )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		builder.append( "Hello" );
 
@@ -494,7 +494,7 @@ namespace nfx::string::test
 	TEST( StringBuilderIterator, EmptyBuilderIteration )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Empty builder iteration
 		auto begin_it{ builder.begin() };
@@ -513,7 +513,7 @@ namespace nfx::string::test
 	TEST( StringBuilderIterator, STLIteratorInterface )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 		builder.append( "hello" );
 
 		// Test iterator types
@@ -535,7 +535,7 @@ namespace nfx::string::test
 	TEST( StringBuilderIterator, RangeBasedForLoop )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 		builder.append( "abc" );
 
 		std::string result;
@@ -550,7 +550,7 @@ namespace nfx::string::test
 	TEST( StringBuilderIterator, STLAlgorithmsIntegration )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 		builder.append( "hello" );
 
 		// Test std::find
@@ -574,7 +574,7 @@ namespace nfx::string::test
 	TEST( StringBuilderEnumerator, BasicEnumeration )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		builder.append( "Test" );
 
@@ -602,7 +602,7 @@ namespace nfx::string::test
 	TEST( StringBuilderEnumerator, EmptyBuilderEnumeration )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		string::StringBuilder::Enumerator enumerator{ builder };
 
@@ -617,7 +617,7 @@ namespace nfx::string::test
 	TEST( StringBuilderEnumerator, ResetFunctionality )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 		builder.append( "abc" );
 
 		string::StringBuilder::Enumerator enumerator{ builder };
@@ -645,7 +645,7 @@ namespace nfx::string::test
 	TEST( StringBuilderEnumerator, CSStyleUsage )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 		builder.append( "hello" );
 
 		string::StringBuilder::Enumerator enumerator{ builder };
@@ -662,7 +662,7 @@ namespace nfx::string::test
 	TEST( StringBuilderEnumerator, AllIteratorTypesConsistency )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 		builder.append( "consistency" );
 
 		// STL iterator result
@@ -701,7 +701,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Build large string efficiently
 		const size_t iterations{ 1000 };
@@ -735,7 +735,7 @@ namespace nfx::string::test
 		for ( int i{ 0 }; i < 10; ++i )
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			auto builder{ lease.builder() };
+			auto builder{ lease.create() };
 			builder.append( "Iteration " );
 			builder.append( std::to_string( i ) );
 			builder.append( " content" );
@@ -773,7 +773,7 @@ namespace nfx::string::test
 				for ( size_t i{ 0 }; i < iterationsPerThread; ++i )
 				{
 					auto lease{ string::StringBuilderPool::lease() };
-					auto builder{ lease.builder() };
+					auto builder{ lease.create() };
 
 					builder.append( "Thread content " );
 					builder.append( std::to_string( i ) );
@@ -808,7 +808,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Build string
 		builder << "Hello" << " " << "World";
@@ -840,7 +840,7 @@ namespace nfx::string::test
 		// First acquisition - should result in new allocation
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			auto builder{ lease.builder() };
+			auto builder{ lease.create() };
 			builder.append( "First use" );
 		}
 
@@ -851,7 +851,7 @@ namespace nfx::string::test
 		// Second acquisition - should potentially reuse
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			auto builder{ lease.builder() };
+			auto builder{ lease.create() };
 			builder.append( "Second use" );
 		}
 
@@ -870,7 +870,7 @@ namespace nfx::string::test
 		{
 			auto lease{ string::StringBuilderPool::lease() };
 			auto& buffer{ lease.buffer() };
-			auto builder{ lease.builder() };
+			auto builder{ lease.create() };
 
 			std::string largeContent( testCapacity, 'x' );
 			builder.append( largeContent );
@@ -895,7 +895,7 @@ namespace nfx::string::test
 	TEST( StringBuilderAdvanced, ArrayAccessOperators )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		builder.append( "test" );
 
@@ -923,7 +923,7 @@ namespace nfx::string::test
 	TEST( StringBuilderAdvanced, StreamOperatorChaining )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Test comprehensive stream operator chaining
 		builder << "Hello" << ", " << std::string( "C++" ) << '!';
@@ -941,7 +941,7 @@ namespace nfx::string::test
 	TEST( StringBuilderAdvanced, ResizeOperations )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		builder.append( "Hello" );
 		EXPECT_EQ( builder.length(), 5 );
@@ -964,7 +964,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Operations on empty builder
 		EXPECT_TRUE( buffer.isEmpty() );
@@ -989,7 +989,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Very large capacity request
 		const size_t largeCapacity{ 1000000 };
@@ -1008,20 +1008,20 @@ namespace nfx::string::test
 	TEST( StringBuilderLeaseAdvanced, MoveSemantics )
 	{
 		auto lease1{ string::StringBuilderPool::lease() };
-		lease1.builder().append( "test data" );
+		lease1.create().append( "test data" );
 
 		// Move construction
 		auto lease2{ std::move( lease1 ) };
 
 		// lease2 should be valid
-		EXPECT_NO_THROW( [[maybe_unused]] auto builder = lease2.builder() );
+		EXPECT_NO_THROW( [[maybe_unused]] auto builder = lease2.create() );
 		EXPECT_EQ( lease2.toString(), "test data" );
 
 		// Move assignment
 		auto lease3{ string::StringBuilderPool::lease() };
-		lease3.builder().append( "original data" );
+		lease3.create().append( "original data" );
 		auto lease4{ string::StringBuilderPool::lease() };
-		lease4.builder().append( "new data" );
+		lease4.create().append( "new data" );
 
 		lease3 = std::move( lease4 );
 		EXPECT_EQ( lease3.toString(), "new data" );
@@ -1030,7 +1030,7 @@ namespace nfx::string::test
 	TEST( StringBuilderLeaseAdvanced, SelfMoveAssignment )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		lease.builder().append( "self move test" );
+		lease.create().append( "self move test" );
 
 		// Self move assignment should be safe
 		// Intentional self-move for testing - suppress compiler warnings
@@ -1055,7 +1055,7 @@ namespace nfx::string::test
 #endif
 
 		// Lease should still be valid
-		EXPECT_NO_THROW( [[maybe_unused]] auto builder = lease.builder() );
+		EXPECT_NO_THROW( [[maybe_unused]] auto builder = lease.create() );
 		EXPECT_EQ( lease.toString(), "self move test" );
 	}
 
@@ -1064,8 +1064,8 @@ namespace nfx::string::test
 		auto lease{ string::StringBuilderPool::lease() };
 
 		// Multiple builder() calls should return wrappers to same buffer
-		auto builder1{ lease.builder() };
-		auto builder2{ lease.builder() };
+		auto builder1{ lease.create() };
+		auto builder2{ lease.create() };
 
 		builder1.append( "first" );
 		EXPECT_EQ( builder2.length(), 5 ); // Should see changes from builder1
@@ -1082,7 +1082,7 @@ namespace nfx::string::test
 
 		// Mix buffer and builder operations
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		buffer.push_back( 'X' );
 		builder.append( "YZ" );
@@ -1100,7 +1100,7 @@ namespace nfx::string::test
 
 		{
 			auto lease{ string::StringBuilderPool::lease() };
-			lease.builder().append( "RAII test" );
+			lease.create().append( "RAII test" );
 			// Lease goes out of scope here - should return buffer to pool
 		}
 
@@ -1422,7 +1422,7 @@ namespace nfx::string::test
 	TEST( DynamicStringBufferIteration, IteratorTypes )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 		builder.append( "hello" );
 
 		// Test iterator types
@@ -1484,7 +1484,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		builder.append( "algorithm" );
 
@@ -1510,7 +1510,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Test special characters including null
 		builder.append( "Special: \n\t\r\"\\'" );
@@ -1534,7 +1534,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		size_t initialCapacity{ buffer.capacity() };
 
@@ -1558,7 +1558,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		builder.append( "consistency" );
 
@@ -1578,7 +1578,7 @@ namespace nfx::string::test
 	{
 		auto lease{ string::StringBuilderPool::lease() };
 		auto& buffer{ lease.buffer() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		builder.append( "Hello World" );
 		EXPECT_EQ( buffer.size(), 11 );
@@ -1719,7 +1719,7 @@ namespace nfx::string::test
 	TEST( DynamicStringBufferAdvanced, NullPointerHandling )
 	{
 		auto lease{ string::StringBuilderPool::lease() };
-		auto builder{ lease.builder() };
+		auto builder{ lease.create() };
 
 		// Should handle null C-string gracefully
 		builder.append( static_cast<const char*>( nullptr ) );

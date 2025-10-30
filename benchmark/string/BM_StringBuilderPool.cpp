@@ -79,7 +79,7 @@ namespace nfx::string::benchmark
 		for ( auto _ : state )
 		{
 			auto lease = StringBuilderPool::lease();
-			auto builder = lease.builder();
+			auto builder = lease.create();
 
 			for ( const auto& str : small_strings )
 			{
@@ -132,7 +132,7 @@ namespace nfx::string::benchmark
 		for ( auto _ : state )
 		{
 			auto lease = StringBuilderPool::lease();
-			auto builder = lease.builder();
+			auto builder = lease.create();
 
 			for ( const auto& str : medium_strings )
 			{
@@ -185,7 +185,7 @@ namespace nfx::string::benchmark
 		for ( auto _ : state )
 		{
 			auto lease = StringBuilderPool::lease();
-			auto builder = lease.builder();
+			auto builder = lease.create();
 
 			for ( const auto& str : large_strings )
 			{
@@ -225,7 +225,7 @@ namespace nfx::string::benchmark
 			for ( int i = 0; i < 10; ++i )
 			{
 				auto lease = StringBuilderPool::lease();
-				auto builder = lease.builder();
+				auto builder = lease.create();
 				builder << "Iteration " << std::to_string( i ) << ": " << small_strings[i % small_strings.size()];
 				std::string result = lease.toString();
 				::benchmark::DoNotOptimize( result );
@@ -287,7 +287,7 @@ namespace nfx::string::benchmark
 		for ( auto _ : state )
 		{
 			auto lease = StringBuilderPool::lease();
-			auto builder = lease.builder();
+			auto builder = lease.create();
 
 			// Simulate realistic string building patterns
 			builder << "Header: " << medium_strings[0] << "\n";
@@ -321,7 +321,7 @@ namespace nfx::string::benchmark
 			for ( int cycle = 0; cycle < 5; ++cycle )
 			{
 				auto lease = StringBuilderPool::lease();
-				auto builder = lease.builder();
+				auto builder = lease.create();
 
 				for ( const auto& str : medium_strings )
 				{
@@ -345,7 +345,7 @@ namespace nfx::string::benchmark
 		for ( auto _ : state )
 		{
 			auto lease = StringBuilderPool::lease();
-			auto builder = lease.builder();
+			auto builder = lease.create();
 
 			for ( const auto& str : small_strings )
 			{
@@ -368,7 +368,7 @@ namespace nfx::string::benchmark
 		for ( auto _ : state )
 		{
 			auto lease = StringBuilderPool::lease();
-			auto builder = lease.builder();
+			auto builder = lease.create();
 
 			// Build a large result
 			for ( int i = 0; i < 20; ++i )
