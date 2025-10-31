@@ -1,12 +1,12 @@
 #==============================================================================
-# NFX_CORE - Library installation
+# NFX_META - Library installation
 #==============================================================================
 
 #----------------------------------------------
 # Installation condition check
 #----------------------------------------------
 
-if(NOT NFX_CORE_INSTALL_PROJECT)
+if(NOT NFX_META_INSTALL_PROJECT)
 	message(STATUS "Installation disabled, skipping...")
 	return()
 endif()
@@ -21,7 +21,7 @@ message(STATUS "System installation paths:")
 message(STATUS "  Headers      : ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
 message(STATUS "  Library      : ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 message(STATUS "  Binaries     : ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}")
-message(STATUS "  CMake configs: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/nfx-core")
+message(STATUS "  CMake configs: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/nfx-meta")
 message(STATUS "  Documentation: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DOCDIR}")
 
 #----------------------------------------------
@@ -29,7 +29,7 @@ message(STATUS "  Documentation: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DOCDIR}
 #----------------------------------------------
 
 install(
-	DIRECTORY "${NFX_CORE_INCLUDE_DIR}/"
+	DIRECTORY "${NFX_META_INCLUDE_DIR}/"
 	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 	COMPONENT Development
 	FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl"
@@ -41,18 +41,18 @@ install(
 
 set(INSTALL_TARGETS)
 
-if(NFX_CORE_BUILD_SHARED)
+if(NFX_META_BUILD_SHARED)
 	list(APPEND INSTALL_TARGETS ${PROJECT_NAME})
 endif()
 
-if(NFX_CORE_BUILD_STATIC)
+if(NFX_META_BUILD_STATIC)
 	list(APPEND INSTALL_TARGETS ${PROJECT_NAME}-static)
 endif()
 
 if(INSTALL_TARGETS)
 	install(
 		TARGETS ${INSTALL_TARGETS}
-		EXPORT nfx-core-targets
+		EXPORT nfx-meta-targets
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 			COMPONENT Development
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -68,32 +68,32 @@ endif()
 #----------------------------------------------
 
 install(
-	EXPORT nfx-core-targets
-	FILE nfx-core-targets.cmake
-	NAMESPACE nfx-core::
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nfx-core
+	EXPORT nfx-meta-targets
+	FILE nfx-meta-targets.cmake
+	NAMESPACE nfx-meta::
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nfx-meta
 	COMPONENT Development
 )
 
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
-	"${CMAKE_CURRENT_BINARY_DIR}/nfx-core-config-version.cmake"
+	"${CMAKE_CURRENT_BINARY_DIR}/nfx-meta-config-version.cmake"
 	VERSION ${PROJECT_VERSION}
 	COMPATIBILITY SameMajorVersion
 )
 
 configure_package_config_file(
-	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/nfx-core-config.cmake.in"
-	"${CMAKE_CURRENT_BINARY_DIR}/nfx-core-config.cmake"
-	INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nfx-core
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/nfx-meta-config.cmake.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/nfx-meta-config.cmake"
+	INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nfx-meta
 )
 
 install(
 	FILES
-		"${CMAKE_CURRENT_BINARY_DIR}/nfx-core-config.cmake"
-		"${CMAKE_CURRENT_BINARY_DIR}/nfx-core-config-version.cmake"
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nfx-core
+		"${CMAKE_CURRENT_BINARY_DIR}/nfx-meta-config.cmake"
+		"${CMAKE_CURRENT_BINARY_DIR}/nfx-meta-config-version.cmake"
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nfx-meta
 	COMPONENT Development
 )
 
@@ -116,9 +116,9 @@ install(
 # Install documentation
 #----------------------------------------------
 
-if(NFX_CORE_BUILD_DOCUMENTATION)
+if(NFX_META_BUILD_DOCUMENTATION)
 	install(
-		DIRECTORY "${NFX_CORE_BUILD_DIR}/doc/"
+		DIRECTORY "${NFX_META_BUILD_DIR}/doc/"
 		DESTINATION ${CMAKE_INSTALL_DOCDIR}
 		OPTIONAL
 		COMPONENT Documentation

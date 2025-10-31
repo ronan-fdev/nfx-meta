@@ -26,19 +26,19 @@ namespace nfx::containers
 	//----------------------------------------------
 
 	template <uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE size_t HashMapHash<FnvOffsetBasis, FnvPrime>::operator()( const char* s ) const noexcept
+	NFX_META_INLINE size_t HashMapHash<FnvOffsetBasis, FnvPrime>::operator()( const char* s ) const noexcept
 	{
 		return static_cast<size_t>( core::hashing::hashStringView<FnvOffsetBasis, FnvPrime>( std::string_view{ s } ) );
 	}
 
 	template <uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE size_t HashMapHash<FnvOffsetBasis, FnvPrime>::operator()( const std::string& s ) const noexcept
+	NFX_META_INLINE size_t HashMapHash<FnvOffsetBasis, FnvPrime>::operator()( const std::string& s ) const noexcept
 	{
 		return static_cast<size_t>( core::hashing::hashStringView<FnvOffsetBasis, FnvPrime>( std::string_view{ s.data(), s.size() } ) );
 	}
 
 	template <uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE size_t HashMapHash<FnvOffsetBasis, FnvPrime>::operator()( std::string_view sv ) const noexcept
+	NFX_META_INLINE size_t HashMapHash<FnvOffsetBasis, FnvPrime>::operator()( std::string_view sv ) const noexcept
 	{
 		return static_cast<size_t>( core::hashing::hashStringView<FnvOffsetBasis, FnvPrime>( sv ) );
 	}
@@ -49,7 +49,7 @@ namespace nfx::containers
 
 	template <uint32_t FnvOffsetBasis, uint32_t FnvPrime>
 	template <typename T>
-	NFX_CORE_INLINE std::enable_if_t<std::is_integral_v<T>, size_t> HashMapHash<FnvOffsetBasis, FnvPrime>::operator()( T value ) const noexcept
+	NFX_META_INLINE std::enable_if_t<std::is_integral_v<T>, size_t> HashMapHash<FnvOffsetBasis, FnvPrime>::operator()( T value ) const noexcept
 	{
 		return core::hashing::hashInteger( value );
 	}
@@ -60,7 +60,7 @@ namespace nfx::containers
 
 	template <uint32_t FnvOffsetBasis, uint32_t FnvPrime>
 	template <typename T>
-	NFX_CORE_INLINE std::enable_if_t<
+	NFX_META_INLINE std::enable_if_t<
 		!std::is_integral_v<T> &&
 			!std::is_same_v<T, std::string> &&
 			!std::is_same_v<T, std::string_view> &&

@@ -118,21 +118,21 @@ namespace nfx::containers
 		 * @param key C-string key
 		 * @return Reference to the mapped value
 		 */
-		NFX_CORE_INLINE T& operator[]( const char* key ) noexcept;
+		NFX_META_INLINE T& operator[]( const char* key ) noexcept;
 
 		/**
 		 * @brief Heterogeneous operator[] for char*
 		 * @param key Mutable C-string key
 		 * @return Reference to the mapped value
 		 */
-		NFX_CORE_INLINE T& operator[]( char* key ) noexcept;
+		NFX_META_INLINE T& operator[]( char* key ) noexcept;
 
 		/**
 		 * @brief Heterogeneous operator[] for string_view
 		 * @param key String view key
 		 * @return Reference to the mapped value
 		 */
-		NFX_CORE_INLINE T& operator[]( std::string_view key ) noexcept;
+		NFX_META_INLINE T& operator[]( std::string_view key ) noexcept;
 
 		//----------------------------------------------
 		// Heterogeneous at() overloads
@@ -144,7 +144,7 @@ namespace nfx::containers
 		 * @return Const reference to the mapped value
 		 * @throws std::out_of_range if key not found
 		 */
-		NFX_CORE_INLINE const T& at( const char* key ) const;
+		NFX_META_INLINE const T& at( const char* key ) const;
 
 		/**
 		 * @brief Heterogeneous at() for const char* (non-const version)
@@ -152,7 +152,7 @@ namespace nfx::containers
 		 * @return Reference to the mapped value (read/write access)
 		 * @throws std::out_of_range if key not found
 		 */
-		NFX_CORE_INLINE T& at( const char* key );
+		NFX_META_INLINE T& at( const char* key );
 
 		/**
 		 * @brief Heterogeneous at() for char*
@@ -160,7 +160,7 @@ namespace nfx::containers
 		 * @return Const reference to the mapped value
 		 * @throws std::out_of_range if key not found
 		 */
-		NFX_CORE_INLINE const T& at( char* key ) const;
+		NFX_META_INLINE const T& at( char* key ) const;
 
 		/**
 		 * @brief Heterogeneous at() for char* (non-const version)
@@ -168,7 +168,7 @@ namespace nfx::containers
 		 * @return Reference to the mapped value (read/write access)
 		 * @throws std::out_of_range if key not found
 		 */
-		NFX_CORE_INLINE T& at( char* key );
+		NFX_META_INLINE T& at( char* key );
 
 		/**
 		 * @brief Heterogeneous at() for string_view
@@ -176,7 +176,7 @@ namespace nfx::containers
 		 * @return Const reference to the mapped value
 		 * @throws std::out_of_range if key not found
 		 */
-		NFX_CORE_INLINE const T& at( std::string_view key ) const;
+		NFX_META_INLINE const T& at( std::string_view key ) const;
 
 		/**
 		 * @brief Heterogeneous at() for string_view (non-const version)
@@ -184,7 +184,7 @@ namespace nfx::containers
 		 * @return Reference to the mapped value (read/write access)
 		 * @throws std::out_of_range if key not found
 		 */
-		NFX_CORE_INLINE T& at( std::string_view key );
+		NFX_META_INLINE T& at( std::string_view key );
 
 		//----------------------------------------------
 		// Heterogeneous try_emplace overloads
@@ -197,7 +197,7 @@ namespace nfx::containers
 		 * @return Pair of iterator and bool indicating insertion
 		 */
 		template <typename... Args>
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> try_emplace( const char* key, Args&&... args ) noexcept(
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> try_emplace( const char* key, Args&&... args ) noexcept(
 			std::is_nothrow_constructible_v<T, Args...> );
 
 		/**
@@ -207,7 +207,7 @@ namespace nfx::containers
 		 * @return Pair of iterator and bool indicating insertion
 		 */
 		template <typename... Args>
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> try_emplace( char* key, Args&&... args ) noexcept(
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> try_emplace( char* key, Args&&... args ) noexcept(
 			std::is_nothrow_constructible_v<T, Args...> );
 
 		/**
@@ -217,7 +217,7 @@ namespace nfx::containers
 		 * @return Pair of iterator and bool indicating insertion
 		 */
 		template <typename... Args>
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> try_emplace( std::string_view key, Args&&... args ) noexcept(
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> try_emplace( std::string_view key, Args&&... args ) noexcept(
 			std::is_nothrow_constructible_v<T, Args...> );
 
 		//----------------------------------------------
@@ -231,7 +231,7 @@ namespace nfx::containers
 		 * @return Pair of iterator and bool indicating insertion (true) or assignment (false)
 		 */
 		template <typename M>
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> insert_or_assign( const char* key, M&& obj ) noexcept(
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> insert_or_assign( const char* key, M&& obj ) noexcept(
 			std::is_nothrow_assignable_v<T&, M> && std::is_nothrow_constructible_v<T, M> );
 
 		/**
@@ -241,7 +241,7 @@ namespace nfx::containers
 		 * @return Pair of iterator and bool indicating insertion (true) or assignment (false)
 		 */
 		template <typename M>
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> insert_or_assign( char* key, M&& obj ) noexcept(
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> insert_or_assign( char* key, M&& obj ) noexcept(
 			std::is_nothrow_assignable_v<T&, M> && std::is_nothrow_constructible_v<T, M> );
 
 		/**
@@ -251,7 +251,7 @@ namespace nfx::containers
 		 * @return Pair of iterator and bool indicating insertion (true) or assignment (false)
 		 */
 		template <typename M>
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> insert_or_assign( std::string_view key, M&& obj ) noexcept(
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> insert_or_assign( std::string_view key, M&& obj ) noexcept(
 			std::is_nothrow_assignable_v<T&, M> && std::is_nothrow_constructible_v<T, M> );
 	};
 } // namespace nfx::containers

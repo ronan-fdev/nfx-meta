@@ -44,7 +44,7 @@ namespace nfx::containers
 		 * @return Hash value for the string
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE size_t operator()( const char* s ) const noexcept;
+		[[nodiscard]] NFX_META_INLINE size_t operator()( const char* s ) const noexcept;
 
 		/**
 		 * @brief Hash std::string via string_view conversion
@@ -52,7 +52,7 @@ namespace nfx::containers
 		 * @return Hash value for the string
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE size_t operator()( const std::string& s ) const noexcept;
+		[[nodiscard]] NFX_META_INLINE size_t operator()( const std::string& s ) const noexcept;
 
 		/**
 		 * @brief Hash string_view directly
@@ -60,7 +60,7 @@ namespace nfx::containers
 		 * @return Hash value for the string
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE size_t operator()( std::string_view sv ) const noexcept;
+		[[nodiscard]] NFX_META_INLINE size_t operator()( std::string_view sv ) const noexcept;
 	};
 
 	//----------------------------------------------
@@ -89,7 +89,7 @@ namespace nfx::containers
 		 * @return true if the strings are equal, false otherwise
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE constexpr bool operator()( const char* lhs, const char* rhs ) const noexcept;
+		[[nodiscard]] NFX_META_INLINE constexpr bool operator()( const char* lhs, const char* rhs ) const noexcept;
 
 		/**
 		 * @brief Compare two std::string objects
@@ -98,7 +98,7 @@ namespace nfx::containers
 		 * @return true if the strings are equal, false otherwise
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( const std::string& lhs, const std::string& rhs ) const noexcept;
+		[[nodiscard]] inline NFX_META_CONDITIONAL_CONSTEXPR bool operator()( const std::string& lhs, const std::string& rhs ) const noexcept;
 
 		/**
 		 * @brief Compare two string_view objects
@@ -116,7 +116,7 @@ namespace nfx::containers
 		 * @return true if the strings are equal, false otherwise
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( const char* lhs, const std::string& rhs ) const noexcept;
+		[[nodiscard]] inline NFX_META_CONDITIONAL_CONSTEXPR bool operator()( const char* lhs, const std::string& rhs ) const noexcept;
 
 		/**
 		 * @brief Compare C-string with string_view
@@ -125,7 +125,7 @@ namespace nfx::containers
 		 * @return true if the strings are equal, false otherwise
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE constexpr bool operator()( const char* lhs, std::string_view rhs ) const noexcept;
+		[[nodiscard]] NFX_META_INLINE constexpr bool operator()( const char* lhs, std::string_view rhs ) const noexcept;
 
 		/**
 		 * @brief Compare std::string with C-string
@@ -134,7 +134,7 @@ namespace nfx::containers
 		 * @return true if the strings are equal, false otherwise
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( const std::string& lhs, const char* rhs ) const noexcept;
+		[[nodiscard]] inline NFX_META_CONDITIONAL_CONSTEXPR bool operator()( const std::string& lhs, const char* rhs ) const noexcept;
 
 		/**
 		 * @brief Compare std::string with string_view
@@ -143,7 +143,7 @@ namespace nfx::containers
 		 * @return true if the strings are equal, false otherwise
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( const std::string& lhs, std::string_view rhs ) const noexcept;
+		[[nodiscard]] inline NFX_META_CONDITIONAL_CONSTEXPR bool operator()( const std::string& lhs, std::string_view rhs ) const noexcept;
 
 		/**
 		 * @brief Compare string_view with C-string
@@ -152,7 +152,7 @@ namespace nfx::containers
 		 * @return true if the strings are equal, false otherwise
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE constexpr bool operator()( std::string_view lhs, const char* rhs ) const noexcept;
+		[[nodiscard]] NFX_META_INLINE constexpr bool operator()( std::string_view lhs, const char* rhs ) const noexcept;
 
 		/**
 		 * @brief Compare string_view with std::string
@@ -161,7 +161,7 @@ namespace nfx::containers
 		 * @return true if the strings are equal, false otherwise
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] inline NFX_CORE_CONDITIONAL_CONSTEXPR bool operator()( std::string_view lhs, const std::string& rhs ) const noexcept;
+		[[nodiscard]] inline NFX_META_CONDITIONAL_CONSTEXPR bool operator()( std::string_view lhs, const std::string& rhs ) const noexcept;
 	};
 } // namespace nfx::containers
 

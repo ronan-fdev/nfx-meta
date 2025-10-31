@@ -1,12 +1,12 @@
 #==============================================================================
-# NFX_CORE - Samples
+# NFX_META - Samples
 #==============================================================================
 
 #----------------------------------------------
 # Sample condition check
 #----------------------------------------------
 
-if(NOT NFX_CORE_BUILD_SAMPLES)
+if(NOT NFX_META_BUILD_SAMPLES)
 	message(STATUS "Samples disabled, skipping...")
 	return()
 endif()
@@ -17,13 +17,13 @@ endif()
 
 set(SAMPLE_SOURCES)
 
-if(NFX_CORE_WITH_CONTAINERS)
+if(NFX_META_WITH_CONTAINERS)
 	list(APPEND SAMPLE_SOURCES
 		containers/Sample_StringContainers.cpp
 	)
 endif()
 
-if(NFX_CORE_WITH_JSON)
+if(NFX_META_WITH_JSON)
 	list(APPEND SAMPLE_SOURCES
 		serialization/json/Sample_JSONArrayEnumerator.cpp
 		serialization/json/Sample_JSONDocument.cpp
@@ -70,8 +70,8 @@ foreach(sample_source ${SAMPLE_SOURCES})
 			$<$<CXX_COMPILER_ID:MSVC>:/external:W0>                            # No warnings for external headers
 			
 			# --- CPU Architecture Support ---
-			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:${NFX_CORE_ENABLE_AVX2}>>:/arch:AVX2>        # AVX2 if supported
-			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<NOT:$<BOOL:${NFX_CORE_ENABLE_AVX2}>>>:/arch:SSE2> # SSE2 fallback
+			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:${NFX_META_ENABLE_AVX2}>>:/arch:AVX2>        # AVX2 if supported
+			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<NOT:$<BOOL:${NFX_META_ENABLE_AVX2}>>>:/arch:SSE2> # SSE2 fallback
 
 			# --- Optimization ---
 			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:/O2>            # Maximum speed optimization
@@ -105,8 +105,8 @@ foreach(sample_source ${SAMPLE_SOURCES})
 			$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-mavx>        # AVX support
 			
 			# --- Conditional advanced instruction sets ---
-			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_CORE_ENABLE_AVX2}>>:-mavx2>  # AVX2 if supported
-			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_CORE_ENABLE_AVX2}>>:-mfma>   # FMA if AVX2 supported
+			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_META_ENABLE_AVX2}>>:-mavx2>  # AVX2 if supported
+			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_META_ENABLE_AVX2}>>:-mfma>   # FMA if AVX2 supported
 
 			# --- Clang-specific settings ---
 			$<$<CXX_COMPILER_ID:Clang>:-mcrc32>                                   # Explicit CRC32 support for Clang
@@ -156,13 +156,13 @@ foreach(sample_source ${SAMPLE_SOURCES})
 		# Target linking
 		#----------------------------------------------
 
-		if(NFX_CORE_BUILD_STATIC)
+		if(NFX_META_BUILD_STATIC)
 			target_link_libraries(${sample_target_name} PRIVATE
-				nfx-core::static
+				nfx-meta::static
 			)
 		else()
 			target_link_libraries(${sample_target_name} PRIVATE
-				nfx-core::nfx-core
+				nfx-meta::nfx-meta
 			)
 		endif()
 
@@ -188,14 +188,14 @@ endforeach()
 # Windows: Copy DLL if building shared libs
 #----------------------------------------------
 
-if(WIN32 AND NFX_CORE_BUILD_SHARED)
+if(WIN32 AND NFX_META_BUILD_SHARED)
 	add_custom_target(copy_nfx_core_dll_to_samples
 		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/samples"
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			$<TARGET_FILE:nfx-core>
+			$<TARGET_FILE:nfx-meta>
 			"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/samples/"
-		COMMENT "Copying nfx-core DLL to samples directory"
-		DEPENDS nfx-core
+		COMMENT "Copying nfx-meta DLL to samples directory"
+		DEPENDS nfx-meta
 	)
 	
 	foreach(sample_source ${SAMPLE_SOURCES})

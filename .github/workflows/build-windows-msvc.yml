@@ -2,25 +2,25 @@ name: NFX Core - Windows MSVC
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - 'include/**'
-      - 'src/**'
-      - 'test/**'
-      - 'samples/**'
-      - 'benchmark/**'
-      - 'CMakeLists.txt'
-      - '.github/workflows/build-windows-msvc.yml'
+      - "include/**"
+      - "src/**"
+      - "test/**"
+      - "samples/**"
+      - "benchmark/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/build-windows-msvc.yml"
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - 'include/**'
-      - 'src/**'
-      - 'test/**'
-      - 'samples/**'
-      - 'benchmark/**'
-      - 'CMakeLists.txt'
-      - '.github/workflows/build-windows-msvc.yml'
+      - "include/**"
+      - "src/**"
+      - "test/**"
+      - "samples/**"
+      - "benchmark/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/build-windows-msvc.yml"
 
 env:
   BUILD_TYPE: Release
@@ -34,33 +34,33 @@ jobs:
     name: Windows MSVC 2022
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Cache CMake build
-      uses: actions/cache@v4
-      with:
-        path: |
-          build
-          C:\Users\runneradmin\AppData\Local\Microsoft\MSBuild
-        key: ${{ runner.os }}-msvc2022-cmake-${{ hashFiles('**/CMakeLists.txt', 'include/**', 'src/**') }}
-        restore-keys: |
-          ${{ runner.os }}-msvc2022-cmake-
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: |
+            build
+            C:\Users\runneradmin\AppData\Local\Microsoft\MSBuild
+          key: ${{ runner.os }}-msvc2022-cmake-${{ hashFiles('**/CMakeLists.txt', 'include/**', 'src/**') }}
+          restore-keys: |
+            ${{ runner.os }}-msvc2022-cmake-
 
-    - name: Configure CMake
-      run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DNFX_CORE_BUILD_STATIC=ON -DNFX_CORE_BUILD_SHARED=OFF -DNFX_CORE_BUILD_TESTS=ON -DNFX_CORE_BUILD_SAMPLES=OFF -DNFX_CORE_BUILD_BENCHMARKS=OFF -DNFX_CORE_BUILD_DOCUMENTATION=OFF
+      - name: Configure CMake
+        run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DNFX_META_BUILD_STATIC=ON -DNFX_META_BUILD_SHARED=OFF -DNFX_META_BUILD_TESTS=ON -DNFX_META_BUILD_SAMPLES=OFF -DNFX_META_BUILD_BENCHMARKS=OFF -DNFX_META_BUILD_DOCUMENTATION=OFF
 
-    - name: Build with MSVC
-      run: |
-        echo "Starting MSVC build at $(date)"
-        $start_time = Get-Date
-        cmake --build build --config Release --parallel
-        $end_time = Get-Date
-        $duration = $end_time - $start_time
-        echo "MSVC build completed in $($duration.TotalSeconds) seconds"
+      - name: Build with MSVC
+        run: |
+          echo "Starting MSVC build at $(date)"
+          $start_time = Get-Date
+          cmake --build build --config Release --parallel
+          $end_time = Get-Date
+          $duration = $end_time - $start_time
+          echo "MSVC build completed in $($duration.TotalSeconds) seconds"
 
-    - name: Test
-      working-directory: build
-      run: ctest --output-on-failure --parallel
+      - name: Test
+        working-directory: build
+        run: ctest --output-on-failure --parallel

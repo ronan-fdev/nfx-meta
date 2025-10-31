@@ -29,11 +29,11 @@
 
 /** @brief Cross-compiler force inline directive for performance-critical functions */
 #if defined( _MSC_VER )
-#	define NFX_CORE_INLINE __forceinline
+#	define NFX_META_INLINE __forceinline
 #elif defined( __GNUC__ ) || defined( __clang__ )
-#	define NFX_CORE_INLINE __attribute__( ( always_inline ) ) inline
+#	define NFX_META_INLINE __attribute__( ( always_inline ) ) inline
 #else
-#	define NFX_CORE_INLINE inline
+#	define NFX_META_INLINE inline
 #endif
 
 //----------------------------------------------
@@ -42,30 +42,30 @@
 
 /** @brief Conditional constexpr support for GCC 11.x which has incomplete constexpr std::string support */
 #if defined( __GNUC__ ) && __GNUC__ >= 11 && __GNUC__ < 12
-#	define NFX_CORE_CONDITIONAL_CONSTEXPR
+#	define NFX_META_CONDITIONAL_CONSTEXPR
 #else
-#	define NFX_CORE_CONDITIONAL_CONSTEXPR constexpr
+#	define NFX_META_CONDITIONAL_CONSTEXPR constexpr
 #endif
 
 /** @brief No unique address attribute for zero-cost empty member optimization */
 #if defined( __clang__ )
 // Clang or Clang-CL: Use feature detection regardless of _MSC_VER
 #	if __has_cpp_attribute( no_unique_address )
-#		define NFX_CORE_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#		define NFX_META_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #	else
-#		define NFX_CORE_NO_UNIQUE_ADDRESS
+#		define NFX_META_NO_UNIQUE_ADDRESS
 #	endif
 #elif defined( _MSC_VER ) && _MSC_VER >= 1928
 // MSVC
-#	define NFX_CORE_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#	define NFX_META_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #elif defined( __has_cpp_attribute ) && __has_cpp_attribute( no_unique_address ) >= 201803L
 #	if defined( __cpp_lib_no_unique_address ) && __cpp_lib_no_unique_address >= 201803L
-#		define NFX_CORE_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#		define NFX_META_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #	else
-#		define NFX_CORE_NO_UNIQUE_ADDRESS
+#		define NFX_META_NO_UNIQUE_ADDRESS
 #	endif
 #else
-#	define NFX_CORE_NO_UNIQUE_ADDRESS
+#	define NFX_META_NO_UNIQUE_ADDRESS
 #endif
 
 //----------------------------------------------
@@ -80,24 +80,24 @@
  */
 #if defined( __SIZEOF_INT128__ ) && !defined( _MSC_VER )
 // GCC and Clang have native __int128 support
-#	define NFX_CORE_HAS_INT128 1
-#	define NFX_CORE_INT128 __int128
-#	define NFX_CORE_UINT128 unsigned __int128
+#	define NFX_META_HAS_INT128 1
+#	define NFX_META_INT128 __int128
+#	define NFX_META_UINT128 unsigned __int128
 #else
 // MSVC and other compilers without native 128-bit support
-#	define NFX_CORE_HAS_INT128 0
+#	define NFX_META_HAS_INT128 0
 // For manual 128-bit implementation, we'll use our custom Int128 struct
 #endif
 
 /** @brief Conditional compilation helper for 128-bit specific code paths */
-#if NFX_CORE_HAS_INT128
+#if NFX_META_HAS_INT128
 /** @brief Includes code only when native 128-bit integer support is available */
-#	define NFX_CORE_IF_INT128( code ) code
+#	define NFX_META_IF_INT128( code ) code
 /** @brief Includes code only when native 128-bit integer support is NOT available */
-#	define NFX_CORE_IF_NO_INT128( code )
+#	define NFX_META_IF_NO_INT128( code )
 #else
 /** @brief Includes code only when native 128-bit integer support is available */
-#	define NFX_CORE_IF_INT128( code )
+#	define NFX_META_IF_INT128( code )
 /** @brief Includes code only when native 128-bit integer support is NOT available */
-#	define NFX_CORE_IF_NO_INT128( code ) code
+#	define NFX_META_IF_NO_INT128( code ) code
 #endif

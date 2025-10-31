@@ -15,17 +15,17 @@ namespace nfx::containers
 	// Heterogeneous insert overloads
 	//----------------------------------------------
 
-	NFX_CORE_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::insert( const char* key )
+	NFX_META_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::insert( const char* key )
 	{
 		return this->insert( std::string_view{ key } );
 	}
 
-	NFX_CORE_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::insert( char* key )
+	NFX_META_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::insert( char* key )
 	{
 		return this->insert( std::string_view{ key } );
 	}
 
-	NFX_CORE_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::insert( std::string_view key )
+	NFX_META_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::insert( std::string_view key )
 	{
 		return Base::insert( std::string{ key } );
 	}
@@ -34,17 +34,17 @@ namespace nfx::containers
 	// Heterogeneous emplace overloads
 	//----------------------------------------------
 
-	NFX_CORE_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::emplace( const char* key )
+	NFX_META_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::emplace( const char* key )
 	{
 		return this->emplace( std::string_view{ key } );
 	}
 
-	NFX_CORE_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::emplace( char* key )
+	NFX_META_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::emplace( char* key )
 	{
 		return this->emplace( std::string_view{ key } );
 	}
 
-	NFX_CORE_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::emplace( std::string_view key )
+	NFX_META_INLINE std::pair<typename StringSet::Base::iterator, bool> StringSet::emplace( std::string_view key )
 	{
 		return Base::emplace( std::string{ key } );
 	}
@@ -53,22 +53,22 @@ namespace nfx::containers
 	// C++20-style contains() method
 	//----------------------------------------------
 
-	NFX_CORE_INLINE bool StringSet::contains( const char* key ) const noexcept
+	NFX_META_INLINE bool StringSet::contains( const char* key ) const noexcept
 	{
 		return this->contains( std::string_view{ key } );
 	}
 
-	NFX_CORE_INLINE bool StringSet::contains( char* key ) const noexcept
+	NFX_META_INLINE bool StringSet::contains( char* key ) const noexcept
 	{
 		return this->contains( std::string_view{ key } );
 	}
 
-	NFX_CORE_INLINE bool StringSet::contains( const std::string& key ) const noexcept
+	NFX_META_INLINE bool StringSet::contains( const std::string& key ) const noexcept
 	{
 		return this->contains( std::string_view{ key } );
 	}
 
-	NFX_CORE_INLINE bool StringSet::contains( std::string_view key ) const noexcept
+	NFX_META_INLINE bool StringSet::contains( std::string_view key ) const noexcept
 	{
 		return this->find( key ) != this->end();
 	}

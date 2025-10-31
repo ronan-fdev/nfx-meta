@@ -1,12 +1,12 @@
 #==============================================================================
-# NFX_CORE - Benchmark suite CMake configuration
+# NFX_META - Benchmark suite CMake configuration
 #==============================================================================
 
 #----------------------------------------------
 # Benchmark condition check
 #----------------------------------------------
 
-if(NOT NFX_CORE_BUILD_BENCHMARKS)
+if(NOT NFX_META_BUILD_BENCHMARKS)
 	message(STATUS "Benchmarks disabled, skipping...")
 	return()
 endif()
@@ -17,19 +17,12 @@ endif()
 
 set(BENCHMARK_SOURCES)
 
-if(NFX_CORE_WITH_CONTAINERS)
+if(NFX_META_WITH_CONTAINERS)
 	list(APPEND BENCHMARK_SOURCES
 		containers/BM_ChdHashMap.cpp
 		containers/BM_HashMap.cpp
 		containers/BM_StringMap.cpp
 		containers/BM_StringSet.cpp
-	)
-endif()
-
-# Core hashing benchmarks (always included if any component is enabled)
-if(NFX_CORE_WITH_CONTAINERS OR NFX_CORE_WITH_STRING OR NFX_CORE_WITH_DATATYPES)
-	list(APPEND BENCHMARK_SOURCES
-		core/BM_Hashing.cpp
 	)
 endif()
 
@@ -69,8 +62,8 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 			$<$<CXX_COMPILER_ID:MSVC>:/external:W0>                            # No warnings for external headers
 			
 			# --- CPU Architecture Support ---
-			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:${NFX_CORE_ENABLE_AVX2}>>:/arch:AVX2>        # AVX2 if supported
-			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<NOT:$<BOOL:${NFX_CORE_ENABLE_AVX2}>>>:/arch:SSE2> # SSE2 fallback
+			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:${NFX_META_ENABLE_AVX2}>>:/arch:AVX2>        # AVX2 if supported
+			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<NOT:$<BOOL:${NFX_META_ENABLE_AVX2}>>>:/arch:SSE2> # SSE2 fallback
 
 			# --- Optimization ---
 			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:/O2>            # Maximum speed optimization
@@ -109,8 +102,8 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 			$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-mavx>        # AVX support
 			
 			# --- Conditional advanced instruction sets ---
-			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_CORE_ENABLE_AVX2}>>:-mavx2>  # AVX2 if supported
-			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_CORE_ENABLE_AVX2}>>:-mfma>   # FMA if AVX2 supported
+			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_META_ENABLE_AVX2}>>:-mavx2>  # AVX2 if supported
+			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_META_ENABLE_AVX2}>>:-mfma>   # FMA if AVX2 supported
 
 			# --- Clang-specific settings ---
 			$<$<CXX_COMPILER_ID:Clang>:-mcrc32>                                   # Explicit CRC32 support for Clang
@@ -160,14 +153,14 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 		# Target linking
 		#----------------------------------------------
 
-		if(NFX_CORE_BUILD_STATIC)
+		if(NFX_META_BUILD_STATIC)
 			target_link_libraries(${benchmark_target_name} PRIVATE
-				nfx-core::static
+				nfx-meta::static
 				benchmark::benchmark
 			)
 		else()
 			target_link_libraries(${benchmark_target_name} PRIVATE
-				nfx-core::nfx-core
+				nfx-meta::nfx-meta
 				benchmark::benchmark
 			)
 		endif()
@@ -177,8 +170,8 @@ foreach(benchmark_source ${BENCHMARK_SOURCES})
 		#----------------------------------------------
 
 		target_include_directories(${benchmark_target_name} PRIVATE
-			${NFX_CORE_INCLUDE_DIR}
-			${NFX_CORE_SOURCE_DIR}
+			${NFX_META_INCLUDE_DIR}
+			${NFX_META_SOURCE_DIR}
 		)
 
 		#----------------------------------------------
@@ -203,14 +196,14 @@ endforeach()
 # Windows: Copy DLL if building shared libs
 #----------------------------------------------
 
-if(WIN32 AND NFX_CORE_BUILD_SHARED)
+if(WIN32 AND NFX_META_BUILD_SHARED)
 	add_custom_target(copy_nfx_core_dll_to_benchmarks
 		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks"
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			$<TARGET_FILE:nfx-core>
+			$<TARGET_FILE:nfx-meta>
 			"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks/"
-		COMMENT "Copying nfx-core DLL to benchmarks directory"
-		DEPENDS nfx-core
+		COMMENT "Copying nfx-meta DLL to benchmarks directory"
+		DEPENDS nfx-meta
 	)
 	
 	foreach(benchmark_source ${BENCHMARK_SOURCES})

@@ -1,12 +1,12 @@
 #==============================================================================
-# NFX_CORE - Test suite CMake configuration
+# NFX_META - Test suite CMake configuration
 #==============================================================================
 
 #----------------------------------------------
 # Test condition check
 #----------------------------------------------
 
-if(NOT NFX_CORE_BUILD_TESTS)
+if(NOT NFX_META_BUILD_TESTS)
 	message(STATUS "Tests disabled, skipping...")
 	return()
 endif()
@@ -37,7 +37,7 @@ endif()
 
 set(TEST_SOURCES)
 
-if(NFX_CORE_WITH_CONTAINERS)
+if(NFX_META_WITH_CONTAINERS)
 	list(APPEND TEST_SOURCES
 		containers/TESTS_ChdHashMap.cpp
 		containers/TESTS_HashMap.cpp
@@ -47,7 +47,7 @@ if(NFX_CORE_WITH_CONTAINERS)
 	)
 endif()
 
-if(NFX_CORE_WITH_JSON)
+if(NFX_META_WITH_JSON)
 	list(APPEND TEST_SOURCES
 		serialization/json/TESTS_JSONArrayEnumerator.cpp
 		serialization/json/TESTS_JSONArrays.cpp
@@ -95,8 +95,8 @@ foreach(test_source ${TEST_SOURCES})
 			$<$<CXX_COMPILER_ID:MSVC>:/external:W0>                            # No warnings for external headers
 			
 			# --- CPU Architecture Support ---
-			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:${NFX_CORE_ENABLE_AVX2}>>:/arch:AVX2>        # AVX2 if supported
-			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<NOT:$<BOOL:${NFX_CORE_ENABLE_AVX2}>>>:/arch:SSE2> # SSE2 fallback
+			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:${NFX_META_ENABLE_AVX2}>>:/arch:AVX2>        # AVX2 if supported
+			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<NOT:$<BOOL:${NFX_META_ENABLE_AVX2}>>>:/arch:SSE2> # SSE2 fallback
 
 			# --- Optimization ---
 			$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:/O2>            # Maximum speed optimization
@@ -134,8 +134,8 @@ foreach(test_source ${TEST_SOURCES})
 			$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-mavx>        # AVX support
 			
 			# --- Conditional advanced instruction sets ---
-			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_CORE_ENABLE_AVX2}>>:-mavx2>  # AVX2 if supported
-			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_CORE_ENABLE_AVX2}>>:-mfma>   # FMA if AVX2 supported
+			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_META_ENABLE_AVX2}>>:-mavx2>  # AVX2 if supported
+			$<$<AND:$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>,$<BOOL:${NFX_META_ENABLE_AVX2}>>:-mfma>   # FMA if AVX2 supported
 
 			# --- Clang-specific settings ---
 			$<$<CXX_COMPILER_ID:Clang>:-mcrc32>                                   # Explicit CRC32 support for Clang
@@ -185,14 +185,14 @@ foreach(test_source ${TEST_SOURCES})
 		# Target linking
 		#----------------------------------------------
 
-		if(NFX_CORE_BUILD_STATIC)
+		if(NFX_META_BUILD_STATIC)
 			target_link_libraries(${test_target_name} PRIVATE
-				nfx-core::static
+				nfx-meta::static
 				GTest::gtest_main
 			)
 		else()
 			target_link_libraries(${test_target_name} PRIVATE
-				nfx-core::nfx-core
+				nfx-meta::nfx-meta
 				GTest::gtest_main
 			)
 		endif()
@@ -202,8 +202,8 @@ foreach(test_source ${TEST_SOURCES})
 		#----------------------------------------------
 
 		target_include_directories(${test_target_name} PRIVATE
-			${NFX_CORE_INCLUDE_DIR}
-			${NFX_CORE_SOURCE_DIR}
+			${NFX_META_INCLUDE_DIR}
+			${NFX_META_SOURCE_DIR}
 		)
 
 		#----------------------------------------------
@@ -239,14 +239,14 @@ endforeach()
 # Windows: Copy DLL if building shared libs
 #----------------------------------------------
 
-if(WIN32 AND NFX_CORE_BUILD_SHARED)
+if(WIN32 AND NFX_META_BUILD_SHARED)
 	add_custom_target(copy_nfx_core_dll_to_tests
 		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests"
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			$<TARGET_FILE:nfx-core>
+			$<TARGET_FILE:nfx-meta>
 			"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests/"
-		COMMENT "Copying nfx-core DLL to test directory"
-		DEPENDS nfx-core
+		COMMENT "Copying nfx-meta DLL to test directory"
+		DEPENDS nfx-meta
 	)
 	
 	foreach(test_source ${TEST_SOURCES})

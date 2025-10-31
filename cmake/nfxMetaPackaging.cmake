@@ -1,12 +1,12 @@
 #==============================================================================
-# NFX_CORE - Library packaging configuration (CPack)
+# NFX_META - Library packaging configuration (CPack)
 #==============================================================================
 
 #----------------------------------------------
 # Packaging condition check
 #----------------------------------------------
 
-if(NOT NFX_CORE_STANDALONE_PROJECT)
+if(NOT NFX_META_STANDALONE_PROJECT)
 	message(STATUS "Packaging disabled, skipping...")
 	return()
 endif()
@@ -32,7 +32,7 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY     ${CPACK_PACKAGE_NAME})
 #set(CPACK_PACKAGE_ICON                  "")
 set(CPACK_PACKAGE_CHECKSUM              "SHA256")
 #set(CPACK_PROJECT_CONFIG_FILE           "")
-set(CPACK_RESOURCE_FILE_LICENSE         ${NFX_CORE_PROJECT_LICENSE_FILE})
+set(CPACK_RESOURCE_FILE_LICENSE         ${NFX_META_PROJECT_LICENSE_FILE})
 #set(CPACK_RESOURCE_FILE_README          "")
 #set(CPACK_RESOURCE_FILE_WELCOME         "")
 set(CPACK_MONOLITHIC_INSTALL            TRUE)
@@ -47,12 +47,12 @@ else()
 	message(STATUS "${CMAKE_BUILD_TYPE} build: Debug symbols preserved in packages")
 endif()
 set(CPACK_VERBATIM_VARIABLES            TRUE)
-set(CPACK_THREADS                       ${NFX_CORE_THREADS})
+set(CPACK_THREADS                       ${NFX_META_THREADS})
 
 # --- Source package settings ---
 set(CPACK_SOURCE_PACKAGE_FILE_NAME      "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Source")
 #set(CPACK_SOURCE_STRIP_FILES            "")
-if(NFX_CORE_PACKAGE_SOURCE)
+if(NFX_META_PACKAGE_SOURCE)
 	set(CPACK_SOURCE_GENERATOR          "TGZ;ZIP")
 else()
 	set(CPACK_SOURCE_GENERATOR          "")
@@ -67,7 +67,7 @@ set(CPACK_SOURCE_IGNORE_FILES           ".git/;.github;.gitignore;build/;.deps/;
 #set(CPACK_POST_BUILD_SCRIPTS            "")
 #set(CPACK_PACKAGE_FILES                 "")
 #set(CPACK_INSTALLED_DIRECTORIES         "")
-set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY  "nfx-core")
+set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY  "nfx-meta")
 #set(CPACK_CREATE_DESKTOP_LINKS          "")
 
 #----------------------------------------------
@@ -79,7 +79,7 @@ if(NOT DEFINED CPACK_GENERATOR)
 	set(CPACK_GENERATOR "ZIP")
 	
 	# --- Archive packages ---
-	if(NFX_CORE_PACKAGE_ARCHIVE)
+	if(NFX_META_PACKAGE_ARCHIVE)
 		if(UNIX AND NOT APPLE)
 			set(CPACK_GENERATOR "${CPACK_GENERATOR};TGZ")
 		elseif(WIN32)
@@ -88,7 +88,7 @@ if(NOT DEFINED CPACK_GENERATOR)
 	endif()
 	
 	# --- DEB packages ---
-	if(NFX_CORE_PACKAGE_DEB AND UNIX AND NOT APPLE)
+	if(NFX_META_PACKAGE_DEB AND UNIX AND NOT APPLE)
 		find_program(DPKG_CMD dpkg)
 		if(DPKG_CMD)
 			set(CPACK_GENERATOR "${CPACK_GENERATOR};DEB")
@@ -98,7 +98,7 @@ if(NOT DEFINED CPACK_GENERATOR)
 	endif()
 	
 	# --- RPM packages ---
-	if(NFX_CORE_PACKAGE_RPM AND UNIX AND NOT APPLE)
+	if(NFX_META_PACKAGE_RPM AND UNIX AND NOT APPLE)
 		find_program(RPM_CMD rpm)
 		if(RPM_CMD)
 			set(CPACK_GENERATOR "${CPACK_GENERATOR};RPM")
@@ -108,7 +108,7 @@ if(NOT DEFINED CPACK_GENERATOR)
 	endif()
 	
 	# --- NSIS packages ---
-	if(NFX_CORE_PACKAGE_NSIS AND WIN32)
+	if(NFX_META_PACKAGE_NSIS AND WIN32)
 		find_program(MAKENSIS_CMD makensis)
 		if(MAKENSIS_CMD)
 			set(CPACK_GENERATOR "${CPACK_GENERATOR};NSIS")
@@ -177,7 +177,7 @@ if("DEB" IN_LIST CPACK_GENERATOR AND UNIX AND NOT APPLE)
 	# --- Core runtime dependencies  ---
 	set(DEB_DEPENDS "libc6, libstdc++6, libgcc-s1")
 	
-	if(NFX_CORE_WITH_JSON)
+	if(NFX_META_WITH_JSON)
 		set(DEB_DEPENDS "${DEB_DEPENDS}, nlohmann-json3-dev")
 	endif()
 	
@@ -193,7 +193,7 @@ if("RPM" IN_LIST CPACK_GENERATOR AND UNIX AND NOT APPLE)
 	set(CPACK_RPM_PACKAGE_VERSION       ${PROJECT_VERSION})
 	set(CPACK_RPM_PACKAGE_ARCHITECTURE  ${CPACK_RPM_PACKAGE_ARCHITECTURE})
 	set(CPACK_RPM_PACKAGE_RELEASE       "1")
-	set(CPACK_RPM_PACKAGE_LICENSE       ${NFX_CORE_PROJECT_LICENSE})
+	set(CPACK_RPM_PACKAGE_LICENSE       ${NFX_META_PROJECT_LICENSE})
 	set(CPACK_RPM_PACKAGE_GROUP         "Development/Libraries")
 	set(CPACK_RPM_COMPRESSION_TYPE      "xz")
 	set(CPACK_RPM_PACKAGE_VENDOR        ${CPACK_PACKAGE_VENDOR})
@@ -203,7 +203,7 @@ if("RPM" IN_LIST CPACK_GENERATOR AND UNIX AND NOT APPLE)
 	# --- Core runtime dependencies ---
 	set(RPM_REQUIRES "glibc, libstdc++")
 	
-	if(NFX_CORE_WITH_JSON)
+	if(NFX_META_WITH_JSON)
 		set(RPM_REQUIRES "${RPM_REQUIRES}, nlohmann-json-devel")
 	endif()
 	
@@ -238,7 +238,7 @@ if("NSIS" IN_LIST CPACK_GENERATOR AND WIN32)
 #	set(CPACK_NSIS_DELETE_ICONS_EXTRA               "")
 	set(CPACK_NSIS_EXECUTABLES_DIRECTORY            "bin")
 #	set(CPACK_NSIS_MUI_FINISHPAGE_RUN               "")
-#	set(CPACK_NSIS_MENU_LINKS                       "https://github.com/ronan-fdev/nfx-core" "NFX Core Repository")
+#	set(CPACK_NSIS_MENU_LINKS                       "https://github.com/ronan-fdev/nfx-meta" "NFX Core Repository")
 	set(CPACK_NSIS_UNINSTALL_NAME                   "Uninstall ${CPACK_PACKAGE_NAME}")
 	set(CPACK_NSIS_WELCOME_TITLE                    "Welcome to ${CPACK_PACKAGE_NAME} Setup")
 	set(CPACK_NSIS_WELCOME_TITLE_3LINES             FALSE)

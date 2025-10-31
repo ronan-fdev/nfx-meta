@@ -1,9 +1,9 @@
 #==============================================================================
-# NFX_CORE - C++ SDK Doxygen documentation
+# NFX_META - C++ SDK Doxygen documentation
 #==============================================================================
 
 # --- Documentation condition check ---
-if(NOT NFX_CORE_BUILD_DOCUMENTATION)
+if(NOT NFX_META_BUILD_DOCUMENTATION)
 	message(STATUS "Documentation disabled, skipping...")
 	return()
 endif()
@@ -42,8 +42,8 @@ if(Doxygen_FOUND)
 										 an
 										 the)
 	set(DOXYGEN_FULL_PATH_NAMES          "NO")
-	set(DOXYGEN_STRIP_FROM_PATH          "${NFX_CORE_INCLUDE_DIR}")
-	set(DOXYGEN_STRIP_FROM_INC_PATH      "${NFX_CORE_INCLUDE_DIR}")
+	set(DOXYGEN_STRIP_FROM_PATH          "${NFX_META_INCLUDE_DIR}")
+	set(DOXYGEN_STRIP_FROM_INC_PATH      "${NFX_META_INCLUDE_DIR}")
 	set(DOXYGEN_INHERIT_DOCS             "YES")
 	set(DOXYGEN_TAB_SIZE                 4)
 	set(DOXYGEN_MARKDOWN_SUPPORT         "YES")
@@ -166,7 +166,7 @@ if(Doxygen_FOUND)
 	set(DOXYGEN_MACRO_EXPANSION          "YES")
 	set(DOXYGEN_EXPAND_ONLY_PREDEF       "YES")
 	set(DOXYGEN_PREDEFINED               "protected=private"
-										 "NFX_CORE_INLINE=inline")
+										 "NFX_META_INLINE=inline")
 	set(DOXYGEN_EXTRACT_PRIVATE          "NO")
 	set(DOXYGEN_EXTRACT_STATIC           "YES")
 	set(DOXYGEN_EXTRACT_LOCAL_CLASSES    "NO")
@@ -215,7 +215,7 @@ if(Doxygen_FOUND)
 
 	# --- Documentation Target Definition ---
 	doxygen_add_docs(documentation
-		${NFX_CORE_INCLUDE_DIR}/nfx
+		${NFX_META_INCLUDE_DIR}/nfx
 		ALL
 		COMMENT "Generate documentation."
 	)
@@ -224,10 +224,10 @@ if(Doxygen_FOUND)
 		add_custom_command(
 			TARGET documentation
 			POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E make_directory "${NFX_CORE_BUILD_DIR}/doc"
-			COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/${DOXYGEN_HTML_OUTPUT}/" "${NFX_CORE_BUILD_DIR}/doc/html/"
-			COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/index.html" "${NFX_CORE_BUILD_DIR}/doc/index.html"
-			COMMENT "Copying Doxygen documentation to ${NFX_CORE_BUILD_DIR}/doc"
+			COMMAND ${CMAKE_COMMAND} -E make_directory "${NFX_META_BUILD_DIR}/doc"
+			COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/${DOXYGEN_HTML_OUTPUT}/" "${NFX_META_BUILD_DIR}/doc/html/"
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/index.html" "${NFX_META_BUILD_DIR}/doc/index.html"
+			COMMENT "Copying Doxygen documentation to ${NFX_META_BUILD_DIR}/doc"
 			VERBATIM
 		)
 	endif()

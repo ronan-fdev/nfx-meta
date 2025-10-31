@@ -1,5 +1,5 @@
 #==============================================================================
-# NFX_CORE - CMake Sources
+# NFX_META - CMake Sources
 #==============================================================================
 
 #----------------------------------------------
@@ -8,79 +8,69 @@
 
 # --- Always include core headers ---
 set(PUBLIC_HEADERS
-	# --- Core configuration ---
-	${NFX_CORE_INCLUDE_DIR}/nfx/config.h
-
-	#--- Core utilities ---
-	${NFX_CORE_INCLUDE_DIR}/nfx/core/CPU.h
-	${NFX_CORE_INCLUDE_DIR}/nfx/core/Hashing.h
-
-	# --- Core utilities implementation ---
-	${NFX_CORE_INCLUDE_DIR}/nfx/detail/core/Hashing.inl
+	${NFX_META_INCLUDE_DIR}/nfx/config.h
 )
 
 set(PRIVATE_SOURCES)
 
 # --- Container components ---
-if(NFX_CORE_WITH_CONTAINERS)
+if(NFX_META_WITH_CONTAINERS)
 	list(APPEND PUBLIC_HEADERS
 		# --- Container functors ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/functors/HashMapHashFunctor.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/functors/StringFunctors.h
+		${NFX_META_INCLUDE_DIR}/nfx/containers/functors/HashMapHashFunctor.h
+		${NFX_META_INCLUDE_DIR}/nfx/containers/functors/StringFunctors.h
 
 		# --- Container headers ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/ChdHashMap.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/HashMap.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringMap.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/containers/StringSet.h
+		${NFX_META_INCLUDE_DIR}/nfx/containers/ChdHashMap.h
+		${NFX_META_INCLUDE_DIR}/nfx/containers/HashMap.h
+		${NFX_META_INCLUDE_DIR}/nfx/containers/StringMap.h
+		${NFX_META_INCLUDE_DIR}/nfx/containers/StringSet.h
 
 		# --- Container functors implementations ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/functors/HashMapHashFunctor.inl
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/functors/StringFunctors.inl
+		${NFX_META_INCLUDE_DIR}/nfx/detail/containers/functors/HashMapHashFunctor.inl
+		${NFX_META_INCLUDE_DIR}/nfx/detail/containers/functors/StringFunctors.inl
 
 		# --- Container inline implementations ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/ChdHashMap.inl
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/HashMap.inl
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/StringMap.inl
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/containers/StringSet.inl
-	)
-	list(APPEND PRIVATE_SOURCES
+		${NFX_META_INCLUDE_DIR}/nfx/detail/containers/ChdHashMap.inl
+		${NFX_META_INCLUDE_DIR}/nfx/detail/containers/HashMap.inl
+		${NFX_META_INCLUDE_DIR}/nfx/detail/containers/StringMap.inl
+		${NFX_META_INCLUDE_DIR}/nfx/detail/containers/StringSet.inl
 	)
 endif()
 
 # --- Serialization components ---
-if(NFX_CORE_WITH_JSON)
+if(NFX_META_WITH_JSON)
 	list(APPEND PUBLIC_HEADERS
 		# --- JSON serialization headers ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/ArrayEnumerator.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/Document.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/FieldEnumerator.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/SchemaValidator.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/SerializationTraits.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/SerializationTraits.h
-		${NFX_CORE_INCLUDE_DIR}/nfx/serialization/json/Serializer.h
+		${NFX_META_INCLUDE_DIR}/nfx/serialization/json/ArrayEnumerator.h
+		${NFX_META_INCLUDE_DIR}/nfx/serialization/json/Document.h
+		${NFX_META_INCLUDE_DIR}/nfx/serialization/json/FieldEnumerator.h
+		${NFX_META_INCLUDE_DIR}/nfx/serialization/json/SchemaValidator.h
+		${NFX_META_INCLUDE_DIR}/nfx/serialization/json/SerializationTraits.h
+		${NFX_META_INCLUDE_DIR}/nfx/serialization/json/SerializationTraits.h
+		${NFX_META_INCLUDE_DIR}/nfx/serialization/json/Serializer.h
 
 		# --- JSON serialization implementations ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/serialization/json/Serializer.inl
+		${NFX_META_INCLUDE_DIR}/nfx/detail/serialization/json/Serializer.inl
 	)
 
 	list(APPEND PRIVATE_HEADERS
 		# --- JSON serialization private headers ---
-		${NFX_CORE_SOURCE_DIR}/serialization/json/ArrayEnumerator_impl.h
-		${NFX_CORE_SOURCE_DIR}/serialization/json/Document_impl.h
-		${NFX_CORE_SOURCE_DIR}/serialization/json/FieldEnumerator_impl.h
-		${NFX_CORE_SOURCE_DIR}/serialization/json/SchemaValidator_impl.h
+		${NFX_META_SOURCE_DIR}/serialization/json/ArrayEnumerator_impl.h
+		${NFX_META_SOURCE_DIR}/serialization/json/Document_impl.h
+		${NFX_META_SOURCE_DIR}/serialization/json/FieldEnumerator_impl.h
+		${NFX_META_SOURCE_DIR}/serialization/json/SchemaValidator_impl.h
 	)
 	list(APPEND PRIVATE_SOURCES
 		# --- JSON serialization implementations ---
-		${NFX_CORE_SOURCE_DIR}/serialization/json/ArrayEnumerator_impl.cpp
-		${NFX_CORE_SOURCE_DIR}/serialization/json/ArrayEnumerator.cpp
-		${NFX_CORE_SOURCE_DIR}/serialization/json/Document_impl.cpp
-		${NFX_CORE_SOURCE_DIR}/serialization/json/Document.cpp
-		${NFX_CORE_SOURCE_DIR}/serialization/json/FieldEnumerator_impl.cpp
-		${NFX_CORE_SOURCE_DIR}/serialization/json/FieldEnumerator.cpp
-		${NFX_CORE_SOURCE_DIR}/serialization/json/SchemaValidator.cpp
-		${NFX_CORE_SOURCE_DIR}/serialization/json/SchemaValidator_impl.cpp
+		${NFX_META_SOURCE_DIR}/serialization/json/ArrayEnumerator_impl.cpp
+		${NFX_META_SOURCE_DIR}/serialization/json/ArrayEnumerator.cpp
+		${NFX_META_SOURCE_DIR}/serialization/json/Document_impl.cpp
+		${NFX_META_SOURCE_DIR}/serialization/json/Document.cpp
+		${NFX_META_SOURCE_DIR}/serialization/json/FieldEnumerator_impl.cpp
+		${NFX_META_SOURCE_DIR}/serialization/json/FieldEnumerator.cpp
+		${NFX_META_SOURCE_DIR}/serialization/json/SchemaValidator.cpp
+		${NFX_META_SOURCE_DIR}/serialization/json/SchemaValidator_impl.cpp
 	)
 endif()
 
@@ -89,7 +79,7 @@ endif()
 #----------------------------------------------
 
 # --- Create shared library if requested ---
-if(NFX_CORE_BUILD_SHARED)
+if(NFX_META_BUILD_SHARED)
 	add_library(${PROJECT_NAME} SHARED)
 	target_sources(${PROJECT_NAME}
 		PRIVATE
@@ -99,15 +89,15 @@ if(NFX_CORE_BUILD_SHARED)
 	)
 
 	set_target_properties(${PROJECT_NAME} PROPERTIES
-		LIBRARY_OUTPUT_DIRECTORY ${NFX_CORE_BUILD_DIR}/lib
-		ARCHIVE_OUTPUT_DIRECTORY ${NFX_CORE_BUILD_DIR}/lib
+		LIBRARY_OUTPUT_DIRECTORY ${NFX_META_BUILD_DIR}/lib
+		ARCHIVE_OUTPUT_DIRECTORY ${NFX_META_BUILD_DIR}/lib
 	)
 
 	add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 endif()
 
 # --- Create static library if requested ---
-if(NFX_CORE_BUILD_STATIC)
+if(NFX_META_BUILD_STATIC)
 	add_library(${PROJECT_NAME}-static STATIC)
 	target_sources(${PROJECT_NAME}-static
 		PRIVATE
@@ -118,7 +108,7 @@ if(NFX_CORE_BUILD_STATIC)
 
 	set_target_properties(${PROJECT_NAME}-static PROPERTIES
 		OUTPUT_NAME ${PROJECT_NAME}-static-${PROJECT_VERSION}
-		ARCHIVE_OUTPUT_DIRECTORY ${NFX_CORE_BUILD_DIR}/lib
+		ARCHIVE_OUTPUT_DIRECTORY ${NFX_META_BUILD_DIR}/lib
 	)
 
 	add_library(${PROJECT_NAME}::static ALIAS ${PROJECT_NAME}-static)
@@ -132,21 +122,21 @@ function(configure_target target_name)
 	# --- Include directories ---
 	target_include_directories(${target_name}
 		PUBLIC
-			$<BUILD_INTERFACE:${NFX_CORE_INCLUDE_DIR}>
+			$<BUILD_INTERFACE:${NFX_META_INCLUDE_DIR}>
 			$<INSTALL_INTERFACE:include>
 		PRIVATE
-			${NFX_CORE_SOURCE_DIR}
+			${NFX_META_SOURCE_DIR}
 	)
 
 	# --- External dependencies ---
-	if(NFX_CORE_WITH_JSON)
+	if(NFX_META_WITH_JSON)
 		if(DEFINED nlohmann_json_SOURCE_DIR)
 			target_include_directories(${target_name} PRIVATE ${nlohmann_json_SOURCE_DIR}/include)
 		endif()
 	endif()
 
 	# --- Link external component libraries ---
-	if(NFX_CORE_WITH_TIME)
+	if(NFX_META_WITH_TIME)
 		if(TARGET nfx-datetime::static)
 			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-datetime::static>)
 		elseif(TARGET nfx-datetime::nfx-datetime)
@@ -154,7 +144,7 @@ function(configure_target target_name)
 		endif()
 	endif()
 
-	if(NFX_CORE_WITH_STRING)
+	if(NFX_META_WITH_STRING)
 		if(TARGET nfx-stringutils::nfx-stringutils)
 			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-stringutils::nfx-stringutils>)
 		endif()
@@ -165,7 +155,7 @@ function(configure_target target_name)
 		endif()
 	endif()
 
-	if(NFX_CORE_WITH_DATATYPES)
+	if(NFX_META_WITH_DATATYPES)
 		if(TARGET nfx-datatypes::static)
 			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-datatypes::static>)
 		elseif(TARGET nfx-datatypes::nfx-datatypes)
@@ -173,10 +163,15 @@ function(configure_target target_name)
 		endif()
 	endif()
 
-	if(NFX_CORE_WITH_MEMORY)
+	if(NFX_META_WITH_MEMORY)
 		if(TARGET nfx-lrucache::nfx-lrucache)
 			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-lrucache::nfx-lrucache>)
 		endif()
+	endif()
+
+	# --- Link nfx-core ---
+	if(TARGET nfx-core::nfx-core)
+		target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-core::nfx-core>)
 	endif()
 
 	# --- Properties ---
@@ -192,7 +187,7 @@ function(configure_target target_name)
 endfunction()
 
 # --- Apply configuration to both targets ---
-if(NFX_CORE_BUILD_SHARED)
+if(NFX_META_BUILD_SHARED)
 	configure_target(${PROJECT_NAME})
 	if(WIN32)
 		set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -200,14 +195,14 @@ if(NFX_CORE_BUILD_SHARED)
 		)
 
 		configure_file(
-			${CMAKE_CURRENT_SOURCE_DIR}/cmake/nfxCoreVersion.rc.in
-			${CMAKE_BINARY_DIR}/nfxCoreVersion.rc
+			${CMAKE_CURRENT_SOURCE_DIR}/cmake/nfxMetaVersion.rc.in
+			${CMAKE_BINARY_DIR}/nfxMetaVersion.rc
 			@ONLY
 		)
-		target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/nfxCoreVersion.rc)
+		target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/nfxMetaVersion.rc)
 	endif()
 endif()
 
-if(NFX_CORE_BUILD_STATIC)
+if(NFX_META_BUILD_STATIC)
 	configure_target(${PROJECT_NAME}-static)
 endif()

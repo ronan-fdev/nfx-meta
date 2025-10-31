@@ -1,5 +1,5 @@
 #==============================================================================
-# NFX_CORE - CMake build configuration
+# NFX_META - CMake build configuration
 #==============================================================================
 
 #----------------------------------------------
@@ -17,16 +17,16 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 endif()
 
 # --- Ensure at least one library type is built ---
-if(NOT NFX_CORE_BUILD_STATIC AND NOT NFX_CORE_BUILD_SHARED)
-	message(WARNING "Neither NFX_CORE_BUILD_STATIC nor NFX_CORE_BUILD_SHARED is enabled.")
+if(NOT NFX_META_BUILD_STATIC AND NOT NFX_META_BUILD_SHARED)
+	message(WARNING "Neither NFX_META_BUILD_STATIC nor NFX_META_BUILD_SHARED is enabled.")
 	
-	if(DEFINED CACHE{NFX_CORE_BUILD_STATIC} AND DEFINED CACHE{NFX_CORE_BUILD_SHARED})
+	if(DEFINED CACHE{NFX_META_BUILD_STATIC} AND DEFINED CACHE{NFX_META_BUILD_SHARED})
 		message(STATUS "Both library types were explicitly disabled.")
 		message(STATUS "Applying fallback: Enabling static library build")
-		set(NFX_CORE_BUILD_STATIC ON CACHE BOOL "Build static library (fallback)" FORCE)
+		set(NFX_META_BUILD_STATIC ON CACHE BOOL "Build static library (fallback)" FORCE)
 	else()
 		message(STATUS "Defaulting to static library build")
-		set(NFX_CORE_BUILD_STATIC ON)
+		set(NFX_META_BUILD_STATIC ON)
 	endif()
 endif()
 
@@ -59,12 +59,12 @@ include(GNUInstallDirs)
 # Directory configuration
 #----------------------------------------------
 
-set(NFX_CORE_ROOT_DIR           "${CMAKE_CURRENT_SOURCE_DIR}"   CACHE PATH  "Root directory"     )
-set(NFX_CORE_INCLUDE_DIR        "${NFX_CORE_ROOT_DIR}/include"  CACHE PATH  "Include directory"  )
-set(NFX_CORE_SOURCE_DIR         "${NFX_CORE_ROOT_DIR}/src"      CACHE PATH  "Source directory"   )
-set(NFX_CORE_TEST_DIR           "${NFX_CORE_ROOT_DIR}/tests"    CACHE PATH  "Test directory"     )
-set(NFX_CORE_SAMPLES_DIR        "${NFX_CORE_ROOT_DIR}/samples"  CACHE PATH  "Samples directory"  )
-set(NFX_CORE_DOCUMENTATION_DIR  "${NFX_CORE_ROOT_DIR}/doc"      CACHE PATH  "Documentation dir"  )
+set(NFX_META_ROOT_DIR           "${CMAKE_CURRENT_SOURCE_DIR}"   CACHE PATH  "Root directory"     )
+set(NFX_META_INCLUDE_DIR        "${NFX_META_ROOT_DIR}/include"  CACHE PATH  "Include directory"  )
+set(NFX_META_SOURCE_DIR         "${NFX_META_ROOT_DIR}/src"      CACHE PATH  "Source directory"   )
+set(NFX_META_TEST_DIR           "${NFX_META_ROOT_DIR}/tests"    CACHE PATH  "Test directory"     )
+set(NFX_META_SAMPLES_DIR        "${NFX_META_ROOT_DIR}/samples"  CACHE PATH  "Samples directory"  )
+set(NFX_META_DOCUMENTATION_DIR  "${NFX_META_ROOT_DIR}/doc"      CACHE PATH  "Documentation dir"  )
 
 #----------------------------------------------
 # Compiler detection
@@ -114,15 +114,15 @@ endif()
 #----------------------------------------------
 
 set(COMPILER_DIR_NAME "${COMPILER_NAME}-${CMAKE_CXX_COMPILER_VERSION}-${ARCH_NAME}")
-set(NFX_CORE_BUILD_DIR ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}/${COMPILER_DIR_NAME}/$<CONFIG>)
+set(NFX_META_BUILD_DIR ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}/${COMPILER_DIR_NAME}/$<CONFIG>)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${NFX_CORE_BUILD_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${NFX_META_BUILD_DIR}/bin)
 
 #----------------------------------------------
 # Compiler cache support
 #----------------------------------------------
 
-if(NFX_CORE_USE_CCACHE)
+if(NFX_META_USE_CCACHE)
 	find_program(CCACHE_PROGRAM ccache)
 	if(CCACHE_PROGRAM)
 		message(STATUS "Using compiler cache: ${CCACHE_PROGRAM}")
@@ -139,9 +139,9 @@ endif()
 
 # --- Detect CPU cores ---
 include(ProcessorCount)
-ProcessorCount(NFX_CORE_CPU_COUNT)
-math(EXPR NFX_CORE_THREADS "(${NFX_CORE_CPU_COUNT} * 3 + 3) / 4") 
-message(STATUS "CPU cores detected: ${NFX_CORE_CPU_COUNT}, using ${NFX_CORE_THREADS} threads for parallel builds")
+ProcessorCount(NFX_META_CPU_COUNT)
+math(EXPR NFX_META_THREADS "(${NFX_META_CPU_COUNT} * 3 + 3) / 4") 
+message(STATUS "CPU cores detected: ${NFX_META_CPU_COUNT}, using ${NFX_META_THREADS} threads for parallel builds")
 
 # --- Detect CPU capabilities ---
 include(CheckCXXSourceRuns)
@@ -159,14 +159,14 @@ check_cxx_source_runs("
 		__m256i b = _mm256_add_epi32(a, a);
 		return _mm256_extract_epi32(b, 0) == 2 ? 0 : 1;
 	}
-" NFX_CORE_HAS_AVX2_RUNTIME_SUPPORT)
+" NFX_META_HAS_AVX2_RUNTIME_SUPPORT)
 
-if(NFX_CORE_HAS_AVX2_RUNTIME_SUPPORT)
+if(NFX_META_HAS_AVX2_RUNTIME_SUPPORT)
 	message(STATUS "CPU supports AVX2 - enabling advanced optimizations")
-	set(NFX_CORE_ENABLE_AVX2 ON CACHE BOOL "AVX2 support enabled" FORCE)
+	set(NFX_META_ENABLE_AVX2 ON CACHE BOOL "AVX2 support enabled" FORCE)
 else()
 	message(STATUS "CPU does not support AVX2 - using SSE4.2 fallback")
-	set(NFX_CORE_ENABLE_AVX2 OFF CACHE BOOL "AVX2 support disabled (not supported)" FORCE)
+	set(NFX_META_ENABLE_AVX2 OFF CACHE BOOL "AVX2 support disabled (not supported)" FORCE)
 endif()
 
 set(CMAKE_REQUIRED_FLAGS "")

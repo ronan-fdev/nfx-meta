@@ -262,7 +262,7 @@ namespace nfx::serialization::json
 
 	template <typename T>
 	template <typename U>
-	NFX_CORE_INLINE void Serializer<T>::Options::copyFrom( const typename Serializer<U>::Options& other )
+	NFX_META_INLINE void Serializer<T>::Options::copyFrom( const typename Serializer<U>::Options& other )
 	{
 		includeNullFields = other.includeNullFields;
 		prettyPrint = other.prettyPrint;
@@ -271,7 +271,7 @@ namespace nfx::serialization::json
 
 	template <typename T>
 	template <typename U>
-	NFX_CORE_INLINE typename Serializer<T>::Options Serializer<T>::Options::createFrom( const typename Serializer<U>::Options& other )
+	NFX_META_INLINE typename Serializer<T>::Options Serializer<T>::Options::createFrom( const typename Serializer<U>::Options& other )
 	{
 		Options result;
 		result.includeNullFields = other.includeNullFields;
@@ -285,7 +285,7 @@ namespace nfx::serialization::json
 	//----------------------------------------------
 
 	template <typename T>
-	NFX_CORE_INLINE Serializer<T>::Serializer( const Options& options ) noexcept
+	NFX_META_INLINE Serializer<T>::Serializer( const Options& options ) noexcept
 		: m_options{ options }
 	{
 	}
@@ -295,13 +295,13 @@ namespace nfx::serialization::json
 	//----------------------------------------------
 
 	template <typename T>
-	NFX_CORE_INLINE const Serializer<T>::Options& Serializer<T>::options() const noexcept
+	NFX_META_INLINE const Serializer<T>::Options& Serializer<T>::options() const noexcept
 	{
 		return m_options;
 	}
 
 	template <typename T>
-	NFX_CORE_INLINE void Serializer<T>::setOptions( const Options& options ) noexcept
+	NFX_META_INLINE void Serializer<T>::setOptions( const Options& options ) noexcept
 	{
 		m_options = options;
 	}

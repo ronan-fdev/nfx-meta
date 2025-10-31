@@ -1,7 +1,7 @@
 /**
  * @file SerializationTraits.h
  * @brief Serialization traits and type specializations for JSON serialization
- * @details Contains SerializationTraits template specializations for nfx-core library types.
+ * @details Contains SerializationTraits template specializations for nfx-meta library types.
  *          This file provides the extensible serialization framework that allows users to
  *          customize serialization behavior for their own types.
  */
@@ -121,7 +121,7 @@ namespace nfx::serialization::json
 	};
 
 	//=====================================================================
-	// nfx-core library types SerializationTraits specializations
+	// nfx-meta library types SerializationTraits specializations
 	//=====================================================================
 
 	/**

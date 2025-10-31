@@ -108,8 +108,8 @@ namespace nfx::containers
 	 * - Template specialization for optimal string handling
 	 */
 	template <typename TKey, typename TValue,
-		uint32_t FnvOffsetBasis = core::hashing::DEFAULT_FNV_OFFSET_BASIS,
-		uint32_t FnvPrime = core::hashing::DEFAULT_FNV_PRIME>
+		uint32_t FnvOffsetBasis = core::hashing::constants::DEFAULT_FNV_OFFSET_BASIS,
+		uint32_t FnvPrime = core::hashing::constants::DEFAULT_FNV_PRIME>
 	class HashMap final
 	{
 		//----------------------------------------------
@@ -148,7 +148,7 @@ namespace nfx::containers
 		 * @details Initializes hash table with power-of-2 capacity for optimal
 		 *          bitwise operations and cache-friendly memory layout
 		 */
-		NFX_CORE_INLINE HashMap();
+		NFX_META_INLINE HashMap();
 
 		/**
 		 * @brief Constructor with specified initial capacity
@@ -156,7 +156,7 @@ namespace nfx::containers
 		 * @details Capacity will be rounded up to next power of 2 for optimal
 		 *          hash distribution and bitwise mask operations
 		 */
-		NFX_CORE_INLINE explicit HashMap( size_t initialCapacity );
+		NFX_META_INLINE explicit HashMap( size_t initialCapacity );
 
 		//----------------------------------------------
 		// Core operations
@@ -169,7 +169,7 @@ namespace nfx::containers
 		 * @return true if the key was found, false otherwise
 		 */
 		template <typename KeyType = TKey>
-		NFX_CORE_INLINE bool tryGetValue( const KeyType& key, TValue*& outValue ) noexcept;
+		NFX_META_INLINE bool tryGetValue( const KeyType& key, TValue*& outValue ) noexcept;
 
 		//----------------------------------------------
 		// Insertion
@@ -182,7 +182,7 @@ namespace nfx::containers
 		 * @details Uses perfect forwarding and Robin Hood hashing for optimal
 		 *          performance. If key exists, value is updated; otherwise new entry created.
 		 */
-		NFX_CORE_INLINE void insertOrAssign( const TKey& key, TValue&& value );
+		NFX_META_INLINE void insertOrAssign( const TKey& key, TValue&& value );
 
 		/**
 		 * @brief Insert or update a key-value pair (copy semantics)
@@ -191,7 +191,7 @@ namespace nfx::containers
 		 * @details Uses Robin Hood displacement algorithm to minimize maximum
 		 *          probe distance and ensure O(log n) worst-case performance.
 		 */
-		NFX_CORE_INLINE void insertOrAssign( const TKey& key, const TValue& value );
+		NFX_META_INLINE void insertOrAssign( const TKey& key, const TValue& value );
 
 		//----------------------------------------------
 		// Capacity and memory management
@@ -204,7 +204,7 @@ namespace nfx::containers
 		 *          without triggering automatic resize. Capacity rounded to power of 2.
 		 *          Rehashes all existing elements to new table layout.
 		 */
-		NFX_CORE_INLINE void reserve( size_t minCapacity );
+		NFX_META_INLINE void reserve( size_t minCapacity );
 
 		/**
 		 * @brief Remove a key-value pair from the map
@@ -214,7 +214,7 @@ namespace nfx::containers
 		 *          shift deletion to maintain compact representation without tombstones.
 		 */
 		template <typename KeyType = TKey>
-		NFX_CORE_INLINE bool erase( const KeyType& key ) noexcept;
+		NFX_META_INLINE bool erase( const KeyType& key ) noexcept;
 
 		//----------------------------------------------
 		// State insspection
@@ -226,7 +226,7 @@ namespace nfx::containers
 		 * @details O(1) operation, maintained incrementally during modifications
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE size_t size() const noexcept;
+		[[nodiscard]] NFX_META_INLINE size_t size() const noexcept;
 
 		/**
 		 * @brief Get the current capacity of the hash table
@@ -235,7 +235,7 @@ namespace nfx::containers
 		 *          memory allocation patterns
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE size_t capacity() const noexcept;
+		[[nodiscard]] NFX_META_INLINE size_t capacity() const noexcept;
 
 		/**
 		 * @brief Check if the map contains no elements
@@ -243,7 +243,7 @@ namespace nfx::containers
 		 * @details Equivalent to size() == 0 but may be more expressive in code
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE bool isEmpty() const noexcept;
+		[[nodiscard]] NFX_META_INLINE bool isEmpty() const noexcept;
 
 		//----------------------------------------------
 		// STL-compatible iteration support
@@ -330,7 +330,7 @@ namespace nfx::containers
 		 *          and proper integer mixing for optimal Robin Hood performance.
 		 *          Supports heterogeneous lookup while maintaining excellent hash distribution.
 		 */
-		NFX_CORE_NO_UNIQUE_ADDRESS HashMapHash<FnvOffsetBasis, FnvPrime> m_hasher;
+		NFX_META_NO_UNIQUE_ADDRESS HashMapHash<FnvOffsetBasis, FnvPrime> m_hasher;
 
 		//----------------------------------------------
 		// Internal implementation
@@ -361,7 +361,7 @@ namespace nfx::containers
 		 *          existing elements. Provides strong exception safety - original
 		 *          data preserved if rehashing fails.
 		 */
-		NFX_CORE_INLINE void resize();
+		NFX_META_INLINE void resize();
 
 		/**
 		 * @brief Erase element at specific position using backward shift deletion
@@ -370,7 +370,7 @@ namespace nfx::containers
 		 *          representation without tombstones. Adjusts displacement distances
 		 *          of shifted elements to preserve algorithm invariants.
 		 */
-		NFX_CORE_INLINE void eraseAtPosition( size_t pos ) noexcept;
+		NFX_META_INLINE void eraseAtPosition( size_t pos ) noexcept;
 
 		/**
 		 * @brief Compare keys with heterogeneous lookup support for string types
@@ -383,7 +383,7 @@ namespace nfx::containers
 		 *          between std::string, std::string_view, and const char* types.
 		 */
 		template <typename KeyType1, typename KeyType2>
-		NFX_CORE_INLINE bool keysEqual( const KeyType1& k1, const KeyType2& k2 ) const noexcept;
+		NFX_META_INLINE bool keysEqual( const KeyType1& k1, const KeyType2& k2 ) const noexcept;
 
 	private:
 		//----------------------------------------------

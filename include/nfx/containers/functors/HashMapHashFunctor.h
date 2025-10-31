@@ -51,7 +51,7 @@ namespace nfx::containers
 		 * @return High-quality hash value with excellent distribution
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE size_t operator()( std::string_view sv ) const noexcept;
+		[[nodiscard]] NFX_META_INLINE size_t operator()( std::string_view sv ) const noexcept;
 
 		/**
 		 * @brief Hash std::string using optimized algorithm
@@ -59,7 +59,7 @@ namespace nfx::containers
 		 * @return High-quality hash value with excellent distribution
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE size_t operator()( const std::string& s ) const noexcept;
+		[[nodiscard]] NFX_META_INLINE size_t operator()( const std::string& s ) const noexcept;
 
 		/**
 		 * @brief Hash C-string using optimized algorithm
@@ -67,7 +67,7 @@ namespace nfx::containers
 		 * @return High-quality hash value with excellent distribution
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE size_t operator()( const char* s ) const noexcept;
+		[[nodiscard]] NFX_META_INLINE size_t operator()( const char* s ) const noexcept;
 
 		//----------------------------------------------
 		// Integer type hashing (proper mixing)
@@ -81,7 +81,7 @@ namespace nfx::containers
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		template <typename T>
-		[[nodiscard]] NFX_CORE_INLINE std::enable_if_t<std::is_integral_v<T>, size_t> operator()( T value ) const noexcept;
+		[[nodiscard]] NFX_META_INLINE std::enable_if_t<std::is_integral_v<T>, size_t> operator()( T value ) const noexcept;
 
 		//----------------------------------------------
 		// Fallback for other types (delegate to std::hash)
@@ -95,7 +95,7 @@ namespace nfx::containers
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
 		template <typename T>
-		[[nodiscard]] NFX_CORE_INLINE std::enable_if_t<
+		[[nodiscard]] NFX_META_INLINE std::enable_if_t<
 			!std::is_integral_v<T> &&
 				!std::is_same_v<T, std::string> &&
 				!std::is_same_v<T, std::string_view> &&

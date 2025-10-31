@@ -137,21 +137,21 @@ namespace nfx::containers
 		 * @param key C-string key
 		 * @return Pair of iterator and bool indicating insertion
 		 */
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> insert( const char* key );
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> insert( const char* key );
 
 		/**
 		 * @brief Heterogeneous insert for char*
 		 * @param key Mutable C-string key
 		 * @return Pair of iterator and bool indicating insertion
 		 */
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> insert( char* key );
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> insert( char* key );
 
 		/**
 		 * @brief Heterogeneous insert for string_view
 		 * @param key String view key
 		 * @return Pair of iterator and bool indicating insertion
 		 */
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> insert( std::string_view key );
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> insert( std::string_view key );
 
 		//----------------------------------------------
 		// Heterogeneous emplace overloads
@@ -162,21 +162,21 @@ namespace nfx::containers
 		 * @param key C-string key
 		 * @return Pair of iterator and bool indicating insertion
 		 */
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> emplace( const char* key );
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> emplace( const char* key );
 
 		/**
 		 * @brief Heterogeneous emplace for char*
 		 * @param key Mutable C-string key
 		 * @return Pair of iterator and bool indicating insertion
 		 */
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> emplace( char* key );
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> emplace( char* key );
 
 		/**
 		 * @brief Heterogeneous emplace for string_view
 		 * @param key String view key
 		 * @return Pair of iterator and bool indicating insertion
 		 */
-		NFX_CORE_INLINE std::pair<typename Base::iterator, bool> emplace( std::string_view key );
+		NFX_META_INLINE std::pair<typename Base::iterator, bool> emplace( std::string_view key );
 
 		//----------------------------------------------
 		// C++20-style contains() method
@@ -187,28 +187,28 @@ namespace nfx::containers
 		 * @param key C-string key
 		 * @return True if key exists
 		 */
-		NFX_CORE_INLINE bool contains( const char* key ) const noexcept;
+		NFX_META_INLINE bool contains( const char* key ) const noexcept;
 
 		/**
 		 * @brief Check if set contains key (char*)
 		 * @param key Mutable C-string key
 		 * @return True if key exists
 		 */
-		NFX_CORE_INLINE bool contains( char* key ) const noexcept;
+		NFX_META_INLINE bool contains( char* key ) const noexcept;
 
 		/**
 		 * @brief Check if set contains key (std::string)
 		 * @param key String key
 		 * @return True if key exists
 		 */
-		NFX_CORE_INLINE bool contains( const std::string& key ) const noexcept;
+		NFX_META_INLINE bool contains( const std::string& key ) const noexcept;
 
 		/**
 		 * @brief Check if set contains key (string_view)
 		 * @param key String view key
 		 * @return True if key exists
 		 */
-		NFX_CORE_INLINE bool contains( std::string_view key ) const noexcept;
+		NFX_META_INLINE bool contains( std::string_view key ) const noexcept;
 	};
 } // namespace nfx::containers
 

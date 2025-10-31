@@ -26,7 +26,7 @@ cmake-build-*/
 _build/
 .deps/
 version.rc
-nfxCoreVersion.rc
+nfxMetaVersion.rc
 
 # Compiled Object files
 *.slo
@@ -84,6 +84,6 @@ coverage/
 *.log
 
 # Project-specific build artifacts
-nfx-core*/
+nfx-meta*/
 lib/
 tests/TESTS_*[1]_*

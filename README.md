@@ -2,13 +2,13 @@
 
 <!-- Project Info -->
 
-[![License](https://img.shields.io/github/license/ronan-fdev/nfx-core?style=flat-square)](https://github.com/ronan-fdev/nfx-core/blob/main/LICENSE)<br/>
+[![License](https://img.shields.io/github/license/ronan-fdev/nfx-meta?style=flat-square)](https://github.com/ronan-fdev/nfx-meta/blob/main/LICENSE)<br/>
 
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue?style=flat-square)](#) [![CMake](https://img.shields.io/badge/CMake-3.20+-green.svg?style=flat-square)](#) [![Cross Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey?style=flat-square)](#) <br/>
 
 <!-- CI/CD Status -->
 
-[![Linux GCC](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-linux-gcc.yml?branch=main&label=Linux%20GCC&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-linux-gcc.yml) [![Linux Clang](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-linux-clang.yml?branch=main&label=Linux%20Clang&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-linux-clang.yml) [![Windows MinGW](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-windows-mingw.yml?branch=main&label=Windows%20MinGW&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-windows-mingw.yml) [![Windows MSVC](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-core/build-windows-msvc.yml?branch=main&label=Windows%20MSVC&style=flat-square)](https://github.com/ronan-fdev/nfx-core/actions/workflows/build-windows-msvc.yml)
+[![Linux GCC](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-meta/build-linux-gcc.yml?branch=main&label=Linux%20GCC&style=flat-square)](https://github.com/ronan-fdev/nfx-meta/actions/workflows/build-linux-gcc.yml) [![Linux Clang](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-meta/build-linux-clang.yml?branch=main&label=Linux%20Clang&style=flat-square)](https://github.com/ronan-fdev/nfx-meta/actions/workflows/build-linux-clang.yml) [![Windows MinGW](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-meta/build-windows-mingw.yml?branch=main&label=Windows%20MinGW&style=flat-square)](https://github.com/ronan-fdev/nfx-meta/actions/workflows/build-windows-mingw.yml) [![Windows MSVC](https://img.shields.io/github/actions/workflow/status/ronan-fdev/nfx-meta/build-windows-msvc.yml?branch=main&label=Windows%20MSVC&style=flat-square)](https://github.com/ronan-fdev/nfx-meta/actions/workflows/build-windows-msvc.yml)
 
 > A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, and JSON serialization.
 
@@ -76,35 +76,35 @@ The library supports modular compilation through CMake options:
 
 ```cmake
 # Library build types
-option(NFX_CORE_BUILD_STATIC         "Build static library"                ON  )
-option(NFX_CORE_BUILD_SHARED         "Build shared library"                OFF )
+option(NFX_META_BUILD_STATIC         "Build static library"                ON  )
+option(NFX_META_BUILD_SHARED         "Build shared library"                OFF )
 
 # Build optimization
-option(NFX_CORE_USE_CACHE            "Enable compiler cache"               ON  )
+option(NFX_META_USE_CACHE            "Enable compiler cache"               ON  )
 
 # Components
-option(NFX_CORE_WITH_CONTAINERS      "Enable container utilities"          ON  )
-option(NFX_CORE_WITH_DATATYPES       "Enable mathematical datatypes"       ON  )
-option(NFX_CORE_WITH_MEMORY          "Enable memory management utilities"  ON  )
-option(NFX_CORE_WITH_JSON            "Enable JSON serialization support"   ON  )
-option(NFX_CORE_WITH_STRING          "Enable string utilities"             ON  )
-option(NFX_CORE_WITH_TIME            "Enable temporal classes"             ON  )
+option(NFX_META_WITH_CONTAINERS      "Enable container utilities"          ON  )
+option(NFX_META_WITH_DATATYPES       "Enable mathematical datatypes"       ON  )
+option(NFX_META_WITH_MEMORY          "Enable memory management utilities"  ON  )
+option(NFX_META_WITH_JSON            "Enable JSON serialization support"   ON  )
+option(NFX_META_WITH_STRING          "Enable string utilities"             ON  )
+option(NFX_META_WITH_TIME            "Enable temporal classes"             ON  )
 
 # Development (automatically enabled for standalone builds, disabled for submodule usage)
-option(NFX_CORE_BUILD_TESTS          "Build tests"                         AUTO )
-option(NFX_CORE_BUILD_SAMPLES        "Build samples"                       AUTO )
-option(NFX_CORE_BUILD_BENCHMARKS     "Build benchmarks"                    AUTO )
-option(NFX_CORE_BUILD_DOCUMENTATION  "Build Doxygen documentation"         AUTO )
+option(NFX_META_BUILD_TESTS          "Build tests"                         AUTO )
+option(NFX_META_BUILD_SAMPLES        "Build samples"                       AUTO )
+option(NFX_META_BUILD_BENCHMARKS     "Build benchmarks"                    AUTO )
+option(NFX_META_BUILD_DOCUMENTATION  "Build Doxygen documentation"         AUTO )
 
 # Installation (automatically enabled for standalone builds)
-option(NFX_CORE_INSTALL_PROJECT      "Install project"                     AUTO )
+option(NFX_META_INSTALL_PROJECT      "Install project"                     AUTO )
 
 # Packaging (automatically enabled for standalone builds)
-option(NFX_CORE_PACKAGE_SOURCE       "Enable source package generation"    AUTO )
-option(NFX_CORE_PACKAGE_ARCHIVE      "Enable TGZ/ZIP package generation"   AUTO )
-option(NFX_CORE_PACKAGE_DEB          "Enable DEB package generation"       AUTO )
-option(NFX_CORE_PACKAGE_RPM          "Enable RPM package generation"       AUTO )
-option(NFX_CORE_PACKAGE_NSIS         "Enable NSIS Windows installer"       AUTO )
+option(NFX_META_PACKAGE_SOURCE       "Enable source package generation"    AUTO )
+option(NFX_META_PACKAGE_ARCHIVE      "Enable TGZ/ZIP package generation"   AUTO )
+option(NFX_META_PACKAGE_DEB          "Enable DEB package generation"       AUTO )
+option(NFX_META_PACKAGE_RPM          "Enable RPM package generation"       AUTO )
+option(NFX_META_PACKAGE_NSIS         "Enable NSIS Windows installer"       AUTO )
 ```
 
 ### Using in Your Project
@@ -114,17 +114,17 @@ option(NFX_CORE_PACKAGE_NSIS         "Enable NSIS Windows installer"       AUTO 
 ```cmake
 include(FetchContent)
 FetchContent_Declare(
-  nfx-core
-  GIT_REPOSITORY https://github.com/ronan-fdev/nfx-core.git
+  nfx-meta
+  GIT_REPOSITORY https://github.com/ronan-fdev/nfx-meta.git
   GIT_TAG        main
 )
-FetchContent_MakeAvailable(nfx-core)
+FetchContent_MakeAvailable(nfx-meta)
 
 # Link with static library (recommended for most use cases)
-target_link_libraries(your_target nfx-core::static)
+target_link_libraries(your_target nfx-meta::static)
 
 # Or link with shared library
-# target_link_libraries(your_target nfx-core::nfx-core)
+# target_link_libraries(your_target nfx-meta::nfx-meta)
 ```
 
 #### Option 2: As a Git Submodule
@@ -133,8 +133,8 @@ target_link_libraries(your_target nfx-core::static)
 
 ```bash
 # From your project root directory
-git submodule add https://github.com/ronan-fdev/nfx-core.git third-party/nfx-core
-git commit -m "Add nfx-core as submodule"
+git submodule add https://github.com/ronan-fdev/nfx-meta.git third-party/nfx-meta
+git commit -m "Add nfx-meta as submodule"
 ```
 
 **CMakeLists.txt:**
@@ -143,10 +143,10 @@ git commit -m "Add nfx-core as submodule"
 # Add NFX-Core as a subdirectory
 # Note: Development features (tests, samples, benchmarks, docs, packaging)
 # are automatically disabled when used as a submodule
-add_subdirectory(third-party/nfx-core)
+add_subdirectory(third-party/nfx-meta)
 
 # Link with the library
-target_link_libraries(your_target nfx-core::static)
+target_link_libraries(your_target nfx-meta::static)
 ```
 
 **Clone/Update Commands:**
@@ -160,11 +160,11 @@ git clone --recursive https://github.com/YOUR-USERNAME/YOUR-PROJECT.git
 git submodule update --init --recursive
 
 # To update the submodule to latest version
-cd third-party/nfx-core
+cd third-party/nfx-meta
 git pull origin main
 cd ../..
-git add third-party/nfx-core
-git commit -m "Update nfx-core submodule"
+git add third-party/nfx-meta
+git commit -m "Update nfx-meta submodule"
 ```
 
 **Automatic Development Feature Disabling:**
@@ -180,19 +180,19 @@ When used as a submodule, these features are **automatically disabled**:
 
 - Tests, samples, benchmarks, documentation generation
 - Installation targets and package generation
-- Only the core library targets (`nfx-core::static`, `nfx-core::nfx-core`) are built
+- Only the core library targets (`nfx-meta::static`, `nfx-meta::nfx-meta`) are built
 
 #### Option 3: Using find_package (for installed libraries)
 
 ```cmake
 # Find the installed NFX-Core library
-find_package(nfx-core REQUIRED)
+find_package(nfx-meta REQUIRED)
 
 # Link with static library (recommended for most use cases)
-target_link_libraries(your_target nfx-core::static)
+target_link_libraries(your_target nfx-meta::static)
 
 # Or link with shared library
-# target_link_libraries(your_target nfx-core::nfx-core)
+# target_link_libraries(your_target nfx-meta::nfx-meta)
 ```
 
 #### Integration Method Comparison
@@ -207,8 +207,8 @@ target_link_libraries(your_target nfx-core::static)
 
 ```bash
 # Clone the repository
-git clone https://github.com/ronan-fdev/nfx-core.git
-cd nfx-core
+git clone https://github.com/ronan-fdev/nfx-meta.git
+cd nfx-meta
 
 # Create build directory
 mkdir build && cd build
@@ -231,12 +231,12 @@ NFX-Core includes comprehensive API documentation generated with Doxygen.
 
 ```bash
 # Configure with documentation enabled
-cmake .. -DCMAKE_BUILD_TYPE=Release -DNFX_CORE_BUILD_DOCUMENTATION=ON
+cmake .. -DCMAKE_BUILD_TYPE=Release -DNFX_META_BUILD_DOCUMENTATION=ON
 
 # Build the documentation
 cmake --build . --target documentation
 
-# Documentation will be generated in build/nfx-core-{version}/{compiler}/Release/doc/html/
+# Documentation will be generated in build/nfx-meta-{version}/{compiler}/Release/doc/html/
 ```
 
 #### Requirements
@@ -250,11 +250,11 @@ After building, open the documentation in your browser:
 
 ```bash
 # Linux
-xdg-open build/nfx-core-*/*/Release/doc/html/index.html     # Most Linux systems
-firefox build/nfx-core-*/*/Release/doc/html/index.html      # If Firefox is installed
+xdg-open build/nfx-meta-*/*/Release/doc/html/index.html     # Most Linux systems
+firefox build/nfx-meta-*/*/Release/doc/html/index.html      # If Firefox is installed
 
 # Windows
-start build/nfx-core-*/*/Release/doc/html/index.html
+start build/nfx-meta-*/*/Release/doc/html/index.html
 ```
 
 ## Installation & Packaging
@@ -268,13 +268,13 @@ The library supports generating packages in multiple formats:
 ```bash
 # Configure with packaging options (including both static and shared libraries)
 cmake .. -DCMAKE_BUILD_TYPE=Release \
-         -DNFX_CORE_BUILD_STATIC=ON \
-         -DNFX_CORE_BUILD_SHARED=ON \
-         -DNFX_CORE_PACKAGE_ARCHIVE=ON \
-         -DNFX_CORE_PACKAGE_DEB=ON \
-         -DNFX_CORE_PACKAGE_RPM=ON \
-         -DNFX_CORE_PACKAGE_NSIS=ON \
-         -DNFX_CORE_PACKAGE_SOURCE=ON
+         -DNFX_META_BUILD_STATIC=ON \
+         -DNFX_META_BUILD_SHARED=ON \
+         -DNFX_META_PACKAGE_ARCHIVE=ON \
+         -DNFX_META_PACKAGE_DEB=ON \
+         -DNFX_META_PACKAGE_RPM=ON \
+         -DNFX_META_PACKAGE_NSIS=ON \
+         -DNFX_META_PACKAGE_SOURCE=ON
 
 # Generate binary packages
 cmake --build . --target package
@@ -300,11 +300,11 @@ Control which packages are generated with CMake options:
 
 ```cmake
 # Package generation control
-option(NFX_CORE_PACKAGE_ARCHIVE      "Generate TGZ/ZIP packages"          ON   )
-option(NFX_CORE_PACKAGE_DEB          "Generate DEB packages (Linux)"      ON   )
-option(NFX_CORE_PACKAGE_RPM          "Generate RPM packages (Linux)"      ON   )
-option(NFX_CORE_PACKAGE_NSIS         "Generate NSIS installer (Windows)"  ON   )
-option(NFX_CORE_PACKAGE_SOURCE       "Generate source packages"           ON   )
+option(NFX_META_PACKAGE_ARCHIVE      "Generate TGZ/ZIP packages"          ON   )
+option(NFX_META_PACKAGE_DEB          "Generate DEB packages (Linux)"      ON   )
+option(NFX_META_PACKAGE_RPM          "Generate RPM packages (Linux)"      ON   )
+option(NFX_META_PACKAGE_NSIS         "Generate NSIS installer (Windows)"  ON   )
+option(NFX_META_PACKAGE_SOURCE       "Generate source packages"           ON   )
 ```
 
 ### Linux Package Dependencies
@@ -332,21 +332,21 @@ The NSIS installer provides:
 
 ```bash
 # Linux (DEB-based systems)
-sudo dpkg -i nfx-core-*.deb
+sudo dpkg -i nfx-meta-*.deb
 sudo apt-get install -f  # Fix dependencies if needed
 
 # Linux (RPM-based systems)
-sudo rpm -ivh nfx-core-*.rpm
+sudo rpm -ivh nfx-meta-*.rpm
 
 # Windows
 # Run the .exe installer with administrator privileges
-nfx-core-*-win64.exe
+nfx-meta-*-win64.exe
 
 # Manual installation (all platforms)
 # Extract TGZ/ZIP to desired location
-tar -xzf nfx-core-*.tar.gz -C /usr/local/
+tar -xzf nfx-meta-*.tar.gz -C /usr/local/
 # or
-unzip nfx-core-*.zip -d "C:\Program Files\"
+unzip nfx-meta-*.zip -d "C:\Program Files\"
 ```
 
 ### Package Contents
@@ -462,13 +462,13 @@ The `samples/` directory contains comprehensive examples demonstrating all NFX-C
 To build and run samples:
 
 ```bash
-cmake .. -DCMAKE_BUILD_TYPE=Release -DNFX_CORE_BUILD_SAMPLES=ON
+cmake .. -DCMAKE_BUILD_TYPE=Release -DNFX_META_BUILD_SAMPLES=ON
 ```
 
 ## Project Structure
 
 ```
-nfx-core/
+nfx-meta/
 ├── benchmark/             # Performance benchmarks with Google Benchmark
 ├── cmake/                 # CMake modules and configuration
 ├── include/nfx/           # Public headers with .inl implementation files

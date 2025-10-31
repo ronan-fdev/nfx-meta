@@ -22,7 +22,7 @@
  * **License Compliance:**
  * This C++ adaptation is derivative work based on Vista.SDK's CHD implementation.
  * Original MIT License terms apply to the algorithmic foundation and design patterns.
- * C++ implementation additions and optimizations are part of nfx-core.
+ * C++ implementation additions and optimizations are part of nfx-meta.
  *
  * @see https://en.wikipedia.org/wiki/Perfect_hash_function#CHD_algorithm
  * @see Vista.SDK.Internal.ChdDictionary (original C# implementation)
@@ -140,8 +140,8 @@ namespace nfx::containers
 	 * @see https://en.wikipedia.org/wiki/Perfect_hash_function#CHD_algorithm
 	 */
 	template <typename TValue,
-		uint32_t FnvOffsetBasis = core::hashing::DEFAULT_FNV_OFFSET_BASIS,
-		uint32_t FnvPrime = core::hashing::DEFAULT_FNV_PRIME>
+		uint32_t FnvOffsetBasis = core::hashing::constants::DEFAULT_FNV_OFFSET_BASIS,
+		uint32_t FnvPrime = core::hashing::constants::DEFAULT_FNV_PRIME>
 	class ChdHashMap final
 	{
 	public:
@@ -249,7 +249,7 @@ namespace nfx::containers
 		 * @throws KeyNotFoundException if the `key` is not found in the dictionary or if the dictionary is empty.
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE TValue& operator[]( std::string_view key );
+		[[nodiscard]] NFX_META_INLINE TValue& operator[]( std::string_view key );
 
 		//----------------------------------------------
 		// Lookup methods
@@ -309,7 +309,7 @@ namespace nfx::containers
 		 * @return `true` if the `key` was found and `outValue` was updated, `false` otherwise.
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] NFX_CORE_INLINE bool tryGetValue( std::string_view key, TValue*& outValue ) noexcept;
+		[[nodiscard]] NFX_META_INLINE bool tryGetValue( std::string_view key, TValue*& outValue ) noexcept;
 
 		//----------------------------------------------
 		// Iteration
@@ -357,7 +357,7 @@ namespace nfx::containers
 		 * @return 32-bit hash value
 		 * @note This function is marked [[nodiscard]] - the return value should not be ignored
 		 */
-		[[nodiscard]] static NFX_CORE_INLINE uint32_t hash( std::string_view key ) noexcept;
+		[[nodiscard]] static NFX_META_INLINE uint32_t hash( std::string_view key ) noexcept;
 
 		//----------------------------------------------
 		// Exception classes

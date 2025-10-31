@@ -2,25 +2,25 @@ name: NFX Core - Linux GCC
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - 'include/**'
-      - 'src/**'
-      - 'test/**'
-      - 'samples/**'
-      - 'benchmark/**'
-      - 'CMakeLists.txt'
-      - '.github/workflows/build-linux-gcc.yml'
+      - "include/**"
+      - "src/**"
+      - "test/**"
+      - "samples/**"
+      - "benchmark/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/build-linux-gcc.yml"
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - 'include/**'
-      - 'src/**'
-      - 'test/**'
-      - 'samples/**'
-      - 'benchmark/**'
-      - 'CMakeLists.txt'
-      - '.github/workflows/build-linux-gcc.yml'
+      - "include/**"
+      - "src/**"
+      - "test/**"
+      - "samples/**"
+      - "benchmark/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/build-linux-gcc.yml"
 
 env:
   BUILD_TYPE: Release
@@ -34,58 +34,58 @@ jobs:
     name: Ubuntu GCC 14
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Cache CMake build
-      uses: actions/cache@v4
-      with:
-        path: |
-          build
-          ~/.cache/ccache
-        key: ${{ runner.os }}-gcc14-cmake-${{ hashFiles('**/CMakeLists.txt', 'include/**', 'src/**') }}
-        restore-keys: |
-          ${{ runner.os }}-gcc14-cmake-
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: |
+            build
+            ~/.cache/ccache
+          key: ${{ runner.os }}-gcc14-cmake-${{ hashFiles('**/CMakeLists.txt', 'include/**', 'src/**') }}
+          restore-keys: |
+            ${{ runner.os }}-gcc14-cmake-
 
-    - name: Set up build environment
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake ninja-build gcc-14 g++-14 ccache
+      - name: Set up build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build gcc-14 g++-14 ccache
 
-    - name: Set environment variables
-      run: |
-        echo "CC=ccache gcc-14" >> $GITHUB_ENV
-        echo "CXX=ccache g++-14" >> $GITHUB_ENV
-        echo "CCACHE_DIR=$HOME/.cache/ccache" >> $GITHUB_ENV
-        echo "CCACHE_COMPILERCHECK=content" >> $GITHUB_ENV
-        echo "CCACHE_COMPRESS=true" >> $GITHUB_ENV
-        echo "CCACHE_MAXSIZE=200M" >> $GITHUB_ENV
+      - name: Set environment variables
+        run: |
+          echo "CC=ccache gcc-14" >> $GITHUB_ENV
+          echo "CXX=ccache g++-14" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.cache/ccache" >> $GITHUB_ENV
+          echo "CCACHE_COMPILERCHECK=content" >> $GITHUB_ENV
+          echo "CCACHE_COMPRESS=true" >> $GITHUB_ENV
+          echo "CCACHE_MAXSIZE=200M" >> $GITHUB_ENV
 
-    - name: Setup ccache
-      run: |
-        ccache --zero-stats
-        ccache --show-config
+      - name: Setup ccache
+        run: |
+          ccache --zero-stats
+          ccache --show-config
 
-    - name: Configure CMake
-      run: |
-        cmake -B build \
-              -G "Unix Makefiles" \
-              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-              -DNFX_CORE_BUILD_STATIC=ON \
-              -DNFX_CORE_BUILD_SHARED=OFF \
-              -DNFX_CORE_BUILD_TESTS=ON \
-              -DNFX_CORE_BUILD_BENCHMARKS=OFF \
-              -DNFX_CORE_BUILD_SAMPLES=OFF \
-              -DNFX_CORE_BUILD_DOCUMENTATION=OFF
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+                -G "Unix Makefiles" \
+                -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+                -DNFX_META_BUILD_STATIC=ON \
+                -DNFX_META_BUILD_SHARED=OFF \
+                -DNFX_META_BUILD_TESTS=ON \
+                -DNFX_META_BUILD_BENCHMARKS=OFF \
+                -DNFX_META_BUILD_SAMPLES=OFF \
+                -DNFX_META_BUILD_DOCUMENTATION=OFF
 
-    - name: Build
-      run: cmake --build build --parallel
+      - name: Build
+        run: cmake --build build --parallel
 
-    - name: Test
-      working-directory: build
-      run: ctest --output-on-failure --parallel
+      - name: Test
+        working-directory: build
+        run: ctest --output-on-failure --parallel
 
-    - name: Show ccache statistics
-      run: ccache --show-stats
+      - name: Show ccache statistics
+        run: ccache --show-stats

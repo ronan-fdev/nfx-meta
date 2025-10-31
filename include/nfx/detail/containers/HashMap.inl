@@ -19,13 +19,13 @@ namespace nfx::containers
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::HashMap()
+	NFX_META_INLINE HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::HashMap()
 	{
 		m_buckets.resize( INITIAL_CAPACITY );
 	}
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::HashMap( size_t initialCapacity )
+	NFX_META_INLINE HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::HashMap( size_t initialCapacity )
 	{
 		size_t capacity{ 1 };
 		while ( capacity < initialCapacity )
@@ -43,7 +43,7 @@ namespace nfx::containers
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
 	template <typename KeyType>
-	NFX_CORE_INLINE bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::tryGetValue( const KeyType& key, TValue*& outValue ) noexcept
+	NFX_META_INLINE bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::tryGetValue( const KeyType& key, TValue*& outValue ) noexcept
 	{
 		const std::uint32_t hash{ static_cast<std::uint32_t>( m_hasher( key ) ) };
 
@@ -74,13 +74,13 @@ namespace nfx::containers
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE void HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::insertOrAssign( const TKey& key, TValue&& value )
+	NFX_META_INLINE void HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::insertOrAssign( const TKey& key, TValue&& value )
 	{
 		insertOrAssignInternal( key, std::forward<TValue>( value ) );
 	}
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE void HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::insertOrAssign( const TKey& key, const TValue& value )
+	NFX_META_INLINE void HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::insertOrAssign( const TKey& key, const TValue& value )
 	{
 		insertOrAssignInternal( key, value );
 	}
@@ -90,7 +90,7 @@ namespace nfx::containers
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE void HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::reserve( size_t minCapacity )
+	NFX_META_INLINE void HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::reserve( size_t minCapacity )
 	{
 		if ( minCapacity > m_capacity )
 		{
@@ -124,7 +124,7 @@ namespace nfx::containers
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
 	template <typename KeyType>
-	NFX_CORE_INLINE bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::erase( const KeyType& key ) noexcept
+	NFX_META_INLINE bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::erase( const KeyType& key ) noexcept
 	{
 		const std::uint32_t hash{ static_cast<std::uint32_t>( m_hasher( key ) ) };
 
@@ -151,19 +151,19 @@ namespace nfx::containers
 	//----------------------------------------------
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE size_t HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::size() const noexcept
+	NFX_META_INLINE size_t HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::size() const noexcept
 	{
 		return m_size;
 	}
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE size_t HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::capacity() const noexcept
+	NFX_META_INLINE size_t HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::capacity() const noexcept
 	{
 		return m_capacity;
 	}
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::isEmpty() const noexcept
+	NFX_META_INLINE bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::isEmpty() const noexcept
 	{
 		return m_size == 0;
 	}
@@ -227,7 +227,7 @@ namespace nfx::containers
 	}
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::shouldResize() const noexcept
+	NFX_META_INLINE bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::shouldResize() const noexcept
 	{
 		return ( m_size * 100 ) >= ( m_capacity * MAX_LOAD_FACTOR_PERCENT );
 	}
@@ -254,7 +254,7 @@ namespace nfx::containers
 	}
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE void HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::eraseAtPosition( size_t pos ) noexcept
+	NFX_META_INLINE void HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::eraseAtPosition( size_t pos ) noexcept
 	{
 		size_t nextPos{ ( pos + 1 ) & m_mask };
 
@@ -271,7 +271,7 @@ namespace nfx::containers
 
 	template <typename TKey, typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
 	template <typename KeyType1, typename KeyType2>
-	NFX_CORE_INLINE bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::keysEqual( const KeyType1& k1, const KeyType2& k2 ) const noexcept
+	NFX_META_INLINE bool HashMap<TKey, TValue, FnvOffsetBasis, FnvPrime>::keysEqual( const KeyType1& k1, const KeyType2& k2 ) const noexcept
 	{
 		if constexpr ( std::is_same_v<KeyType1, std::string> && std::is_same_v<KeyType2, std::string_view> )
 		{

@@ -87,31 +87,31 @@ namespace nfx::serialization::json
 		 * @brief Get the JSON path where validation failed
 		 * @return Path string (e.g., "/users/0/email")
 		 */
-		NFX_CORE_INLINE const std::string& path() const { return m_error.path; }
+		NFX_META_INLINE const std::string& path() const { return m_error.path; }
 
 		/**
 		 * @brief Get human-readable error message
 		 * @return Error description
 		 */
-		NFX_CORE_INLINE const std::string& message() const { return m_error.message; }
+		NFX_META_INLINE const std::string& message() const { return m_error.message; }
 
 		/**
 		 * @brief Get the constraint type that failed
 		 * @return Constraint name (e.g., "type", "minLength", "required")
 		 */
-		NFX_CORE_INLINE const std::string& constraint() const { return m_error.constraint; }
+		NFX_META_INLINE const std::string& constraint() const { return m_error.constraint; }
 
 		/**
 		 * @brief Get expected value or constraint
 		 * @return Expected value string, or empty if not applicable
 		 */
-		NFX_CORE_INLINE const std::string& expectedValue() const { return m_error.expectedValue; }
+		NFX_META_INLINE const std::string& expectedValue() const { return m_error.expectedValue; }
 
 		/**
 		 * @brief Get actual value found in document
 		 * @return Actual value string, or empty if not applicable
 		 */
-		NFX_CORE_INLINE const std::string& actualValue() const { return m_error.actualValue; }
+		NFX_META_INLINE const std::string& actualValue() const { return m_error.actualValue; }
 
 		/**
 		 * @brief Get formatted error string
@@ -167,19 +167,19 @@ namespace nfx::serialization::json
 		 * @brief Check if validation was successful
 		 * @return True if no validation errors, false otherwise
 		 */
-		NFX_CORE_INLINE bool isValid() const { return m_errors.empty(); }
+		NFX_META_INLINE bool isValid() const { return m_errors.empty(); }
 
 		/**
 		 * @brief Check if validation failed
 		 * @return True if validation errors exist, false otherwise
 		 */
-		NFX_CORE_INLINE bool hasErrors() const { return !m_errors.empty(); }
+		NFX_META_INLINE bool hasErrors() const { return !m_errors.empty(); }
 
 		/**
 		 * @brief Get number of validation errors
 		 * @return Count of validation errors found
 		 */
-		NFX_CORE_INLINE size_t errorCount() const { return m_errors.size(); }
+		NFX_META_INLINE size_t errorCount() const { return m_errors.size(); }
 
 		//----------------------------------------------
 		// Error access
@@ -189,7 +189,7 @@ namespace nfx::serialization::json
 		 * @brief Get all validation errors
 		 * @return Vector of validation errors
 		 */
-		NFX_CORE_INLINE const std::vector<ValidationError>& errors() const { return m_errors; }
+		NFX_META_INLINE const std::vector<ValidationError>& errors() const { return m_errors; }
 
 		/**
 		 * @brief Get validation error by index

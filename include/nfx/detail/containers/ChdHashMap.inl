@@ -15,7 +15,7 @@
  * **License Compliance:**
  * This implementation is derivative work based on Vista.SDK's CHD algorithm.
  * The original MIT License terms apply to the core algorithmic foundation.
- * C++ template adaptations and performance optimizations are part of nfx-core.
+ * C++ template adaptations and performance optimizations are part of nfx-meta.
  *
  * @see https://github.com/dnv-opensource/vista-sdk/blob/main/LICENSE (MIT License)
  */
@@ -175,7 +175,7 @@ namespace nfx::containers
 	//----------------------------------------------
 
 	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE TValue& ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::operator[]( std::string_view key )
+	NFX_META_INLINE TValue& ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::operator[]( std::string_view key )
 	{
 		if ( isEmpty() )
 		{
@@ -300,7 +300,7 @@ namespace nfx::containers
 	//----------------------------------------------
 
 	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE bool ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::tryGetValue( std::string_view key, TValue*& outValue ) noexcept
+	NFX_META_INLINE bool ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::tryGetValue( std::string_view key, TValue*& outValue ) noexcept
 	{
 		if ( isEmpty() )
 		{
@@ -371,7 +371,7 @@ namespace nfx::containers
 	//---------------------------
 
 	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	NFX_CORE_INLINE uint32_t ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::hash( std::string_view key ) noexcept
+	NFX_META_INLINE uint32_t ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>::hash( std::string_view key ) noexcept
 	{
 		return core::hashing::hashStringView<FnvOffsetBasis, FnvPrime>( key );
 	}

@@ -1,0 +1,143 @@
+#==============================================================================
+# NFX-Core CMake Package Configuration
+#==============================================================================
+
+@PACKAGE_INIT@
+
+# Version information
+set(nfx-meta_VERSION_MAJOR @NFX_META_VERSION_MAJOR@)
+set(nfx-meta_VERSION_MINOR @NFX_META_VERSION_MINOR@)
+set(nfx-meta_VERSION_PATCH @NFX_META_VERSION_PATCH@)
+set(nfx-meta_VERSION       @NFX_META_VERSION@)
+
+# Check for required components
+set(_nfx_core_supported_components
+    containers
+    datatypes
+    json
+    memory
+    string
+    time
+)
+
+foreach(_comp ${nfx-meta_FIND_COMPONENTS})
+    if(NOT _comp IN_LIST _nfx_core_supported_components)
+        set(nfx-meta_FOUND False)
+        set(nfx-meta_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
+        return()
+    endif()
+endforeach()
+
+# Find dependencies
+include(CMakeFindDependencyMacro)
+
+# DateTime support dependency (always required)
+find_dependency(nfx-datetime 1.0.0)
+
+# String utilities dependency (always required)
+find_dependency(nfx-stringutils 1.1.0)
+
+# String builder pool dependency (always required)
+find_dependency(nfx-stringbuilderpool 1.0.0)
+
+# Datatypes dependency (always required)
+find_dependency(nfx-datatypes 1.0.0)
+
+# Memory dependency (always required)
+find_dependency(nfx-lrucache 1.0.5)
+
+# JSON support dependency
+if("json" IN_LIST nfx-meta_FIND_COMPONENTS OR NOT nfx-meta_FIND_COMPONENTS)
+    find_dependency(nlohmann_json @NFX_META_NLOHMANN_JSON_MIN_VERSION@)
+endif()
+
+# Include the exported targets
+include(${CMAKE_CURRENT_LIST_DIR}/nfx-meta-targets.cmake)
+
+# Link external dependencies to nfx-meta targets
+# These were excluded from export to avoid transitive export issues
+if(TARGET nfx-meta::nfx-meta)
+    if(TARGET nfx-datetime::static)
+        target_link_libraries(nfx-meta::nfx-meta INTERFACE nfx-datetime::static)
+    elseif(TARGET nfx-datetime::nfx-datetime)
+        target_link_libraries(nfx-meta::nfx-meta INTERFACE nfx-datetime::nfx-datetime)
+    endif()
+    
+    if(TARGET nfx-stringutils::nfx-stringutils)
+        target_link_libraries(nfx-meta::nfx-meta INTERFACE nfx-stringutils::nfx-stringutils)
+    endif()
+
+    if(TARGET nfx-stringbuilderpool::static)
+        target_link_libraries(nfx-meta::nfx-meta INTERFACE nfx-stringbuilderpool::static)
+    elseif(TARGET nfx-stringbuilderpool::nfx-stringbuilderpool)
+        target_link_libraries(nfx-meta::nfx-meta INTERFACE nfx-stringbuilderpool::nfx-stringbuilderpool)
+    endif()
+    
+    if(TARGET nfx-datatypes::static)
+        target_link_libraries(nfx-meta::nfx-meta INTERFACE nfx-datatypes::static)
+    elseif(TARGET nfx-datatypes::nfx-datatypes)
+        target_link_libraries(nfx-meta::nfx-meta INTERFACE nfx-datatypes::nfx-datatypes)
+    endif()
+    
+    if(TARGET nfx-lrucache::nfx-lrucache)
+        target_link_libraries(nfx-meta::nfx-meta INTERFACE nfx-lrucache::nfx-lrucache)
+    endif()
+endif()
+
+if(TARGET nfx-meta::static)
+    if(TARGET nfx-datetime::static)
+        target_link_libraries(nfx-meta::static INTERFACE nfx-datetime::static)
+    elseif(TARGET nfx-datetime::nfx-datetime)
+        target_link_libraries(nfx-meta::static INTERFACE nfx-datetime::nfx-datetime)
+    endif()
+    
+    if(TARGET nfx-stringutils::nfx-stringutils)
+        target_link_libraries(nfx-meta::static INTERFACE nfx-stringutils::nfx-stringutils)
+    endif()
+    
+    if(TARGET nfx-stringbuilderpool::static)
+        target_link_libraries(nfx-meta::static INTERFACE nfx-stringbuilderpool::static)
+    elseif(TARGET nfx-stringbuilderpool::nfx-stringbuilderpool)
+        target_link_libraries(nfx-meta::static INTERFACE nfx-stringbuilderpool::nfx-stringbuilderpool)
+    endif()
+    
+    if(TARGET nfx-datatypes::static)
+        target_link_libraries(nfx-meta::static INTERFACE nfx-datatypes::static)
+    elseif(TARGET nfx-datatypes::nfx-datatypes)
+        target_link_libraries(nfx-meta::static INTERFACE nfx-datatypes::nfx-datatypes)
+    endif()
+    
+    if(TARGET nfx-lrucache::nfx-lrucache)
+        target_link_libraries(nfx-meta::static INTERFACE nfx-lrucache::nfx-lrucache)
+    endif()
+endif()
+
+# Set component-found variables
+foreach(_comp ${_nfx_core_supported_components})
+    set(nfx-meta_${_comp}_FOUND TRUE)
+endforeach()
+
+# Verify targets exist
+set(_nfx_core_targets_available)
+
+if(TARGET nfx-meta::nfx-meta)
+    list(APPEND _nfx_core_targets_available "nfx-meta::nfx-meta")
+endif()
+
+if(TARGET nfx-meta::static)  
+    list(APPEND _nfx_core_targets_available "nfx-meta::static")
+endif()
+
+if(NOT _nfx_core_targets_available)
+    set(nfx-meta_FOUND False)
+    set(nfx-meta_NOT_FOUND_MESSAGE "No nfx-meta targets found")
+    return()
+endif()
+
+# Success message
+if(NOT nfx-meta_FIND_QUIETLY)
+    message(STATUS "Found nfx-meta ${nfx-meta_VERSION}")
+    message(STATUS "Available targets: ${_nfx_core_targets_available}")
+endif()
+
+check_required_components(nfx-meta)

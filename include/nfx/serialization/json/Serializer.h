@@ -55,7 +55,7 @@ namespace nfx::serialization::json
 			 * @param other Options from another serializer type
 			 */
 			template <typename U>
-			NFX_CORE_INLINE void copyFrom( const typename Serializer<U>::Options& other );
+			NFX_META_INLINE void copyFrom( const typename Serializer<U>::Options& other );
 
 			/**
 			 * @brief Create Options with values copied from another serializer's options
@@ -64,7 +64,7 @@ namespace nfx::serialization::json
 			 * @return New Options instance with copied values
 			 */
 			template <typename U>
-			NFX_CORE_INLINE static Options createFrom( const typename Serializer<U>::Options& other );
+			NFX_META_INLINE static Options createFrom( const typename Serializer<U>::Options& other );
 		};
 
 		//----------------------------------------------
@@ -87,7 +87,7 @@ namespace nfx::serialization::json
 		 * @brief Constructor with options
 		 * @param options Serialization options to use
 		 */
-		NFX_CORE_INLINE explicit Serializer( const Options& options ) noexcept;
+		NFX_META_INLINE explicit Serializer( const Options& options ) noexcept;
 
 		//----------------------------------------------
 		// Options management
@@ -97,13 +97,13 @@ namespace nfx::serialization::json
 		 * @brief Get current serialization options
 		 * @return Current options
 		 */
-		NFX_CORE_INLINE const Options& options() const noexcept;
+		NFX_META_INLINE const Options& options() const noexcept;
 
 		/**
 		 * @brief Set serialization options
 		 * @param options New options to use
 		 */
-		NFX_CORE_INLINE void setOptions( const Options& options ) noexcept;
+		NFX_META_INLINE void setOptions( const Options& options ) noexcept;
 
 		//----------------------------------------------
 		// Static convenience serialization methods

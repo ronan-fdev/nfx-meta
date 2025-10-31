@@ -31,12 +31,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.7.0] - 2025-10-31
+
+### Changed
+
+#### Major Architecture Restructuring (Breaking Change)
+
+- **Project Rename**: `nfx-core` → `nfx-meta` for better semantic clarity
+
+  - Repository renamed to reflect its role as a meta-library aggregating specialized NFX components
+  - All CMake variables renamed: `NFX_CORE_*` → `NFX_META_*`
+  - All C++ macros renamed: `NFX_CORE_INLINE` → `NFX_META_INLINE`, `NFX_CORE_NO_UNIQUE_ADDRESS` → `NFX_META_NO_UNIQUE_ADDRESS`, etc.
+
+- **Core Utilities Externalization**: Moved low-level infrastructure to dedicated `nfx-core` repository
+
+  - Extracted core hashing functions (`CPU.h`, `Hashing.h`, `Hashing.inl`) to standalone `nfx-core` library
+  - `nfx-core` now serves as foundational dependency providing CPU feature detection and hash algorithms
+  - External dependency: `https://github.com/ronan-fdev/nfx-core.git` (main branch)
+  - Hash constants moved to `core::hashing::constants::*` namespace for better organization
+
+**BREAKING CHANGES**:
+
+- Project name changed from `nfx-core` to `nfx-meta` - update all package references
+- All `NFX_CORE_*` CMake variables renamed to `NFX_META_*`
+- All `NFX_CORE_*` C++ macros renamed to `NFX_META_*`
+- Core hashing utilities moved to external `nfx-core` dependency - update includes from `nfx/core/` if used directly
+- Hash constants now accessed via `core::hashing::constants::*` namespace
+
 ## [0.6.0] - 2025-10-31
 
 ### Changed
 
-- **String Builder Module Migration**: Moved StringBuilderPool to external dependency `nfx-stringbuilderpool`
-  - String builder pool now available as optional external dependency via `NFX_CORE_WITH_STRING` option
+- **External Dependency Updates**: Updated external library dependencies to latest versions
+  - `nfx-stringuti  - String builder pool now available as optional external dependency via `NFX_CORE_WITH_STRING` option
   - External dependency: `https://github.com/ronan-fdev/nfx-stringbuilderpool.git` (v1.0.0)
 
 ## [0.5.9] - 2025-10-30

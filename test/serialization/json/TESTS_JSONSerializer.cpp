@@ -311,7 +311,7 @@ namespace nfx::serialization::json::test
 		{
 			std::vector<std::pair<std::string, std::string>> items{
 				{ "language", "C++" },
-				{ "library", "nfx-core" },
+				{ "library", "nfx-meta" },
 				{ "feature", "JSON serialization" } };
 			ChdHashMap<std::string> original( std::move( items ) );
 
@@ -1328,7 +1328,7 @@ namespace nfx::serialization::json::test
 				items.emplace_back( std::move( key ), i * i );
 			}
 
-			using StressChdHashMap = ChdHashMap<int, core::hashing::DEFAULT_FNV_OFFSET_BASIS, core::hashing::DEFAULT_FNV_PRIME>;
+			using StressChdHashMap = ChdHashMap<int, core::hashing::constants::DEFAULT_FNV_OFFSET_BASIS, core::hashing::constants::DEFAULT_FNV_PRIME>;
 			StressChdHashMap largeMap( std::move( items ), 500 );
 			testRoundTrip( largeMap );
 		}
