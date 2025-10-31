@@ -59,12 +59,6 @@ if(NFX_CORE_WITH_JSON)
 	)
 endif()
 
-if(NFX_CORE_WITH_STRING)
-	list(APPEND TEST_SOURCES
-		string/TESTS_StringBuilderPool.cpp
-	)
-endif()
-
 #----------------------------------------------
 # Configure test executables
 #----------------------------------------------

@@ -84,44 +84,6 @@ if(NFX_CORE_WITH_JSON)
 	)
 endif()
 
-# --- String components ---
-if(NFX_CORE_WITH_STRING)
-	list(APPEND PUBLIC_HEADERS
-		# --- String processing headers ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/string/StringBuilderPool.h
-
-		# --- String processing implementations ---
-		${NFX_CORE_INCLUDE_DIR}/nfx/detail/string/StringBuilderPool.inl
-	)
-	list(APPEND PRIVATE_HEADERS
-		# --- String processing private headers ---
-		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBufferPool.h
-	)
-	list(APPEND PRIVATE_SOURCES
-		# --- String processing source files ---
-		${NFX_CORE_SOURCE_DIR}/string/DynamicStringBufferPool.cpp
-		${NFX_CORE_SOURCE_DIR}/string/StringBuilderPool.cpp
-	)
-endif()
-
-# --- Show what components are being built ---
-message(STATUS "Enabled components:")
-if(NFX_CORE_WITH_CONTAINERS)
-	message(STATUS "  - Containers (ChdHashMap, HashMap, StringMap, StringSet, StringFunctors)")
-endif()
-if(NFX_CORE_WITH_DATATYPES)
-	message(STATUS "  - Datatypes (Int128, Decimal)")
-endif()
-if(NFX_CORE_WITH_MEMORY)
-	message(STATUS "  - Memory (LruCache)")
-endif()
-if(NFX_CORE_WITH_STRING)
-	message(STATUS "  - String utilities (StringBuilderPool)")
-endif()
-if(NFX_CORE_WITH_JSON)
-    message(STATUS "  - Serialization (JSON Document)")
-endif()
-
 #----------------------------------------------
 # Library definition
 #----------------------------------------------
@@ -195,6 +157,11 @@ function(configure_target target_name)
 	if(NFX_CORE_WITH_STRING)
 		if(TARGET nfx-stringutils::nfx-stringutils)
 			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-stringutils::nfx-stringutils>)
+		endif()
+		if(TARGET nfx-stringbuilderpool::static)
+			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-stringbuilderpool::static>)
+		elseif(TARGET nfx-stringbuilderpool::nfx-stringbuilderpool)
+			target_link_libraries(${target_name} PUBLIC $<BUILD_INTERFACE:nfx-stringbuilderpool::nfx-stringbuilderpool>)
 		endif()
 	endif()
 

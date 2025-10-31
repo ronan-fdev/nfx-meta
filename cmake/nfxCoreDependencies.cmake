@@ -57,6 +57,12 @@ if(NFX_CORE_WITH_STRING)
 		GIT_TAG        1.1.0
 		GIT_SHALLOW    TRUE
 	)
+	FetchContent_Declare(
+		nfx-stringbuilderpool
+		GIT_REPOSITORY https://github.com/ronan-fdev/nfx-stringbuilderpool.git
+		GIT_TAG        1.0.0
+		GIT_SHALLOW    TRUE
+	)
 endif()
 
 if(NFX_CORE_WITH_DATATYPES)
@@ -158,7 +164,7 @@ if(NFX_CORE_WITH_TIME)
 endif()
 
 if(NFX_CORE_WITH_STRING)
-	FetchContent_MakeAvailable(nfx-stringutils)
+	FetchContent_MakeAvailable(nfx-stringutils nfx-stringbuilderpool)
 endif()
 
 if(NFX_CORE_WITH_DATATYPES)
@@ -197,20 +203,21 @@ endif()
 
 message(STATUS "NFX Dependencies:")
 if(NFX_CORE_WITH_TIME)
-	message(STATUS "  nfx-datetime      : ${NFX_DATETIME_VERSION}")
+	message(STATUS "  nfx-datetime         : ${NFX_DATETIME_VERSION}")
 endif()
 if(NFX_CORE_WITH_STRING)
-	message(STATUS "  nfx-stringutils   : ${NFX_STRINGUTILS_VERSION}")
+	message(STATUS "  nfx-stringutils      : ${NFX_STRINGUTILS_VERSION}")
+	message(STATUS "  nfx-stringbuilderpool: ${NFX_STRINGBUILDERPOOL_VERSION}")
 endif()
 if(NFX_CORE_WITH_DATATYPES)
-	message(STATUS "  nfx-datatypes     : ${NFX_DATATYPES_VERSION}")
+	message(STATUS "  nfx-datatypes        : ${NFX_DATATYPES_VERSION}")
 endif()
 if(NFX_CORE_WITH_MEMORY)
-	message(STATUS "  nfx-lrucache      : ${NFX_LRUCACHE_VERSION}")
+	message(STATUS "  nfx-lrucache         : ${NFX_LRUCACHE_VERSION}")
 endif()
 if(NFX_CORE_WITH_JSON)
 	if(nlohmann_json_FOUND)
-		message(STATUS "  nlohmann_json     : ${nlohmann_json_VERSION} (system)")
+		message(STATUS "  nlohmann_json        : ${nlohmann_json_VERSION} (system)")
 	else()
 		file(READ "${nlohmann_json_SOURCE_DIR}/single_include/nlohmann/json.hpp" NLOHMANN_JSON_HEADER)
 		string(REGEX MATCH "#define NLOHMANN_JSON_VERSION_MAJOR ([0-9]+)" _ "${NLOHMANN_JSON_HEADER}")
@@ -220,7 +227,7 @@ if(NFX_CORE_WITH_JSON)
 		string(REGEX MATCH "#define NLOHMANN_JSON_VERSION_PATCH ([0-9]+)" _ "${NLOHMANN_JSON_HEADER}")
 		set(NLOHMANN_JSON_VERSION_PATCH ${CMAKE_MATCH_1})
 		set(NLOHMANN_JSON_DETECTED_VERSION "${NLOHMANN_JSON_VERSION_MAJOR}.${NLOHMANN_JSON_VERSION_MINOR}.${NLOHMANN_JSON_VERSION_PATCH}")
-		message(STATUS "  nlohmann_json     : ${NLOHMANN_JSON_DETECTED_VERSION}")
+		message(STATUS "  nlohmann_json        : ${NLOHMANN_JSON_DETECTED_VERSION}")
 	endif()
 endif()
 

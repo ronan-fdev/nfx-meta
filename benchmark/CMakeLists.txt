@@ -33,12 +33,6 @@ if(NFX_CORE_WITH_CONTAINERS OR NFX_CORE_WITH_STRING OR NFX_CORE_WITH_DATATYPES)
 	)
 endif()
 
-if(NFX_CORE_WITH_STRING)
-	list(APPEND BENCHMARK_SOURCES
-		string/BM_StringBuilderPool.cpp
-	)
-endif()
-
 #----------------------------------------------
 # Configure benchmark executables
 #----------------------------------------------

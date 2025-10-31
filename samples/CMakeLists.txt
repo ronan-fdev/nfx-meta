@@ -34,12 +34,6 @@ if(NFX_CORE_WITH_JSON)
 	)
 endif()
 
-if(NFX_CORE_WITH_STRING)
-	list(APPEND SAMPLE_SOURCES
-		string/Sample_StringBuilder.cpp
-	)
-endif()
-
 #----------------------------------------------
 # Configure samples executables
 #----------------------------------------------

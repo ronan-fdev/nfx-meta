@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(nfx-core
-	VERSION 0.5.9
+	VERSION 0.6.0
 	DESCRIPTION "A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, and JSON serialization."
 	HOMEPAGE_URL "https://github.com/ronan-fdev/nfx-core"
 	LANGUAGES CXX
@@ -73,11 +73,11 @@ set(NFX_CORE_DEVELOPER_DEFAULT_DOCS        ${NFX_CORE_STANDALONE_PROJECT})
 
 # Override defaults for developer mode (library-focused development)
 if(NFX_CORE_DEVELOPER_MODE)
-	set(NFX_CORE_DEVELOPER_DEFAULT_SHARED      OFF )
+	set(NFX_CORE_DEVELOPER_DEFAULT_SHARED      ON )
 	set(NFX_CORE_DEVELOPER_DEFAULT_TESTS       ON  )
 	set(NFX_CORE_DEVELOPER_DEFAULT_SAMPLES     ON )
 	set(NFX_CORE_DEVELOPER_DEFAULT_BENCHMARKS  ON )
-	set(NFX_CORE_DEVELOPER_DEFAULT_DOCS        OFF )
+	set(NFX_CORE_DEVELOPER_DEFAULT_DOCS        OFF)
 endif()
 
 # --- Library build types ---

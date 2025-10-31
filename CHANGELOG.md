@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.6.0] - 2025-10-31
+
+### Changed
+
+- **String Builder Module Migration**: Moved StringBuilderPool to external dependency `nfx-stringbuilderpool`
+  - String builder pool now available as optional external dependency via `NFX_CORE_WITH_STRING` option
+  - External dependency: `https://github.com/ronan-fdev/nfx-stringbuilderpool.git` (v1.0.0)
+
 ## [0.5.9] - 2025-10-30
 
 ### Changed

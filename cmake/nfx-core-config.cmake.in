@@ -37,6 +37,9 @@ find_dependency(nfx-datetime 1.0.0)
 # String utilities dependency (always required)
 find_dependency(nfx-stringutils 1.1.0)
 
+# String builder pool dependency (always required)
+find_dependency(nfx-stringbuilderpool 1.0.0)
+
 # Datatypes dependency (always required)
 find_dependency(nfx-datatypes 1.0.0)
 
@@ -63,6 +66,12 @@ if(TARGET nfx-core::nfx-core)
     if(TARGET nfx-stringutils::nfx-stringutils)
         target_link_libraries(nfx-core::nfx-core INTERFACE nfx-stringutils::nfx-stringutils)
     endif()
+
+    if(TARGET nfx-stringbuilderpool::static)
+        target_link_libraries(nfx-core::nfx-core INTERFACE nfx-stringbuilderpool::static)
+    elseif(TARGET nfx-stringbuilderpool::nfx-stringbuilderpool)
+        target_link_libraries(nfx-core::nfx-core INTERFACE nfx-stringbuilderpool::nfx-stringbuilderpool)
+    endif()
     
     if(TARGET nfx-datatypes::static)
         target_link_libraries(nfx-core::nfx-core INTERFACE nfx-datatypes::static)
@@ -84,6 +93,12 @@ if(TARGET nfx-core::static)
     
     if(TARGET nfx-stringutils::nfx-stringutils)
         target_link_libraries(nfx-core::static INTERFACE nfx-stringutils::nfx-stringutils)
+    endif()
+    
+    if(TARGET nfx-stringbuilderpool::static)
+        target_link_libraries(nfx-core::static INTERFACE nfx-stringbuilderpool::static)
+    elseif(TARGET nfx-stringbuilderpool::nfx-stringbuilderpool)
+        target_link_libraries(nfx-core::static INTERFACE nfx-stringbuilderpool::nfx-stringbuilderpool)
     endif()
     
     if(TARGET nfx-datatypes::static)
