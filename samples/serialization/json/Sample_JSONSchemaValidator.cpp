@@ -187,7 +187,7 @@ void demonstrateErrorHandling()
 
 int main()
 {
-	std::cout << "NFX-Core JSON Schema Validation Samples" << std::endl;
+	std::cout << "nfx-meta JSON Schema Validation Samples" << std::endl;
 	std::cout << "=======================================" << std::endl;
 
 	try

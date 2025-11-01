@@ -378,7 +378,7 @@ void demonstrateRealWorldScenario()
 
 int main()
 {
-	std::cout << "NFX-Core JSON Pointer (RFC 6901) Samples" << std::endl;
+	std::cout << "nfx-meta JSON Pointer (RFC 6901) Samples" << std::endl;
 	std::cout << "=========================================" << std::endl;
 
 	try

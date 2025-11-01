@@ -31,6 +31,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NIL
 
+## [0.8.0] - 2025-11-01
+
+### Changed
+
+#### Container Template Simplification (Breaking Change)
+
+- **Removed FnvPrime template parameter** from ChdHashMap and HashMap
+  - Before: `ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>`
+  - After: `ChdHashMap<TValue, FnvOffsetBasis>`
+  - FNV prime is now managed internally by nfx-core
+
+**BREAKING CHANGES**:
+
+- Code using custom FnvPrime values must remove the parameter
+- Update nfx-core dependency to 2.0.0 (breaking changes)
+
 ## [0.7.0] - 2025-10-31
 
 ### Changed

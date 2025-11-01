@@ -1,5 +1,5 @@
 #==============================================================================
-# NFX_META - Dependencies configuration
+# nfx-meta - Dependencies configuration
 #==============================================================================
 
 #----------------------------
@@ -44,8 +44,7 @@ set(NFX_META_BENCHMARK_MIN_VERSION      "1.9.1" )
 FetchContent_Declare(
 	nfx-core
 	GIT_REPOSITORY https://github.com/ronan-fdev/nfx-core.git
-	GIT_TAG        main
-	#GIT_TAG        1.0.0
+	GIT_TAG        2.0.0
 	GIT_SHALLOW    TRUE
 )
 
@@ -119,7 +118,7 @@ if(NFX_META_BUILD_TESTS)
 		set(GTEST_HAS_ABSL      OFF  CACHE BOOL  "Disable Abseil support in GoogleTest"  FORCE)
 
 		FetchContent_Declare(
-			googletest
+			googleTest
 			GIT_REPOSITORY https://github.com/google/googletest.git
 			GIT_TAG        v1.17.0
 			GIT_SHALLOW    TRUE
@@ -153,7 +152,7 @@ if(NFX_META_BUILD_BENCHMARKS)
 		set(ENABLE_ASSEMBLY_TESTS_DEFAULT    OFF  CACHE BOOL  "Enable assembly tests by default"               FORCE)
 
 		FetchContent_Declare(
-			googlebenchmark
+			googleBenchmark
 			GIT_REPOSITORY https://github.com/google/benchmark.git
 			GIT_TAG        v1.9.4
 			GIT_SHALLOW    TRUE
@@ -194,7 +193,7 @@ endif()
 if(NFX_META_BUILD_TESTS)
 	if(NOT GTest_FOUND)
 		FetchContent_MakeAvailable(
-			googletest
+			googleTest
 		)
 	endif()
 endif()
@@ -202,7 +201,7 @@ endif()
 if(NFX_META_BUILD_BENCHMARKS)
 	if(NOT benchmark_FOUND)
 		FetchContent_MakeAvailable(
-			googlebenchmark
+			googleBenchmark
 		)
 	endif()
 endif()

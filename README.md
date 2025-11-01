@@ -1,4 +1,4 @@
-# NFX-Core
+# nfx-meta
 
 <!-- Project Info -->
 
@@ -17,7 +17,7 @@
 
 ## Overview
 
-NFX-Core is a modular C++20 library designed to provide robust components for applications requiring precise calculations, efficient string processing, and optimized data structures.
+nfx-meta is a modular C++20 library designed to provide robust components for applications requiring precise calculations, efficient string processing, and optimized data structures.
 Originally developed as foundational infrastructure for the C++ port of the [DNV Vista SDK](https://github.com/dnv-opensource/vista-sdk).
 
 ## Features
@@ -140,7 +140,7 @@ git commit -m "Add nfx-meta as submodule"
 **CMakeLists.txt:**
 
 ```cmake
-# Add NFX-Core as a subdirectory
+# Add nfx-meta as a subdirectory
 # Note: Development features (tests, samples, benchmarks, docs, packaging)
 # are automatically disabled when used as a submodule
 add_subdirectory(third-party/nfx-meta)
@@ -169,11 +169,11 @@ git commit -m "Update nfx-meta submodule"
 
 **Automatic Development Feature Disabling:**
 
-NFX-Core automatically detects when it's used as a submodule and disables development features:
+nfx-meta automatically detects when it's used as a submodule and disables development features:
 
-NFX-Core automatically detects its usage context and adjusts build behavior accordingly:
+nfx-meta automatically detects its usage context and adjusts build behavior accordingly:
 
-- **Standalone builds**: When building NFX-Core directly, all development features are enabled by default (tests, samples, benchmarks, documentation, packaging)
+- **Standalone builds**: When building nfx-meta directly, all development features are enabled by default (tests, samples, benchmarks, documentation, packaging)
 - **Submodule/FetchContent usage**: When used as a dependency, only the core library is built to avoid cluttering the parent project
 
 When used as a submodule, these features are **automatically disabled**:
@@ -185,7 +185,7 @@ When used as a submodule, these features are **automatically disabled**:
 #### Option 3: Using find_package (for installed libraries)
 
 ```cmake
-# Find the installed NFX-Core library
+# Find the installed nfx-meta library
 find_package(nfx-meta REQUIRED)
 
 # Link with static library (recommended for most use cases)
@@ -225,7 +225,7 @@ ctest -C Release
 
 ### Documentation
 
-NFX-Core includes comprehensive API documentation generated with Doxygen.
+nfx-meta includes comprehensive API documentation generated with Doxygen.
 
 #### Building Documentation
 
@@ -259,7 +259,7 @@ start build/nfx-meta-*/*/Release/doc/html/index.html
 
 ## Installation & Packaging
 
-NFX-Core provides comprehensive packaging options for distribution across multiple platforms and package managers.
+nfx-meta provides comprehensive packaging options for distribution across multiple platforms and package managers.
 
 ### Package Generation
 
@@ -457,7 +457,7 @@ int main()
 
 ### Sample Applications
 
-The `samples/` directory contains comprehensive examples demonstrating all NFX-Core features.
+The `samples/` directory contains comprehensive examples demonstrating all nfx-meta features.
 
 To build and run samples:
 
@@ -492,7 +492,7 @@ For detailed version history, feature additions, and breaking changes, see [CHAN
 
 ## Performance
 
-NFX-Core is designed with performance as a primary concern. For detailed performance metrics and benchmarking results, see [benchmark/README.md](benchmark/README.md).
+nfx-meta is designed with performance as a primary concern. For detailed performance metrics and benchmarking results, see [benchmark/README.md](benchmark/README.md).
 
 ### Zero-Copy Operations
 
@@ -519,7 +519,7 @@ NFX-Core is designed with performance as a primary concern. For detailed perform
 
 ## CPU Architecture Detection
 
-NFX-Core includes CPU feature detection to optimize performance across different hardware generations.
+nfx-meta includes CPU feature detection to optimize performance across different hardware generations.
 
 ### Build-Time CPU Detection
 

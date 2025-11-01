@@ -330,7 +330,7 @@ namespace nfx::containers
 		 *          and proper integer mixing for optimal Robin Hood performance.
 		 *          Supports heterogeneous lookup while maintaining excellent hash distribution.
 		 */
-		NFX_META_NO_UNIQUE_ADDRESS HashMapHash<FnvOffsetBasis, FnvPrime> m_hasher;
+		NFX_META_NO_UNIQUE_ADDRESS HashMapHash<FnvOffsetBasis> m_hasher;
 
 		//----------------------------------------------
 		// Internal implementation

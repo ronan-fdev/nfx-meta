@@ -298,7 +298,7 @@ namespace nfx::serialization::json::test
 
 		// Test ChdHashMap with custom FNV parameters
 		{
-			using CustomChdHashMap = ChdHashMap<int, 0x12345678, 0x87654321>;
+			using CustomChdHashMap = ChdHashMap<int, 0x12345678>;
 			std::vector<std::pair<std::string, int>> items{
 				{ "custom1", 100 },
 				{ "custom2", 200 },
@@ -1328,16 +1328,16 @@ namespace nfx::serialization::json::test
 				items.emplace_back( std::move( key ), i * i );
 			}
 
-			using StressChdHashMap = ChdHashMap<int, core::hashing::constants::DEFAULT_FNV_OFFSET_BASIS, core::hashing::constants::DEFAULT_FNV_PRIME>;
+			using StressChdHashMap = ChdHashMap<int, core::hashing::constants::DEFAULT_FNV_OFFSET_BASIS>;
 			StressChdHashMap largeMap( std::move( items ), 500 );
 			testRoundTrip( largeMap );
 		}
 
 		// Test 12: ChdHashMap with custom FNV parameters and constructor seed search multipliers
 		{
-			using CustomChdHashMap1 = ChdHashMap<std::string, 0x00000000, 0x00000001>; // Minimal FNV values
-			using CustomChdHashMap2 = ChdHashMap<std::string, 0xFFFFFFFF, 0xFFFFFFFF>; // Maximum FNV values
-			using CustomChdHashMap3 = ChdHashMap<std::string, 0x12345678, 0x87654321>; // Mixed FNV values
+			using CustomChdHashMap1 = ChdHashMap<std::string, 0x00000000>; // Minimal FNV values
+			using CustomChdHashMap2 = ChdHashMap<std::string, 0xFFFFFFFF>; // Maximum FNV values
+			using CustomChdHashMap3 = ChdHashMap<std::string, 0x12345678>; // Mixed FNV values
 
 			std::vector<std::pair<std::string, std::string>> testItems{
 				{ "test1", "value1" },

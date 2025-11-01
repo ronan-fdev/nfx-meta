@@ -1,5 +1,5 @@
 #==============================================================================
-# NFX_META - Top-level CMake configuration
+# nfx-meta - Top-level CMake configuration
 #==============================================================================
 
 #----------------------------------------------
@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(nfx-meta
-	VERSION 0.7.0
+	VERSION 0.8.0
 	DESCRIPTION "A modern C++ utility library featuring cross-platform 128-bit arithmetic, zero-copy containers, advanced string processing, thread-safe memory caching, and JSON serialization."
 	HOMEPAGE_URL "https://github.com/ronan-fdev/nfx-meta"
 	LANGUAGES CXX

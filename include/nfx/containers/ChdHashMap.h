@@ -140,8 +140,7 @@ namespace nfx::containers
 	 * @see https://en.wikipedia.org/wiki/Perfect_hash_function#CHD_algorithm
 	 */
 	template <typename TValue,
-		uint32_t FnvOffsetBasis = core::hashing::constants::DEFAULT_FNV_OFFSET_BASIS,
-		uint32_t FnvPrime = core::hashing::constants::DEFAULT_FNV_PRIME>
+		uint32_t FnvOffsetBasis = core::hashing::constants::DEFAULT_FNV_OFFSET_BASIS>
 	class ChdHashMap final
 	{
 	public:

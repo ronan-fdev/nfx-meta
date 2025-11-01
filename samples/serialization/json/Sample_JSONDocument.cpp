@@ -385,7 +385,7 @@ void demonstrateErrorHandling()
 
 int main()
 {
-	std::cout << "NFX-Core JSON Document Serialization Samples" << std::endl;
+	std::cout << "nfx-meta JSON Document Serialization Samples" << std::endl;
 	std::cout << "=============================================" << std::endl;
 
 	try

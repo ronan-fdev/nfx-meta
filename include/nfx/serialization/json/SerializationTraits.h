@@ -326,15 +326,15 @@ namespace nfx::serialization::json
 	/**
 	 * @brief Specialization for nfx::containers::ChdHashMap
 	 */
-	template <typename TValue, uint32_t FnvOffsetBasis, uint32_t FnvPrime>
-	struct SerializationTraits<nfx::containers::ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>>
+	template <typename TValue, uint32_t FnvOffsetBasis>
+	struct SerializationTraits<nfx::containers::ChdHashMap<TValue, FnvOffsetBasis>>
 	{
 		/**
 		 * @brief Serialize ChdHashMap to JSON document as an object
 		 * @param obj The ChdHashMap object to serialize
 		 * @param doc The document to serialize into
 		 */
-		static void serialize( const nfx::containers::ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>& obj, Document& doc )
+		static void serialize( const nfx::containers::ChdHashMap<TValue, FnvOffsetBasis>& obj, Document& doc )
 		{
 			// Store CHD construction parameters for proper deserialization
 			doc.set<int64_t>( "/maxSeedSearchMultiplier", static_cast<int64_t>( obj.maxSeedSearchMultiplier() ) );
@@ -398,7 +398,7 @@ namespace nfx::serialization::json
 		 * @param obj The ChdHashMap object to deserialize into
 		 * @param doc The document to deserialize from
 		 */
-		static void deserialize( nfx::containers::ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>& obj, const Document& doc )
+		static void deserialize( nfx::containers::ChdHashMap<TValue, FnvOffsetBasis>& obj, const Document& doc )
 		{
 			if ( !doc.is<Document::Object>( "" ) )
 			{
@@ -454,7 +454,7 @@ namespace nfx::serialization::json
 				}
 			}
 
-			obj = nfx::containers::ChdHashMap<TValue, FnvOffsetBasis, FnvPrime>( std::move( items ), maxSeedSearchMultiplier );
+			obj = nfx::containers::ChdHashMap<TValue, FnvOffsetBasis>( std::move( items ), maxSeedSearchMultiplier );
 		}
 	};
 } // namespace nfx::serialization::json

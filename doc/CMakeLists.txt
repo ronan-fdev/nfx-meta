@@ -1,5 +1,5 @@
 #==============================================================================
-# NFX_META - C++ SDK Doxygen documentation
+# nfx-meta - C++ SDK Doxygen documentation
 #==============================================================================
 
 # --- Documentation condition check ---

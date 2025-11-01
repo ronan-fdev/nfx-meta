@@ -32,7 +32,7 @@ namespace nfx::containers
 	 * - Heterogeneous lookup: Supports string/string_view/const char*
 	 * - Zero allocation: No temporary string creation during lookups
 	 */
-	template <uint32_t FnvOffsetBasis, uint32_t FnvPrime>
+	template <uint32_t FnvOffsetBasis>
 	struct HashMapHash final
 	{
 		/**
